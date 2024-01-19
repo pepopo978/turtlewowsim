@@ -1,0 +1,557 @@
+import random
+from functools import partial
+
+
+class Mage:
+    ROTATIONS = [
+        'spam_fireballs',
+        'spam_scorch',
+        'spam_frostbolts',
+        'smart_scorch',
+        'smart_scorch_and_fireblast',
+        'one_scorch_then_fireballs',
+        'one_scorch_one_pyro_then_fb',
+        'one_scorch_one_frostbolt_then_fb'
+    ]
+
+    def __init__(self,
+                 name,
+                 sp,
+                 crit,
+                 hit,
+                 fire_blast_cooldown=8,
+                 env=None,
+                 firepower=True,
+                 dmf=False,
+                 imp_scorch=True,
+                 incineration=False,
+                 wc=False,
+                 ai=False,
+                 piercing_ice=True,
+                 fullt2=False,
+                 lag=0.1,
+                 haste=0,
+                 ):
+        self.env = env
+        self.name = name
+        self.sp = sp
+        self.crit = crit
+        self.hit = hit
+        self.firepower = firepower
+        self.dmf = dmf
+        self.imp_scorch = imp_scorch
+        self.incineration = incineration
+        self.fire_blast_cooldown = fire_blast_cooldown
+        self.dmg_modifier = 1
+        self.trinket_haste = 0
+        self.haste = haste
+        self.wc = wc
+        self.ai = ai
+        self.piercing_ice = piercing_ice
+        self.fullt2 = fullt2
+        self._t2proc = -1
+        self.sp_bonus = 0
+        self.combustion = Combustion(self)
+        self.ap = AP(self)
+        self.pi = PI(self)
+        self.toep = TOEP(self)
+        self.mqg = MQG(self)
+        self.fire_blast_remaining_cd = 0
+        self.lag = lag
+        self.maximize_ignite = False
+
+        if self.env:
+            self.env.mages.append(self)
+
+    def _random_delay(self, secs=2):
+        if secs:
+            delay = round(random.random() * secs, 2)
+            yield self.env.timeout(delay)
+
+    def _use_cds(self, **kwargs):
+        for name, time in kwargs.items():
+            cd = getattr(self, name)
+            if cd.usable and self.env.now >= time:
+                cd.activate()
+
+    def _spam_fireballs(self, delay=2, pyro_on_t2_proc=True, **cds):
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(**cds)
+            yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+
+    def _spam_frostbolts(self, delay=2, **cds):
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(**cds)
+            yield from self.frostbolt()
+
+    def _spam_scorch(self, delay=2, **cds):
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(**cds)
+            yield from self.scorch()
+
+    def _one_scorch_then_fireballs(self, delay=2, pyro_on_t2_proc=True, **cds):
+        """1 scorch then 9 fireballs rotation"""
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(**cds)
+            yield from self.scorch()
+            for _ in range(9):
+                self._use_cds(**cds)
+                yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+
+    def _smart_scorch(self, delay=2, pyro_on_t2_proc=True, **cds):
+        """Cast scorch if less than 5 imp scorch stacks or if 5 stack ignite (to keep it rolling) else cast fireball"""
+        yield from self._random_delay(delay)
+        while True:
+            self._use_cds(**cds)
+            if self.env.ignite.stacks == 5 and self.env.ignite.is_suboptimal():
+                # let ignite drop
+                yield from self.pyroblast()
+            elif self.env.debuffs.scorch_stacks < 5 or (self.env.ignite.stacks == 5 and self.maximize_ignite):
+                yield from self.scorch()
+            else:
+                # check if scorch about to fall off
+                if self.env.debuffs.scorch_timer <= 4.5:
+                    yield from self.scorch()
+                else:
+                    yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+
+    def _smart_scorch_and_fireblast(self, delay=2, pyro_on_t2_proc=True, **cds):
+        """Cast scorch if less than 5 imp scorch stacks or if 5 stack ignite (to keep it rolling) else cast fireball"""
+        yield from self._random_delay(delay)
+        while True:
+            self._use_cds(**cds)
+            if self.env.ignite.stacks == 5 and self.fire_blast_remaining_cd <= 0:
+                yield from self.fire_blast()
+                self.fire_blast_remaining_cd = self.fire_blast_cooldown - 1.5
+                # fire blast cd - gcd
+            elif self.env.debuffs.scorch_stacks < 5 or self.env.ignite.stacks == 5:
+                yield from self.scorch()
+                self.fire_blast_remaining_cd -= 1.5
+            else:
+                # check if scorch about to fall off
+                if self.env.debuffs.scorch_timer <= 5:
+                    yield from self.scorch()
+                    self.fire_blast_remaining_cd -= 1.5
+                else:
+                    yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+                    self.fire_blast_remaining_cd -= 3
+
+    def _one_scorch_one_pyro_then_fb(self, delay=1, pyro_on_t2_proc=True, **cds):
+        yield from self._random_delay(delay)
+
+        self._use_cds(**cds)
+        yield from self.scorch()
+        self._use_cds(**cds)
+        yield from self.pyroblast()
+        for _ in range(7):
+            self._use_cds(**cds)
+            yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+
+        yield from self._one_scorch_then_fireballs(delay=0, pyro_on_t2_proc=pyro_on_t2_proc, **cds)
+
+    def _rotationgetter(self, name, *args, **kwargs):
+        def callback(mage):
+            rotation = getattr(mage, '_' + name)
+            return rotation(*args, **kwargs)
+
+        self.rotation = callback
+
+    def __getattr__(self, name):
+        if name not in self.ROTATIONS:
+            return self.__getattribute__(name)
+
+        return partial(self._rotationgetter, name=name)
+
+    def _one_scorch_one_frostbolt_then_fb(self, delay=1, pyro_on_t2_proc=True, **cds):
+        yield from self._random_delay(delay)
+
+        self._use_cds(**cds)
+        yield from self.scorch()
+        self._use_cds(**cds)
+        yield from self.frostbolt()
+        for _ in range(8):
+            self._use_cds(**cds)
+            yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+
+        yield from self._one_scorch_then_fireballs(delay=0, pyro_on_t2_proc=pyro_on_t2_proc, **cds)
+
+    def print(self, msg):
+        self.env.p(f"{self.env.time()} - ({self.name}) {msg}")
+
+    def get_cast_time(self, base_cast_time):
+        haste_scaling_factor = 1 + (self.haste + self.trinket_haste) / 100
+
+        if base_cast_time and haste_scaling_factor:
+            return max(base_cast_time / haste_scaling_factor, 1.5)
+        else:
+            return base_cast_time
+
+
+    def fireball(self, pyro_on_t2_proc=False):
+        min_dmg = 561
+        max_dmg = 715
+        casting_time = 3
+
+        if pyro_on_t2_proc and self._t2proc >= 0:
+            yield self.env.timeout(0.05)  # small delay between spells
+            yield from self.pyroblast()
+        else:
+            yield from self._fire_spell(name='fireball', min_dmg=min_dmg, max_dmg=max_dmg, base_cast_time=casting_time)
+
+    def _fire_spell(self, name, min_dmg, max_dmg, base_cast_time, crit_modifier=0, cooldown=0):
+        casting_time = self.get_cast_time(base_cast_time)
+        if self._t2proc >= 0:
+            casting_time = 0
+            cooldown = 1.5
+            self._t2proc = -1
+            self.print("T2 proc used")
+        elif self._t2proc == 1:
+            self._t2proc = 0 # delay using t2 until next spell
+
+        hit_chance = min(83 + self.hit, 99)
+        hit = random.randint(1, 100) <= hit_chance
+
+        crit_chance = self.crit + crit_modifier + self.combustion.crit_bonus
+        crit = random.randint(1, 100) <= crit_chance
+
+        dmg = random.randint(min_dmg, max_dmg)
+        coeff = min(casting_time / 3.5, 1) if not (name == 'fireball' or name == 'pyroblast') else 1
+        dmg += (self.sp + self.sp_bonus) * coeff
+
+        if self.firepower:
+            dmg *= 1.1  # Fire Power
+        if self.ai:
+            dmg *= 1.03
+        if self.env.debuffs.coe:
+            dmg *= 1.1  # CoE
+        if self.dmf:
+            dmg *= 1.1
+
+        dmg *= 1 + self.env.debuffs.scorch_stacks * 0.03  # imp. scorch
+
+        dmg = int(dmg * self.dmg_modifier)
+        if casting_time:
+            yield self.env.timeout(casting_time + self.lag)
+
+        if not hit:
+            dmg = 0
+            self.print(f"{name} RESIST")
+            if self.combustion.active:
+                self.combustion.crit_bonus += 10
+        elif not crit:
+            self.print(f"{name} {dmg}")
+            if self.combustion.active:
+                self.combustion.crit_bonus += 10
+
+        else:
+            dmg = int(dmg * 1.5)
+            self.print(f"{name} **{dmg}**")
+            self.env.ignite.refresh(self, dmg, name)
+
+            if self.combustion.active:
+                self.combustion.charges -= 1
+                if self.combustion.charges == 0:
+                    self.combustion.crit_bonus = 0
+                    self.print("Combustion ended")
+
+        if name == 'fireball':
+            self.env.debuffs.fireball_dot(self)
+
+        if name == 'pyroblast':
+            self.env.debuffs.pyroblast_dot(self, self.sp)
+
+        if name == 'scorch' and self.imp_scorch and hit:
+            self.env.debuffs.scorch()
+
+        self.env.total_spell_dmg += dmg
+        self.env.meter.register(self, dmg)
+        if self.fullt2 and name == 'fireball':
+            if random.randint(1, 100) <= 10:
+                self._t2proc = 1
+                self.print("T2 proc")
+
+        # handle gcd
+        if cooldown:
+            yield self.env.timeout(cooldown + self.lag / 2)
+
+    def _frost_spell(self, name, min_dmg, max_dmg, base_cast_time, cooldown=0):
+        casting_time = self.get_cast_time(base_cast_time)
+        if self._t2proc == 0:
+            casting_time = 0
+            cooldown = 1.5
+            self._t2proc = -1
+            self.print("T2 proc used")
+        elif self._t2proc == 1:
+            self._t2proc = 0 # delay using t2 until next spell
+
+        hit_chance = min(83 + self.hit, 99)
+        hit = random.randint(1, 100) <= hit_chance
+
+        crit_chance = self.crit + self.env.debuffs.wc_stacks * 2
+        crit = random.randint(1, 100) <= crit_chance
+
+        dmg = random.randint(min_dmg, max_dmg)
+        coeff = min(casting_time / 3.5, 1) if not name == 'frostbolt' else 6 / 7
+        dmg += (self.sp + self.sp_bonus) * coeff
+
+        if self.piercing_ice:
+            dmg *= 1.06  # Piercing Ice
+        if self.ai:
+            dmg *= 1.03
+        if self.env.debuffs.coe:
+            dmg *= 1.1  # CoE
+        if self.dmf:
+            dmg *= 1.1
+
+        dmg = int(dmg * self.dmg_modifier)
+        yield self.env.timeout(casting_time)
+
+        if not hit:
+            dmg = 0
+            self.print(f"{name} RESIST")
+        elif not crit:
+            self.print(f"{name} {dmg}")
+
+        else:
+            dmg = int(dmg * 2)
+            self.print(f"{name} **{dmg}**")
+
+        if self.wc:
+            self.env.debuffs.wc()
+
+        self.env.meter.register(self, dmg)
+        if self.fullt2 and name == 'frostbolt':
+            if random.randint(1, 100) <= 10:
+                self._t2proc = 1
+                self.print("T2 proc")
+
+        # handle gcd
+        if cooldown:
+            yield self.env.timeout(cooldown + self.lag / 2)
+
+    def scorch(self):
+        min_dmg = 237
+        max_dmg = 280
+        casting_time = 1.5
+        crit_modifier = 4 if self.incineration else 0
+
+        yield from self._fire_spell(name='scorch', min_dmg=min_dmg, max_dmg=max_dmg, base_cast_time=casting_time,
+                                    crit_modifier=crit_modifier)
+
+    def fire_blast(self):
+        min_dmg = 431
+        max_dmg = 510
+        casting_time = 0
+        crit_modifier = 4 if self.incineration else 0
+
+        yield from self._fire_spell(name='fireblast', min_dmg=min_dmg, max_dmg=max_dmg, base_cast_time=casting_time,
+                                    crit_modifier=crit_modifier, cooldown=1.5)
+
+    def pyroblast(self, casting_time=6):
+        min_dmg = 716
+        max_dmg = 890
+
+        yield from self._fire_spell(name='pyroblast', min_dmg=min_dmg, max_dmg=max_dmg, base_cast_time=casting_time)
+
+    def frostbolt(self):
+        min_dmg = 440
+        max_dmg = 475
+        casting_time = 2.5
+
+        yield from self._frost_spell(name='frostbolt', min_dmg=min_dmg, max_dmg=max_dmg, casting_time=casting_time)
+
+
+class FireMage(Mage):
+    def __init__(self,
+                 name,
+                 sp,
+                 crit,
+                 hit,
+                 dmf=False,
+                 fire_blast_cooldown=6.5,
+                 maximize_ignite=False,
+                 **kwargs
+                 ):
+        super().__init__(
+            name=name,
+            sp=sp,
+            crit=crit,
+            hit=hit,
+            dmf=dmf,
+            firepower=True,
+            imp_scorch=True,
+            incineration=True,
+            wc=False,
+            ai=False,
+            piercing_ice=False,
+            fire_blast_cooldown=fire_blast_cooldown,
+            **kwargs
+        )
+        self.maximize_ignite = maximize_ignite
+
+
+class ApFrostMage(Mage):
+    def __init__(self,
+                 name,
+                 sp,
+                 crit,
+                 hit,
+                 dmf=False,
+                 **kwargs
+                 ):
+        super().__init__(
+            name=name,
+            sp=sp,
+            crit=crit,
+            hit=hit,
+            dmf=dmf,
+            firepower=False,
+            imp_scorch=False,
+            incineration=False,
+            wc=False,
+            ai=True,
+            piercing_ice=True,
+            **kwargs
+        )
+
+
+class WcMage(Mage):
+    def __init__(self,
+                 name,
+                 sp,
+                 crit,
+                 hit,
+                 dmf=False,
+                 **kwargs
+                 ):
+        super().__init__(
+            name=name,
+            sp=sp,
+            crit=crit,
+            hit=hit,
+            dmf=dmf,
+            firepower=False,
+            imp_scorch=False,
+            incineration=False,
+            wc=True,
+            ai=False,
+            piercing_ice=True,
+            **kwargs
+        )
+
+
+class Cooldown:
+    DURATION = NotImplemented
+
+    def __init__(self, mage):
+        self.mage = mage
+        self.active = False
+        self.used = False
+
+    @property
+    def usable(self):
+        return not self.active and not self.used
+
+    def activate(self):
+        raise NotImplementedError
+
+
+class AP(Cooldown):
+    DURATION = 15
+    DMG_MOD = 1.3
+
+    @property
+    def usable(self):
+        return not self.active and not self.used and not self.mage.pi.active
+
+    def activate(self):
+        self.mage.dmg_modifier = self.DMG_MOD
+        self.active = True
+        self.mage.print(self.__class__.__name__)
+
+        def callback(self):
+            yield self.mage.env.timeout(self.DURATION)
+            self.mage.dmg_modifier = 1
+            self.active = False
+            self.used = True
+
+        self.mage.env.process(callback(self))
+
+
+class Combustion(Cooldown):
+
+    def __init__(self, mage):
+        self.mage = mage
+        self.charges = 0
+        self.crit_bonus = 0
+        self.used = False
+
+    @property
+    def active(self):
+        return self.charges > 0
+
+    def activate(self):
+        self.mage.print("Combustion")
+        self.charges = 3
+        self.crit_bonus = 10
+        self.used = True
+
+
+class MQG(Cooldown):
+    DURATION = 20
+
+    @property
+    def usable(self):
+        return not self.active and not self.used and not self.mage.toep.active
+
+    def activate(self):
+        self.mage.trinket_haste = 33
+        self.active = True
+        self.mage.print("MQG")
+        self.used = True
+
+        def callback(self):
+            yield self.mage.env.timeout(self.DURATION)
+            self.mage.trinket_haste = 0
+            self.active = False
+
+        self.mage.env.process(callback(self))
+
+
+class PI(AP):
+    DURATION = 15
+    DMG_MOD = 1.2
+
+    @property
+    def usable(self):
+        return not self.active and not self.used and not self.mage.ap.active
+
+
+class TOEP(Cooldown):
+    DURATION = 15
+    DMG_BONUS = 175
+
+    @property
+    def usable(self):
+        return not self.active and not self.used and not self.mage.mqg.active
+
+    def activate(self):
+        self.mage.sp_bonus = 175
+        self.active = True
+        self.mage.print(self.__class__.__name__)
+        self.used = True
+
+        def callback(self):
+            yield self.mage.env.timeout(self.DURATION)
+            self.mage.sp_bonus = 0
+            self.active = False
+
+        self.mage.env.process(callback(self))
