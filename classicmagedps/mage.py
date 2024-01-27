@@ -1,6 +1,8 @@
 import random
 from functools import partial
 
+from classicmagedps.cooldowns import Combustion, ArcanePower, PowerInfusion, TOEP, MQG, PresenceOfMind
+
 
 class Mage:
     def __init__(self,
@@ -13,9 +15,9 @@ class Mage:
                  firepower=True,
                  dmf=False,
                  imp_scorch=True,
-                 incineration=False,
-                 wc=False,
-                 ai=False,
+                 incinerate=False,
+                 winters_chill=False,
+                 arcane_instability=False,
                  piercing_ice=True,
                  pyro_on_t2_proc=True,
                  fullt2=False,
@@ -30,20 +32,21 @@ class Mage:
         self.firepower = firepower
         self.dmf = dmf
         self.imp_scorch = imp_scorch
-        self.incineration = incineration
+        self.incineration = incinerate
         self.fire_blast_cooldown = fire_blast_cooldown
         self.dmg_modifier = 1
         self.trinket_haste = 0
         self.haste = haste
-        self.wc = wc
-        self.ai = ai
+        self.winters_chill = winters_chill
+        self.arcane_instability = arcane_instability
         self.piercing_ice = piercing_ice
         self.fullt2 = fullt2
         self._t2proc = -1
         self.sp_bonus = 0
         self.combustion = Combustion(self)
-        self.ap = AP(self)
-        self.pi = PI(self)
+        self.arcane_power = ArcanePower(self)
+        self.power_infusion = PowerInfusion(self)
+        self.presence_of_mind = PresenceOfMind(self)
         self.toep = TOEP(self)
         self.mqg = MQG(self)
         self.pyro_on_t2_proc = pyro_on_t2_proc
@@ -212,6 +215,11 @@ class Mage:
             self.env.p(f"{self.env.time()} - ({self.name}) {msg}")
 
     def get_cast_time(self, base_cast_time):
+        # check for pom
+        if self.presence_of_mind.active:
+            self.presence_of_mind.deactivate()
+            return 0
+
         trinket_haste = 1 + self.trinket_haste / 100
         gear_and_consume_haste = 1 + self.haste / 100
         haste_scaling_factor = trinket_haste * gear_and_consume_haste
@@ -236,16 +244,22 @@ class Mage:
         casting_time = self.get_cast_time(base_cast_time)
         if self._t2proc >= 0:
             casting_time = 0
-            cooldown = 1.5
             self._t2proc = -1
             self.print("T2 proc used")
         elif self._t2proc == 1:
             self._t2proc = 0  # delay using t2 until next spell
 
+        # account for gcd
+        if casting_time < 1.5:
+            cooldown = 1.5 - casting_time
+
         hit_chance = min(83 + self.hit, 99)
         hit = random.randint(1, 100) <= hit_chance
 
         crit_chance = self.crit + crit_modifier + self.combustion.crit_bonus
+        if self.arcane_instability:
+            crit_chance += 3
+
         crit = random.randint(1, 100) <= crit_chance
 
         dmg = random.randint(min_dmg, max_dmg)
@@ -254,7 +268,7 @@ class Mage:
 
         if self.firepower:
             dmg *= 1.1  # Fire Power
-        if self.ai:
+        if self.arcane_instability:
             dmg *= 1.03
         if self.env.debuffs.coe:
             dmg *= 1.1  # CoE
@@ -318,16 +332,22 @@ class Mage:
         casting_time = self.get_cast_time(base_cast_time)
         if self._t2proc == 0:
             casting_time = 0
-            cooldown = 1.5
             self._t2proc = -1
             self.print("T2 proc used")
         elif self._t2proc == 1:
             self._t2proc = 0  # delay using t2 until next spell
 
+        # account for gcd
+        if casting_time < 1.5:
+            cooldown = 1.5 - casting_time
+
         hit_chance = min(83 + self.hit, 99)
         hit = random.randint(1, 100) <= hit_chance
 
         crit_chance = self.crit + self.env.debuffs.wc_stacks * 2
+        if self.arcane_instability:
+            crit_chance += 3
+
         crit = random.randint(1, 100) <= crit_chance
 
         dmg = random.randint(min_dmg, max_dmg)
@@ -336,7 +356,7 @@ class Mage:
 
         if self.piercing_ice:
             dmg *= 1.06  # Piercing Ice
-        if self.ai:
+        if self.arcane_instability:
             dmg *= 1.03
         if self.env.debuffs.coe:
             dmg *= 1.1  # CoE
@@ -362,8 +382,8 @@ class Mage:
             dmg = int(dmg * 2)
             self.print(f"{name} {description} **{dmg}**")
 
-        if self.wc:
-            self.env.debuffs.wc()
+        if self.winters_chill:
+            self.env.debuffs.winters_chill()
 
         self.env.meter.register(self, dmg)
         if self.fullt2 and name == 'frostbolt':
@@ -405,189 +425,3 @@ class Mage:
         casting_time = 2.5
 
         yield from self._frost_spell(name='frostbolt', min_dmg=min_dmg, max_dmg=max_dmg, base_cast_time=casting_time)
-
-
-class FireMage(Mage):
-    def __init__(self,
-                 name,
-                 sp,
-                 crit,
-                 hit,
-                 dmf=False,
-                 fire_blast_cooldown=6.5,
-                 **kwargs
-                 ):
-        super().__init__(
-            name=name,
-            sp=sp,
-            crit=crit,
-            hit=hit,
-            dmf=dmf,
-            firepower=True,
-            imp_scorch=True,
-            incineration=True,
-            wc=False,
-            ai=False,
-            piercing_ice=False,
-            fire_blast_cooldown=fire_blast_cooldown,
-            **kwargs
-        )
-
-
-class ApFrostMage(Mage):
-    def __init__(self,
-                 name,
-                 sp,
-                 crit,
-                 hit,
-                 dmf=False,
-                 **kwargs
-                 ):
-        super().__init__(
-            name=name,
-            sp=sp,
-            crit=crit,
-            hit=hit,
-            dmf=dmf,
-            firepower=False,
-            imp_scorch=False,
-            incineration=False,
-            wc=False,
-            ai=True,
-            piercing_ice=True,
-            **kwargs
-        )
-
-
-class WcMage(Mage):
-    def __init__(self,
-                 name,
-                 sp,
-                 crit,
-                 hit,
-                 dmf=False,
-                 **kwargs
-                 ):
-        super().__init__(
-            name=name,
-            sp=sp,
-            crit=crit,
-            hit=hit,
-            dmf=dmf,
-            firepower=False,
-            imp_scorch=False,
-            incineration=False,
-            wc=True,
-            ai=False,
-            piercing_ice=True,
-            **kwargs
-        )
-
-
-class Cooldown:
-    DURATION = NotImplemented
-
-    def __init__(self, mage):
-        self.mage = mage
-        self.active = False
-        self.used = False
-
-    @property
-    def usable(self):
-        return not self.active and not self.used
-
-    def activate(self):
-        raise NotImplementedError
-
-
-class AP(Cooldown):
-    DURATION = 15
-    DMG_MOD = 1.3
-
-    @property
-    def usable(self):
-        return not self.active and not self.used and not self.mage.pi.active
-
-    def activate(self):
-        self.mage.dmg_modifier = self.DMG_MOD
-        self.active = True
-        self.mage.print(self.__class__.__name__)
-
-        def callback(self):
-            yield self.mage.env.timeout(self.DURATION)
-            self.mage.dmg_modifier = 1
-            self.active = False
-            self.used = True
-
-        self.mage.env.process(callback(self))
-
-
-class Combustion(Cooldown):
-
-    def __init__(self, mage):
-        self.mage = mage
-        self.charges = 0
-        self.crit_bonus = 0
-        self.used = False
-
-    @property
-    def active(self):
-        return self.charges > 0
-
-    def activate(self):
-        self.mage.print("Combustion")
-        self.charges = 3
-        self.crit_bonus = 10
-        self.used = True
-
-
-class MQG(Cooldown):
-    DURATION = 20
-
-    @property
-    def usable(self):
-        return not self.active and not self.used and not self.mage.toep.active
-
-    def activate(self):
-        self.mage.trinket_haste = 33
-        self.active = True
-        self.mage.print("MQG")
-        self.used = True
-
-        def callback(self):
-            yield self.mage.env.timeout(self.DURATION)
-            self.mage.trinket_haste = 0
-            self.active = False
-
-        self.mage.env.process(callback(self))
-
-
-class PI(AP):
-    DURATION = 15
-    DMG_MOD = 1.2
-
-    @property
-    def usable(self):
-        return not self.active and not self.used and not self.mage.ap.active
-
-
-class TOEP(Cooldown):
-    DURATION = 15
-    DMG_BONUS = 175
-
-    @property
-    def usable(self):
-        return not self.active and not self.used and not self.mage.mqg.active
-
-    def activate(self):
-        self.mage.sp_bonus = 175
-        self.active = True
-        self.mage.print(self.__class__.__name__)
-        self.used = True
-
-        def callback(self):
-            yield self.mage.env.timeout(self.DURATION)
-            self.mage.sp_bonus = 0
-            self.active = False
-
-        self.mage.env.process(callback(self))

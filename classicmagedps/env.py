@@ -1,5 +1,7 @@
-import simpy
 import random
+
+import simpy
+
 from classicmagedps.utils import DamageMeter
 
 
@@ -85,7 +87,7 @@ class Debuffs:
         self.scorch_stacks = min(self.scorch_stacks + 1, 5)
         self.scorch_timer = 30
 
-    def wc(self):
+    def winters_chill(self):
         self.wc_stacks = min(self.wc_stacks + 1, 5)
         self.wc_timer = 30
 
@@ -152,7 +154,7 @@ class Ignite:
         self._3_stack_uptime = 0
         self._5_stack_uptime = 0
         self.ticks = []
-        self.PI = False
+        self.power_infusion = False
         self.crit_this_window = False
         self.contains_scorch = False
         self.contains_fireblast = False
@@ -180,8 +182,8 @@ class Ignite:
                 elif spell_name.lower() == 'fireblast':
                     self.contains_fireblast = True
 
-            if self.owner.pi.active:
-                self.PI = True
+            if self.owner.power_infusion.active:
+                self.power_infusion = True
 
             self.ticks_left = 2
             self.crit_this_window = True
@@ -201,7 +203,7 @@ class Ignite:
         if self.env.debuffs.coe:
             tick_dmg *= 1.1  # ignite double dips on CoE
 
-        if self.PI:
+        if self.power_infusion:
             tick_dmg *= 1.2
 
         tick_dmg *= 1 + self.env.debuffs.scorch_stacks * 0.03  # ignite double dips on imp.scorch
@@ -221,7 +223,7 @@ class Ignite:
         self.owner = None
         self.cum_dmg = 0
         self.stacks = 0
-        self.PI = False
+        self.power_infusion = False
         self.ticks_left = 0
         self.crit_this_window = False
         self.contains_scorch = False
