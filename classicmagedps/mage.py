@@ -23,6 +23,8 @@ class Mage:
                  fullt2=False,
                  lag=0.1,
                  haste=0,
+                 drop_scorch_ignites=False,
+                 extend_ignite_with_scorch=False
                  ):
         self.env = env
         self.name = name
@@ -52,8 +54,8 @@ class Mage:
         self.pyro_on_t2_proc = pyro_on_t2_proc
         self.fire_blast_remaining_cd = 0
         self.lag = lag
-        self.drop_scorch_ignites = False
-        self.extend_ignite_with_scorch = False
+        self.drop_scorch_ignites = drop_scorch_ignites
+        self.extend_ignite_with_scorch = extend_ignite_with_scorch
 
         if self.env:
             self.env.mages.append(self)
