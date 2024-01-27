@@ -64,31 +64,31 @@ class Mage:
 
     def spam_fireballs(self, *args, **kwargs):
         # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function
-        return partial(self._set_rotation, name="spam_fireballs")()
+        return partial(self._set_rotation, name="spam_fireballs")(*args, **kwargs)
 
     def spam_scorch(self, *args, **kwargs):
-        return partial(self._set_rotation, name="spam_scorch")()
+        return partial(self._set_rotation, name="spam_scorch")(*args, **kwargs)
 
     def spam_scorch_unless_mqg(self, *args, **kwargs):
-        return partial(self._set_rotation, name="spam_scorch_unless_mqg")()
+        return partial(self._set_rotation, name="spam_scorch_unless_mqg")(*args, **kwargs)
 
     def smart_scorch(self, *args, **kwargs):
-        return partial(self._set_rotation, name="smart_scorch")()
+        return partial(self._set_rotation, name="smart_scorch")(*args, **kwargs)
 
     def smart_scorch_and_fireblast(self, *args, **kwargs):
-        return partial(self._set_rotation, name="smart_scorch_and_fireblast")()
+        return partial(self._set_rotation, name="smart_scorch_and_fireblast")(*args, **kwargs)
 
     def one_scorch_then_fireballs(self, *args, **kwargs):
-        return partial(self._set_rotation, name="one_scorch_then_fireballs")()
+        return partial(self._set_rotation, name="one_scorch_then_fireballs")(*args, **kwargs)
 
     def one_scorch_one_pyro_then_fb(self, *args, **kwargs):
-        return partial(self._set_rotation, name="one_scorch_one_pyro_then_fb")()
+        return partial(self._set_rotation, name="one_scorch_one_pyro_then_fb")(*args, **kwargs)
 
     def one_scorch_one_frostbolt_then_fb(self, *args, **kwargs):
-        return partial(self._set_rotation, name="one_scorch_one_frostbolt_then_fb")()
+        return partial(self._set_rotation, name="one_scorch_one_frostbolt_then_fb")(*args, **kwargs)
 
     def spam_frostbolts(self, *args, **kwargs):
-        return partial(self._set_rotation, name="spam_frostbolts")()
+        return partial(self._set_rotation, name="spam_frostbolts")(*args, **kwargs)
 
     def _random_delay(self, secs=2):
         if secs:
