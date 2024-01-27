@@ -3,18 +3,6 @@ from functools import partial
 
 
 class Mage:
-    ROTATIONS = [
-        'spam_fireballs',
-        'spam_scorch',
-        'spam_scorch_unless_mqg',
-        'spam_frostbolts',
-        'smart_scorch',
-        'smart_scorch_and_fireblast',
-        'one_scorch_then_fireballs',
-        'one_scorch_one_pyro_then_fb',
-        'one_scorch_one_frostbolt_then_fb'
-    ]
-
     def __init__(self,
                  name,
                  sp,
@@ -66,6 +54,41 @@ class Mage:
 
         if self.env:
             self.env.mages.append(self)
+
+    def _set_rotation(self, name, *args, **kwargs):
+        def callback(mage):
+            rotation = getattr(mage, '_' + name)
+            return rotation(*args, **kwargs)
+
+        self.rotation = callback
+
+    def spam_fireballs(self, *args, **kwargs):
+        # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function
+        return partial(self._set_rotation, name="spam_fireballs")()
+
+    def spam_scorch(self, *args, **kwargs):
+        return partial(self._set_rotation, name="spam_scorch")()
+
+    def spam_scorch_unless_mqg(self, *args, **kwargs):
+        return partial(self._set_rotation, name="spam_scorch_unless_mqg")()
+
+    def smart_scorch(self, *args, **kwargs):
+        return partial(self._set_rotation, name="smart_scorch")()
+
+    def smart_scorch_and_fireblast(self, *args, **kwargs):
+        return partial(self._set_rotation, name="smart_scorch_and_fireblast")()
+
+    def one_scorch_then_fireballs(self, *args, **kwargs):
+        return partial(self._set_rotation, name="one_scorch_then_fireballs")()
+
+    def one_scorch_one_pyro_then_fb(self, *args, **kwargs):
+        return partial(self._set_rotation, name="one_scorch_one_pyro_then_fb")()
+
+    def one_scorch_one_frostbolt_then_fb(self, *args, **kwargs):
+        return partial(self._set_rotation, name="one_scorch_one_frostbolt_then_fb")()
+
+    def spam_frostbolts(self, *args, **kwargs):
+        return partial(self._set_rotation, name="spam_frostbolts")()
 
     def _random_delay(self, secs=2):
         if secs:
@@ -170,19 +193,6 @@ class Mage:
             yield from self.fireball()
 
         yield from self._one_scorch_then_fireballs(delay=0, **cds)
-
-    def _rotationgetter(self, name, *args, **kwargs):
-        def callback(mage):
-            rotation = getattr(mage, '_' + name)
-            return rotation(*args, **kwargs)
-
-        self.rotation = callback
-
-    def __getattr__(self, name):
-        if name not in self.ROTATIONS:
-            return self.__getattribute__(name)
-
-        return partial(self._rotationgetter, name=name)
 
     def _one_scorch_one_frostbolt_then_fb(self, delay=1, **cds):
         yield from self._random_delay(delay)
