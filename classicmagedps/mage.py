@@ -78,12 +78,12 @@ class Mage:
             if cd.usable and self.env.now >= time:
                 cd.activate()
 
-    def _spam_fireballs(self, delay=2, pyro_on_t2_proc=True, **cds):
+    def _spam_fireballs(self, delay=2, **cds):
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(**cds)
-            yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+            yield from self.fireball()
 
     def _spam_frostbolts(self, delay=2, **cds):
         yield from self._random_delay(delay)
@@ -109,7 +109,7 @@ class Mage:
             else:
                 yield from self.scorch()
 
-    def _one_scorch_then_fireballs(self, delay=2, pyro_on_t2_proc=True, **cds):
+    def _one_scorch_then_fireballs(self, delay=2, **cds):
         """1 scorch then 9 fireballs rotation"""
         yield from self._random_delay(delay)
 
@@ -118,9 +118,9 @@ class Mage:
             yield from self.scorch()
             for _ in range(9):
                 self._use_cds(**cds)
-                yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+                yield from self.fireball()
 
-    def _smart_scorch(self, delay=2, pyro_on_t2_proc=True, **cds):
+    def _smart_scorch(self, delay=2, **cds):
         """Cast scorch if less than 5 imp scorch stacks or if 5 stack ignite and extend_ignite_with_scorch else cast fireball"""
         yield from self._random_delay(delay)
         while True:
@@ -135,9 +135,9 @@ class Mage:
                 if self.env.debuffs.scorch_timer <= 4.5:
                     yield from self.scorch()
                 else:
-                    yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+                    yield from self.fireball()
 
-    def _smart_scorch_and_fireblast(self, delay=2, pyro_on_t2_proc=True, **cds):
+    def _smart_scorch_and_fireblast(self, delay=2, **cds):
         """Same as above except fireblast on cd"""
         yield from self._random_delay(delay)
         while True:
@@ -155,10 +155,10 @@ class Mage:
                     yield from self.scorch()
                     self.fire_blast_remaining_cd -= 1.5
                 else:
-                    yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+                    yield from self.fireball()
                     self.fire_blast_remaining_cd -= 3
 
-    def _one_scorch_one_pyro_then_fb(self, delay=1, pyro_on_t2_proc=True, **cds):
+    def _one_scorch_one_pyro_then_fb(self, delay=1, **cds):
         yield from self._random_delay(delay)
 
         self._use_cds(**cds)
@@ -167,9 +167,9 @@ class Mage:
         yield from self.pyroblast()
         for _ in range(7):
             self._use_cds(**cds)
-            yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+            yield from self.fireball()
 
-        yield from self._one_scorch_then_fireballs(delay=0, pyro_on_t2_proc=pyro_on_t2_proc, **cds)
+        yield from self._one_scorch_then_fireballs(delay=0, **cds)
 
     def _rotationgetter(self, name, *args, **kwargs):
         def callback(mage):
@@ -184,7 +184,7 @@ class Mage:
 
         return partial(self._rotationgetter, name=name)
 
-    def _one_scorch_one_frostbolt_then_fb(self, delay=1, pyro_on_t2_proc=True, **cds):
+    def _one_scorch_one_frostbolt_then_fb(self, delay=1, **cds):
         yield from self._random_delay(delay)
 
         self._use_cds(**cds)
@@ -193,16 +193,16 @@ class Mage:
         yield from self.frostbolt()
         for _ in range(8):
             self._use_cds(**cds)
-            yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
+            yield from self.fireball()
 
-        yield from self._one_scorch_then_fireballs(delay=0, pyro_on_t2_proc=pyro_on_t2_proc, **cds)
+        yield from self._one_scorch_then_fireballs(delay=0, **cds)
 
     def print(self, msg):
         self.env.p(f"{self.env.time()} - ({self.name}) {msg}")
 
     def get_cast_time(self, base_cast_time):
-        trinket_haste = (1 + self.trinket_haste) / 100
-        gear_and_consume_haste = (1 + self.haste) / 100
+        trinket_haste = 1 + self.trinket_haste / 100
+        gear_and_consume_haste = 1 + self.haste / 100
         haste_scaling_factor = trinket_haste * gear_and_consume_haste
 
         if base_cast_time and haste_scaling_factor:
@@ -210,12 +210,12 @@ class Mage:
         else:
             return base_cast_time
 
-    def fireball(self, pyro_on_t2_proc=False):
+    def fireball(self):
         min_dmg = 561
         max_dmg = 715
         casting_time = 3
 
-        if pyro_on_t2_proc and self._t2proc >= 0:
+        if self.pyro_on_t2_proc and self._t2proc >= 0:
             yield self.env.timeout(0.05)  # small delay between spells
             yield from self.pyroblast()
         else:
