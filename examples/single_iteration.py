@@ -8,5 +8,5 @@ reg_mage1.smart_scorch(combustion=10, mqg=20)
 
 env.add_mages([reg_mage1])
 
-env.run(until=2000)
+env.run(until=100)
 env.meter.report()

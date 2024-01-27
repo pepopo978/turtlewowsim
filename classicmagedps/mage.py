@@ -208,7 +208,8 @@ class Mage:
         yield from self._one_scorch_then_fireballs(delay=0, **cds)
 
     def print(self, msg):
-        self.env.p(f"{self.env.time()} - ({self.name}) {msg}")
+        if self.env.PRINT:
+            self.env.p(f"{self.env.time()} - ({self.name}) {msg}")
 
     def get_cast_time(self, base_cast_time):
         trinket_haste = 1 + self.trinket_haste / 100
@@ -266,19 +267,25 @@ class Mage:
         if casting_time:
             yield self.env.timeout(casting_time + self.lag)
 
+        description = ""
+        if self.env.PRINT:
+            description = f"({round(casting_time, 2) + self.lag} cast)"
+            if cooldown:
+                description += f" ({cooldown} cd)"
+
         if not hit:
             dmg = 0
-            self.print(f"{name} RESIST")
+            self.print(f"{name} {description} RESIST")
             if self.combustion.active:
                 self.combustion.crit_bonus += 10
         elif not crit:
-            self.print(f"{name} {dmg}")
+            self.print(f"{name} {description} {dmg}")
             if self.combustion.active:
                 self.combustion.crit_bonus += 10
 
         else:
             dmg = int(dmg * 1.5)
-            self.print(f"{name} **{dmg}**")
+            self.print(f"{name} {description} **{dmg}**")
             self.env.ignite.refresh(self, dmg, name)
 
             if self.combustion.active:
@@ -339,15 +346,21 @@ class Mage:
         dmg = int(dmg * self.dmg_modifier)
         yield self.env.timeout(casting_time)
 
+        description = ""
+        if self.env.PRINT:
+            description = f"({round(casting_time, 2) + self.lag} cast)"
+            if cooldown:
+                description += f" ({cooldown} cd)"
+
         if not hit:
             dmg = 0
-            self.print(f"{name} RESIST")
+            self.print(f"{name} {description} RESIST")
         elif not crit:
-            self.print(f"{name} {dmg}")
+            self.print(f"{name} {description} {dmg}")
 
         else:
             dmg = int(dmg * 2)
-            self.print(f"{name} **{dmg}**")
+            self.print(f"{name} {description} **{dmg}**")
 
         if self.wc:
             self.env.debuffs.wc()
