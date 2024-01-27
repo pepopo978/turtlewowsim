@@ -221,7 +221,7 @@ class Mage:
         else:
             yield from self._fire_spell(name='fireball', min_dmg=min_dmg, max_dmg=max_dmg, base_cast_time=casting_time)
 
-    def _fire_spell(self, name, min_dmg, max_dmg, base_cast_time, crit_modifier=0, cooldown=0):
+    def _fire_spell(self, name, min_dmg, max_dmg, base_cast_time, crit_modifier=0, cooldown=0.0):
         casting_time = self.get_cast_time(base_cast_time)
         if self._t2proc >= 0:
             casting_time = 0
@@ -381,7 +381,7 @@ class Mage:
         max_dmg = 475
         casting_time = 2.5
 
-        yield from self._frost_spell(name='frostbolt', min_dmg=min_dmg, max_dmg=max_dmg, casting_time=casting_time)
+        yield from self._frost_spell(name='frostbolt', min_dmg=min_dmg, max_dmg=max_dmg, base_cast_time=casting_time)
 
 
 class FireMage(Mage):
@@ -392,7 +392,6 @@ class FireMage(Mage):
                  hit,
                  dmf=False,
                  fire_blast_cooldown=6.5,
-                 maximize_ignite=False,
                  **kwargs
                  ):
         super().__init__(
@@ -410,7 +409,6 @@ class FireMage(Mage):
             fire_blast_cooldown=fire_blast_cooldown,
             **kwargs
         )
-        self.maximize_ignite = maximize_ignite
 
 
 class ApFrostMage(Mage):
