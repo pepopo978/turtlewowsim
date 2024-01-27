@@ -6,6 +6,7 @@ class Mage:
     ROTATIONS = [
         'spam_fireballs',
         'spam_scorch',
+        'spam_scorch_unless_mqg',
         'spam_frostbolts',
         'smart_scorch',
         'smart_scorch_and_fireblast',
@@ -28,6 +29,7 @@ class Mage:
                  wc=False,
                  ai=False,
                  piercing_ice=True,
+                 pyro_on_t2_proc=True,
                  fullt2=False,
                  lag=0.1,
                  haste=0,
@@ -56,9 +58,11 @@ class Mage:
         self.pi = PI(self)
         self.toep = TOEP(self)
         self.mqg = MQG(self)
+        self.pyro_on_t2_proc = pyro_on_t2_proc
         self.fire_blast_remaining_cd = 0
         self.lag = lag
-        self.maximize_ignite = False
+        self.drop_scorch_ignites = False
+        self.extend_ignite_with_scorch = False
 
         if self.env:
             self.env.mages.append(self)
@@ -95,6 +99,16 @@ class Mage:
             self._use_cds(**cds)
             yield from self.scorch()
 
+    def _spam_scorch_unless_mqg(self, delay=2, **cds):
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(**cds)
+            if self.mqg.active:
+                yield from self.fireball()
+            else:
+                yield from self.scorch()
+
     def _one_scorch_then_fireballs(self, delay=2, pyro_on_t2_proc=True, **cds):
         """1 scorch then 9 fireballs rotation"""
         yield from self._random_delay(delay)
@@ -107,14 +121,14 @@ class Mage:
                 yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
 
     def _smart_scorch(self, delay=2, pyro_on_t2_proc=True, **cds):
-        """Cast scorch if less than 5 imp scorch stacks or if 5 stack ignite (to keep it rolling) else cast fireball"""
+        """Cast scorch if less than 5 imp scorch stacks or if 5 stack ignite and extend_ignite_with_scorch else cast fireball"""
         yield from self._random_delay(delay)
         while True:
             self._use_cds(**cds)
-            if self.env.ignite.stacks == 5 and self.env.ignite.is_suboptimal():
+            if self.env.ignite.stacks == 5 and self.env.ignite.is_suboptimal() and self.drop_scorch_ignites:
                 # let ignite drop
                 yield from self.pyroblast()
-            elif self.env.debuffs.scorch_stacks < 5 or (self.env.ignite.stacks == 5 and self.maximize_ignite):
+            elif self.env.debuffs.scorch_stacks < 5 or (self.env.ignite.stacks == 5 and self.extend_ignite_with_scorch):
                 yield from self.scorch()
             else:
                 # check if scorch about to fall off
@@ -124,11 +138,11 @@ class Mage:
                     yield from self.fireball(pyro_on_t2_proc=pyro_on_t2_proc)
 
     def _smart_scorch_and_fireblast(self, delay=2, pyro_on_t2_proc=True, **cds):
-        """Cast scorch if less than 5 imp scorch stacks or if 5 stack ignite (to keep it rolling) else cast fireball"""
+        """Same as above except fireblast on cd"""
         yield from self._random_delay(delay)
         while True:
             self._use_cds(**cds)
-            if self.env.ignite.stacks == 5 and self.fire_blast_remaining_cd <= 0:
+            if self.fire_blast_remaining_cd <= 0:
                 yield from self.fire_blast()
                 self.fire_blast_remaining_cd = self.fire_blast_cooldown - 1.5
                 # fire blast cd - gcd
@@ -187,13 +201,14 @@ class Mage:
         self.env.p(f"{self.env.time()} - ({self.name}) {msg}")
 
     def get_cast_time(self, base_cast_time):
-        haste_scaling_factor = 1 + (self.haste + self.trinket_haste) / 100
+        trinket_haste = (1 + self.trinket_haste) / 100
+        gear_and_consume_haste = (1 + self.haste) / 100
+        haste_scaling_factor = trinket_haste * gear_and_consume_haste
 
         if base_cast_time and haste_scaling_factor:
             return max(base_cast_time / haste_scaling_factor, 1.5)
         else:
             return base_cast_time
-
 
     def fireball(self, pyro_on_t2_proc=False):
         min_dmg = 561
@@ -214,7 +229,7 @@ class Mage:
             self._t2proc = -1
             self.print("T2 proc used")
         elif self._t2proc == 1:
-            self._t2proc = 0 # delay using t2 until next spell
+            self._t2proc = 0  # delay using t2 until next spell
 
         hit_chance = min(83 + self.hit, 99)
         hit = random.randint(1, 100) <= hit_chance
@@ -290,7 +305,7 @@ class Mage:
             self._t2proc = -1
             self.print("T2 proc used")
         elif self._t2proc == 1:
-            self._t2proc = 0 # delay using t2 until next spell
+            self._t2proc = 0  # delay using t2 until next spell
 
         hit_chance = min(83 + self.hit, 99)
         hit = random.randint(1, 100) <= hit_chance
