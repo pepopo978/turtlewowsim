@@ -1,7 +1,8 @@
 import random
 from functools import partial
 
-from classicmagedps.cooldowns import Combustion, ArcanePower, PowerInfusion, TOEP, MQG, PresenceOfMind
+from classicmagedps.cooldowns import Combustion, ArcanePower, PowerInfusion, TOEP, MQG, PresenceOfMind, Bezerking30, \
+    Bezerking15
 
 
 class Mage:
@@ -51,6 +52,8 @@ class Mage:
         self.presence_of_mind = PresenceOfMind(self)
         self.toep = TOEP(self)
         self.mqg = MQG(self)
+        self.bezerking30 = Bezerking30(self)
+        self.bezerking15 = Bezerking15(self)
         self.pyro_on_t2_proc = pyro_on_t2_proc
         self.fire_blast_remaining_cd = 0
         self.lag = lag

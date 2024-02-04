@@ -76,18 +76,59 @@ class MQG(Cooldown):
         return not self.active and not self.used and not self.mage.toep.active
 
     def activate(self):
-        self.mage.trinket_haste = 33
+        self.mage.trinket_haste += 33
         self.active = True
         self.mage.print("MQG")
         self.used = True
 
         def callback(self):
             yield self.mage.env.timeout(self.DURATION)
-            self.mage.trinket_haste = 0
+            self.mage.trinket_haste -= 33
             self.active = False
 
         self.mage.env.process(callback(self))
 
+
+class Bezerking30(Cooldown):
+    DURATION = 10
+
+    @property
+    def usable(self):
+        return not self.active and not self.used
+
+    def activate(self):
+        self.mage.trinket_haste += 30
+        self.active = True
+        self.mage.print("Bezerking30")
+        self.used = True
+
+        def callback(self):
+            yield self.mage.env.timeout(self.DURATION)
+            self.mage.trinket_haste -= 30
+            self.active = False
+
+        self.mage.env.process(callback(self))
+
+
+class Bezerking15(Cooldown):
+    DURATION = 10
+
+    @property
+    def usable(self):
+        return not self.active and not self.used
+
+    def activate(self):
+        self.mage.trinket_haste += 15
+        self.active = True
+        self.mage.print("Bezerking15")
+        self.used = True
+
+        def callback(self):
+            yield self.mage.env.timeout(self.DURATION)
+            self.mage.trinket_haste -= 15
+            self.active = False
+
+        self.mage.env.process(callback(self))
 
 class PowerInfusion(ArcanePower):
     DURATION = 15
