@@ -45,7 +45,7 @@ class FireEnvironment(FrostEnvironment):
         self.total_spell_dmg = 0
         self.total_ignite_dmg = 0
         self.ignite = Ignite(self)
-        self.process(self.ignite.tick())
+        self.process(self.ignite.monitor())
 
 
 class FireballDot:
@@ -100,7 +100,6 @@ class Debuffs:
 
         self.fireball_dots.append(FireballDot(owner))
 
-
     def pyroblast_dot(self, owner, sp):
         # check if dot already exists
         for dot in self.pyroblast_dots:
@@ -143,7 +142,6 @@ class Debuffs:
 
 
 class Ignite:
-
     def __init__(self, env):
         self.env = env
         self.cum_dmg = 0
@@ -163,17 +161,8 @@ class Ignite:
         return self.contains_scorch or self.contains_fireblast
 
     def refresh(self, mage, dmg, spell_name):
-        if not self.owner:
-            self.owner = mage
-
-        single_stack_extend = self.stacks == 1 and self.ticks_left == 2
-        multi_stack_extend = self.stacks > 1 and self.ticks_left >= 1
-
-        # self.env.p(
-        #     f"Ignite refresh ticks left {self.ticks_left} stacks={self.stacks} single={single_stack_extend} multi={multi_stack_extend}")
-
         # existing ignite
-        if self.active and (single_stack_extend or multi_stack_extend):
+        if self.active:
             if self.stacks <= 4:
                 self.cum_dmg += dmg
                 self.stacks += 1
@@ -186,16 +175,53 @@ class Ignite:
                 self.power_infusion = True
 
             self.ticks_left = 2
-            self.crit_this_window = True
-
-            # self.env.p(f"Ignite refresh extend ticks left {self.ticks_left}")
+            # self.env.p(f"Ignite refresh extend ticks left {self.ticks_left} stacks={self.stacks}")
         else:  # new ignite
             self.cum_dmg = dmg
             self.stacks = 1
             self.owner = mage
-            self.ticks_left = 3
-            self.crit_this_window = True
-            # self.env.p(f"New ignite ticks left {self.ticks_left}")
+            self.ticks_left = 2
+            # self.env.p(f"New ignite ticks left {self.ticks_left} stacks={self.stacks}")
+
+            # start tick thread
+            self.env.process(self._tick())
+
+    def drop(self):
+        if self.stacks:
+            self.owner.print(f"Ignite dropped")
+        self.owner = None
+        self.cum_dmg = 0
+        self.stacks = 0
+        self.power_infusion = False
+        self.ticks_left = 0
+        self.contains_scorch = False
+        self.contains_fireblast = False
+
+    def monitor(self):
+        while True:
+            if self.active:
+                self._uptime += 0.05
+                if self.stacks >= 3:
+                    self._3_stack_uptime += 0.05
+                if self.stacks == 5:
+                    self._5_stack_uptime += 0.05
+
+            yield self.env.timeout(0.05)
+
+    def _tick(self):
+        # initial 2-second delay before first tick
+        yield self.env.timeout(2)
+
+        while True:
+            self.ticks_left -= 1
+            if self.ticks_left >= 0:
+                self._do_dmg()
+
+            if self.ticks_left < 0:
+                self.drop()
+                return
+            else:
+                yield self.env.timeout(2)
 
     def _do_dmg(self):
         tick_dmg = self.cum_dmg * 0.2
@@ -216,48 +242,6 @@ class Ignite:
         self.env.meter.register(self.owner, tick_dmg)
         self.env.total_ignite_dmg += tick_dmg
         self.ticks.append(tick_dmg)
-
-    def drop(self):
-        if self.stacks:
-            self.owner.print(f"Ignite dropped")
-        self.owner = None
-        self.cum_dmg = 0
-        self.stacks = 0
-        self.power_infusion = False
-        self.ticks_left = 0
-        self.crit_this_window = False
-        self.contains_scorch = False
-        self.contains_fireblast = False
-
-    def monitor(self):
-        while True:
-            if self.active:
-                self._uptime += 0.05
-                if self.stacks >= 3:
-                    self._3_stack_uptime += 0.05
-                if self.stacks == 5:
-                    self._5_stack_uptime += 0.05
-
-            yield self.env.timeout(0.05)
-
-    def tick(self):
-        self.env.process(self.monitor())
-        while True:
-            if self.active:
-                # process ignite tick
-                if self.ticks_left:
-                    self.ticks_left -= 1
-                    self._do_dmg()
-                    self.crit_this_window = False
-
-                    if self.ticks_left == 0:
-                        self.drop()
-                    else:
-                        # first ignite detected after .05 seconds but ticks immediately
-                        # so account for that in yield
-                        yield self.env.timeout(2) if self.stacks == 1 else self.env.timeout(1.95)
-            else:
-                yield self.env.timeout(0.05)
 
     @property
     def active(self):

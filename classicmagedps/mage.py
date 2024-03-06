@@ -301,7 +301,6 @@ class Mage:
             self.print(f"{name} {description} {dmg}")
             if self.combustion.active:
                 self.combustion.crit_bonus += 10
-
         else:
             dmg = int(dmg * 1.5)
             self.print(f"{name} {description} **{dmg}**")

@@ -2,11 +2,14 @@ from classicmagedps import FireEnvironment, FireMage
 
 env = FireEnvironment()
 
-reg_mage1 = FireMage(name='mage1', sp=945, crit=30, hit=16, fullt2=True)
+mages = []
+num_mages = 2
 
-reg_mage1.smart_scorch(combustion=10, arcane_power=30, presence_of_mind=30)
+for i in range(num_mages):
+    fm = FireMage(name=f'mage{i}', sp=1004, crit=32, hit=16, fullt2=False)
+    fm.smart_scorch(delay=0)
+    mages.append(fm)
 
-env.add_mages([reg_mage1])
-
+env.add_mages(mages)
 env.run(until=120)
 env.meter.report()
