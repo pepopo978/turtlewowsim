@@ -72,11 +72,12 @@ class PyroblastDot:
 
 
 class Debuffs:
-    def __init__(self, env, coe=True):
+    def __init__(self, env, coe=True, nightfall=False):
         self.env = env
         self.scorch_stacks = 0
         self.scorch_timer = 0
         self.coe = coe
+        self.nightfall = nightfall
         self.wc_stacks = 0
         self.wc_timer = 0
 
@@ -236,6 +237,9 @@ class Ignite:
 
         if self.env.debuffs.coe:
             tick_dmg *= 1.1  # ignite double dips on CoE
+
+        if self.env.debuffs.nightfall:
+            tick_dmg *= 1.15
 
         if self.power_infusion:
             tick_dmg *= 1.2

@@ -25,7 +25,7 @@ class Mage:
                  lag=0.1,
                  haste=0,
                  drop_scorch_ignites=False,
-                 extend_ignite_with_scorch=False
+                 extend_ignite_with_scorch=False,
                  ):
         self.env = env
         self.name = name
@@ -277,6 +277,8 @@ class Mage:
             dmg *= 1.03
         if self.env.debuffs.coe:
             dmg *= 1.1  # CoE
+        if self.env.debuffs.nightfall:
+            dmg *= 1.15
         if self.dmf:
             dmg *= 1.1
 
@@ -364,6 +366,8 @@ class Mage:
             dmg *= 1.03
         if self.env.debuffs.coe:
             dmg *= 1.1  # CoE
+        if self.env.debuffs.nightfall:
+            dmg *= 1.15
         if self.dmf:
             dmg *= 1.1
 
