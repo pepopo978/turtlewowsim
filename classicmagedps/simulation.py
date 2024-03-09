@@ -19,7 +19,9 @@ class Simulation:
             'uptime': [],
             '>=3 stack uptime': [],
             '5 stack uptime': [],
-            'avg_tick': []
+            'avg_tick': [],
+            'num_ticks': [],
+            'max_tick': []
         }
 
     def run(self, iterations, duration):
@@ -42,7 +44,9 @@ class Simulation:
             self.results['uptime'].append(env.ignite.uptime)
             self.results['>=3 stack uptime'].append(env.ignite.uptime_gte_3_stacks)
             self.results['5 stack uptime'].append(env.ignite.uptime_5_stacks)
+            self.results['num_ticks'].append(env.ignite.num_ticks)
             self.results['avg_tick'].append(env.ignite.avg_tick)
+            self.results['max_tick'].append(env.ignite.max_tick)
 
         self.report()
 
@@ -58,6 +62,8 @@ class Simulation:
         print(f"Average >=3 stack ignite uptime : {100 * mean(self.results['>=3 stack uptime'])}%")
         print(f"Average 5 stack ignite uptime : {100 * mean(self.results['5 stack uptime'])}%")
         print(f"Average ignite tick : {mean(self.results['avg_tick'])}")
+        print(f"Average num tick : {mean(self.results['num_ticks'])}")
+        print(f"Average max tick : {mean(self.results['max_tick'])}")
 
 
 

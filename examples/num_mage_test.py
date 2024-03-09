@@ -1,10 +1,10 @@
 from classicmagedps import FireMage, FireEnvironment, Simulation
 
 mages = []
-num_mages = 5
+num_mages = 1
 
 for i in range(num_mages):
-    fm = FireMage(name=f'mage{i}', sp=1004, crit=32, hit=16, fullt2=False)
+    fm = FireMage(name=f'mage{i}', sp=1004, crit=32, hit=16)
     fm.smart_scorch()
     mages.append(fm)
 
