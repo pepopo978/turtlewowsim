@@ -19,10 +19,13 @@ class Simulation:
 
             'total_spell_dmg': [None] * iterations,
             'total_ignite_dmg': [None] * iterations,
+            'total_dmg': [None] * iterations,
             'avg_mage_dps': [None] * iterations,
             'max_single_dps': [None] * iterations,
             'uptime':[None] * iterations,
+            '>=2 stack uptime': [None] * iterations,
             '>=3 stack uptime': [None] * iterations,
+            '>=4 stack uptime': [None] * iterations,
             '5 stack uptime': [None] * iterations,
             'avg_tick': [None] * iterations,
             'num_ticks': [None] * iterations,
@@ -43,10 +46,13 @@ class Simulation:
 
             self.results['total_spell_dmg'][i] = env.total_spell_dmg
             self.results['total_ignite_dmg'][i] = env.total_ignite_dmg
+            self.results['total_dmg'][i] = env.total_spell_dmg + env.total_ignite_dmg
             self.results['avg_mage_dps'][i] = env.meter.raid_dmg()
             self.results['max_single_dps'][i] = max(env.meter.dps().values())
             self.results['uptime'][i] = env.ignite.uptime
+            self.results['>=2 stack uptime'][i] = env.ignite.uptime_gte_2_stacks
             self.results['>=3 stack uptime'][i] = env.ignite.uptime_gte_3_stacks
+            self.results['>=4 stack uptime'][i] = env.ignite.uptime_gte_4_stacks
             self.results['5 stack uptime'][i] = env.ignite.uptime_5_stacks
             self.results['num_ticks'][i] = env.ignite.num_ticks
             self.results['avg_tick'][i] = env.ignite.avg_tick
@@ -60,12 +66,15 @@ class Simulation:
 
         print(f"Total spell dmg: {mean(self.results['total_spell_dmg'])}")
         print(f"Total Ignite dmg: {mean(self.results['total_ignite_dmg'])}")
+        print(f"Total dmg: {mean(self.results['total_dmg'])}")
 
         print(f"Average mage dps: {mean(self.results['avg_mage_dps'])}")
         print(f"Highest single mage dps: {max(self.results['max_single_dps'])}")
-        print(f"Average >=1 stack uptime : {100 * mean(self.results['uptime'])}%")
+        print(f"Average >=1 stack ignite uptime : {100 * mean(self.results['uptime'])}%")
+        print(f"Average >=2 stack ignite uptime : {100 * mean(self.results['>=2 stack uptime'])}%")
         print(f"Average >=3 stack ignite uptime : {100 * mean(self.results['>=3 stack uptime'])}%")
-        print(f"Average 5 stack ignite uptime : {100 * mean(self.results['5 stack uptime'])}%")
+        print(f"Average >=4 stack ignite uptime : {100 * mean(self.results['>=4 stack uptime'])}%")
+        print(f"Average   5 stack ignite uptime : {100 * mean(self.results['5 stack uptime'])}%")
         print(f"Average ignite tick : {mean(self.results['avg_tick'])}")
         print(f"Average num tick : {mean(self.results['num_ticks'])}")
         print(f"Average max tick : {mean(self.results['max_tick'])}")

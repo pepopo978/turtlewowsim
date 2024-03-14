@@ -11,6 +11,7 @@ class FrostEnvironment(simpy.Environment):
         super().__init__(*args, **kwargs)
         self.mages = []
         self.PRINT = True
+        self.PRINT_DOTS = False
         self.debuffs = Debuffs(self)
         self.meter = DamageMeter(self)
         self.process(self.debuffs.run())
@@ -48,27 +49,73 @@ class FireEnvironment(FrostEnvironment):
         self.process(self.ignite.monitor())
 
 
-class FireballDot:
-    def __init__(self, owner):
+class FireDot:
+    def __init__(self, owner, env):
         self.owner = owner
-        self.timer = 8
+        self.env = env
 
-    def tick_dmg(self):
-        dmg = 19
-        dmg *= 1 + self.owner.env.debuffs.scorch_stacks * 0.03
-        return round(dmg)
+        self.time_between_ticks = 0
+        self.starting_ticks = 0
+        self.ticks_left = 0
+        self.base_tick_dmg = 0
+        self.name = ""
+
+    def refresh(self):
+        self.ticks_left = self.starting_ticks
+
+    def active(self):
+        return self.ticks_left > 0
+
+    def _do_dmg(self):
+        tick_dmg = self.base_tick_dmg
+
+        if self.env.debuffs.coe:
+            tick_dmg *= 1.1
+
+        if self.env.debuffs.nightfall:
+            tick_dmg *= 1.15
+
+        if self.owner.power_infusion.active:
+            tick_dmg *= 1.2
+
+        if self.owner.dmf:
+            tick_dmg *= 1.1
+
+        tick_dmg *= 1 + self.env.debuffs.scorch_stacks * 0.03
+        tick_dmg = int(tick_dmg)
+        if self.env.PRINT_DOTS:
+            self.env.p(
+                f"{self.env.time()} - ({self.owner.name}) {self.name} dot tick {tick_dmg} ticks remaining {self.ticks_left}")
+        self.env.meter.register(self.owner, tick_dmg)
+
+    def run(self):
+        while self.ticks_left > 0:
+            yield self.env.timeout(self.time_between_ticks)
+            self.ticks_left -= 1
+            self._do_dmg()
 
 
-class PyroblastDot:
-    def __init__(self, owner, sp):
-        self.owner = owner
-        self.sp = sp
-        self.timer = 12
+class FireballDot(FireDot):
+    def __init__(self, owner, env):
+        super().__init__(owner, env)
 
-    def tick_dmg(self):
-        dmg = 15 + self.sp * 0.15  # what it seems to be on turtle
-        dmg *= 1 + self.owner.env.debuffs.scorch_stacks * 0.03
-        return round(dmg)
+        self.time_between_ticks = 2
+        self.ticks_left = 4
+        self.starting_ticks = 4
+        self.base_tick_dmg = 19
+        self.name = "Fireball"
+
+
+class PyroblastDot(FireDot):
+    def __init__(self, owner, env, has_firepower=True):
+        super().__init__(owner, env)
+
+        self.time_between_ticks = 3
+        self.ticks_left = 4
+        self.starting_ticks = 4
+        self.firepower_multiplier = 1.1 if has_firepower else 1
+        self.base_tick_dmg = (67 + self.owner.sp * 0.15) * self.firepower_multiplier
+        self.name = "Pyroblast"
 
 
 class Debuffs:
@@ -81,8 +128,8 @@ class Debuffs:
         self.wc_stacks = 0
         self.wc_timer = 0
 
-        self.fireball_dots = []
-        self.pyroblast_dots = []
+        self.fireball_dots = {}  # owner -> FireballDot
+        self.pyroblast_dots = {}  # owner  -> PyroblastDot
 
     def scorch(self):
         self.scorch_stacks = min(self.scorch_stacks + 1, 5)
@@ -92,24 +139,25 @@ class Debuffs:
         self.wc_stacks = min(self.wc_stacks + 1, 5)
         self.wc_timer = 30
 
-    def fireball_dot(self, owner):
-        # check if dot already exists
-        for dot in self.fireball_dots:
-            if dot.owner == owner:
-                dot.timer = 8
-                return
+    def add_fireball_dot(self, owner):
+        if owner in self.fireball_dots and self.fireball_dots[owner].active():
+            # refresh
+            self.fireball_dots[owner].refresh()
+        else:
+            # create new dot
+            self.fireball_dots[owner] = FireballDot(owner, self.env)
+            # start dot thread
+            self.env.process(self.fireball_dots[owner].run())
 
-        self.fireball_dots.append(FireballDot(owner))
-
-    def pyroblast_dot(self, owner, sp):
-        # check if dot already exists
-        for dot in self.pyroblast_dots:
-            if dot.owner == owner:
-                dot.timer = 12
-                dot.sp = sp
-                return
-
-        self.pyroblast_dots.append(PyroblastDot(owner, sp))
+    def add_pyroblast_dot(self, owner):
+        if owner in self.pyroblast_dots and self.pyroblast_dots[owner].active():
+            # refresh
+            self.pyroblast_dots[owner].refresh()
+        else:
+            # create new dot
+            self.pyroblast_dots[owner] = PyroblastDot(owner, self.env)
+            # start dot thread
+            self.env.process(self.pyroblast_dots[owner].run())
 
     def run(self):
         while True:
@@ -120,26 +168,6 @@ class Debuffs:
             self.wc_timer = max(self.wc_stacks - 1, 0)
             if not self.wc_timer:
                 self.wc_stacks = 0
-
-            # check for fireball dots
-            for dot in self.fireball_dots:
-                dot.timer -= 1
-                if dot.timer % 2 == 0:
-                    # self.env.p(
-                    #     f"{self.env.time()} - ({dot.owner.name}) fireball tick {dot.tick_dmg()} time remaining {dot.timer}")
-                    self.env.meter.register(dot.owner, dot.tick_dmg())
-                if dot.timer <= 0:
-                    self.fireball_dots.remove(dot)
-
-            # check for pyroblast dots
-            for dot in self.pyroblast_dots:
-                dot.timer -= 1
-                if dot.timer % 3 == 0:
-                    self.env.p(
-                        f"{self.env.time()} - ({dot.owner.name}) pyroblast tick {dot.tick_dmg()} time remaining {dot.timer}")
-                    self.env.meter.register(dot.owner, dot.tick_dmg())
-                if dot.timer <= 0:
-                    self.pyroblast_dots.remove(dot)
 
 
 class Ignite:
@@ -152,7 +180,9 @@ class Ignite:
         self.owner = None
         self.stacks = 0
         self._uptime = 0
+        self._2_stack_uptime = 0
         self._3_stack_uptime = 0
+        self._4_stack_uptime = 0
         self._5_stack_uptime = 0
         self.ticks = []
         self.power_infusion = False
@@ -189,7 +219,7 @@ class Ignite:
             self.ticks_left = 2
 
             # start tick thread
-            self.env.process(self._tick(self.ignite_id))
+            self.env.process(self.run(self.ignite_id))
 
     def drop(self):
         self.owner.print(f"Ignite dropped")
@@ -202,7 +232,7 @@ class Ignite:
         self.last_crit_time = 0
         self.contains_scorch = False
         self.contains_fireblast = False
-        self.ignite_id += 1 # increment ignite id
+        self.ignite_id += 1  # increment ignite id
 
     def check_for_drop(self):
         # only check last crit time if ignite is active and down to 0 ticks
@@ -218,14 +248,18 @@ class Ignite:
 
             if self.active:
                 self._uptime += 0.05
+                if self.stacks >= 2:
+                    self._2_stack_uptime += 0.05
                 if self.stacks >= 3:
                     self._3_stack_uptime += 0.05
+                if self.stacks >= 4:
+                    self._4_stack_uptime += 0.05
                 if self.stacks == 5:
                     self._5_stack_uptime += 0.05
 
             yield self.env.timeout(0.05)
 
-    def _tick(self, ignite_id):
+    def run(self, ignite_id):
         while self.ignite_id == ignite_id:
             yield self.env.timeout(2)
             if self.ticks_left > 0:
@@ -256,15 +290,22 @@ class Ignite:
         self.env.meter.register(self.owner, tick_dmg)
         self.env.total_ignite_dmg += tick_dmg
         self.ticks.append(tick_dmg)
-        self.env.p(f"{self.env.time()} num_ticks {len(self.ticks)} total ignite dmg {self.env.total_ignite_dmg}")
 
     @property
     def uptime(self):
         return self._uptime / self.env.now
 
     @property
+    def uptime_gte_2_stacks(self):
+        return self._2_stack_uptime / self.env.now
+
+    @property
     def uptime_gte_3_stacks(self):
         return self._3_stack_uptime / self.env.now
+
+    @property
+    def uptime_gte_4_stacks(self):
+        return self._4_stack_uptime / self.env.now
 
     @property
     def uptime_5_stacks(self):

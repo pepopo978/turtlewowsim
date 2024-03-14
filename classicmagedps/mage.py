@@ -74,6 +74,9 @@ class Mage:
         # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function
         return partial(self._set_rotation, name="spam_fireballs")(*args, **kwargs)
 
+    def spam_pyroblast(self, *args, **kwargs):
+        return partial(self._set_rotation, name="spam_pyroblast")(*args, **kwargs)
+
     def spam_scorch(self, *args, **kwargs):
         return partial(self._set_rotation, name="spam_scorch")(*args, **kwargs)
 
@@ -115,6 +118,13 @@ class Mage:
         while True:
             self._use_cds(**cds)
             yield from self.fireball()
+
+    def _spam_pyroblast(self, delay=2, **cds):
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(**cds)
+            yield from self.pyroblast()
 
     def _spam_frostbolts(self, delay=2, **cds):
         yield from self._random_delay(delay)
@@ -235,8 +245,8 @@ class Mage:
             return base_cast_time
 
     def fireball(self):
-        min_dmg = 561
-        max_dmg = 715
+        min_dmg = 596
+        max_dmg = 760
         casting_time = 3
 
         if self.pyro_on_t2_proc and self._t2proc >= 0:
@@ -315,13 +325,16 @@ class Mage:
                     self.print("Combustion ended")
 
         if name == 'fireball':
-            self.env.debuffs.fireball_dot(self)
+            self.env.debuffs.add_fireball_dot(self)
 
         if name == 'pyroblast':
-            self.env.debuffs.pyroblast_dot(self, self.sp)
+            self.env.debuffs.add_pyroblast_dot(self)
 
         if name == 'scorch' and self.imp_scorch and hit:
-            self.env.debuffs.scorch()
+            # roll for whether debuff hits
+            fire_vuln_hit = random.randint(1, 100) <= hit_chance
+            if fire_vuln_hit:
+                self.env.debuffs.scorch()
 
         self.env.total_spell_dmg += dmg
         self.env.meter.register(self, dmg)
@@ -391,7 +404,10 @@ class Mage:
             self.print(f"{name} {description} **{dmg}**")
 
         if self.winters_chill:
-            self.env.debuffs.winters_chill()
+            # roll for whether debuff hits
+            winters_chill_hit = random.randint(1, 100) <= hit_chance
+            if winters_chill_hit:
+                self.env.debuffs.winters_chill()
 
         self.env.meter.register(self, dmg)
         if self.fullt2 and name == 'frostbolt':
