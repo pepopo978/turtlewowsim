@@ -4,6 +4,13 @@ from functools import partial
 from classicmagedps.cooldowns import Combustion, ArcanePower, PowerInfusion, TOEP, MQG, PresenceOfMind, Bezerking30, \
     Bezerking15
 
+SPELL_COEFFICIENTS = {
+    'fireball': 1.0,
+    'pyroblast': 1.0,
+    'scorch': 0.4285,
+    'fireblast': 0.4285,
+    'frostbolt': 0.814,
+}
 
 class Mage:
     def __init__(self,
@@ -183,11 +190,14 @@ class Mage:
         yield from self._random_delay(delay)
         while True:
             self._use_cds(**cds)
-            if self.fire_blast_remaining_cd <= 0:
+            if (self.env.debuffs.scorch_stacks == 5 and
+                    self.fire_blast_remaining_cd <= 0 and
+                    self.env.ignite.stacks == 5 and self.env.ignite.ticks_left <= 1):
                 yield from self.fire_blast()
                 self.fire_blast_remaining_cd = self.fire_blast_cooldown - 1.5
                 # fire blast cd - gcd
-            elif self.env.debuffs.scorch_stacks < 5 or self.env.ignite.stacks == 5:
+            elif self.env.debuffs.scorch_stacks < 5 or \
+                    (self.env.ignite.stacks == 5 and self.extend_ignite_with_scorch):
                 yield from self.scorch()
                 self.fire_blast_remaining_cd -= 1.5
             else:
@@ -277,8 +287,9 @@ class Mage:
 
         crit = random.randint(1, 100) <= crit_chance
 
+        coeff = SPELL_COEFFICIENTS[name]
+
         dmg = random.randint(min_dmg, max_dmg)
-        coeff = min(casting_time / 3.5, 1) if not (name == 'fireball' or name == 'pyroblast') else 1
         dmg += (self.sp + self.sp_bonus) * coeff
 
         if self.firepower:
@@ -302,7 +313,7 @@ class Mage:
         if self.env.PRINT:
             description = f"({round(casting_time, 2) + self.lag} cast)"
             if cooldown:
-                description += f" ({cooldown} cd)"
+                description += f" ({cooldown} gcd)"
 
         if not hit:
             dmg = 0
@@ -370,7 +381,7 @@ class Mage:
         crit = random.randint(1, 100) <= crit_chance
 
         dmg = random.randint(min_dmg, max_dmg)
-        coeff = min(casting_time / 3.5, 1) if not name == 'frostbolt' else 6 / 7
+        coeff = SPELL_COEFFICIENTS[name]
         dmg += (self.sp + self.sp_bonus) * coeff
 
         if self.piercing_ice:
@@ -391,7 +402,7 @@ class Mage:
         if self.env.PRINT:
             description = f"({round(casting_time, 2) + self.lag} cast)"
             if cooldown:
-                description += f" ({cooldown} cd)"
+                description += f" ({cooldown} gcd)"
 
         if not hit:
             dmg = 0

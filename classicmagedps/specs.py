@@ -9,6 +9,7 @@ class FireMage(Mage):
                  hit,
                  dmf=False,
                  fire_blast_cooldown=6.5,
+                 incinerate=True,
                  **kwargs
                  ):
         super().__init__(
@@ -19,7 +20,7 @@ class FireMage(Mage):
             dmf=dmf,
             firepower=True,
             imp_scorch=True,
-            incinerate=True,
+            incinerate=incinerate,
             winters_chill=False,
             arcane_instability=False,
             piercing_ice=False,

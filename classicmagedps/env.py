@@ -263,8 +263,8 @@ class Ignite:
         while self.ignite_id == ignite_id:
             yield self.env.timeout(2)
             if self.ticks_left > 0:
-                self._do_dmg()
                 self.ticks_left -= 1
+                self._do_dmg()
 
     def _do_dmg(self):
         tick_dmg = self.cum_dmg * 0.2
