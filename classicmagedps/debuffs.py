@@ -46,10 +46,8 @@ class Debuffs:
         while True:
             yield self.env.timeout(1)
             self.scorch_timer = max(self.scorch_timer - 1, 0)
-            # TODO UNDO THIS
-            self.scorch_stacks = 5
-            # if not self.scorch_timer:
-            #     self.scorch_stacks = 0
+            if not self.scorch_timer:
+                 self.scorch_stacks = 0
             self.wc_timer = max(self.wc_stacks - 1, 0)
             if not self.wc_timer:
                 self.wc_stacks = 0
