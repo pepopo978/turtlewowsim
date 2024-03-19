@@ -67,6 +67,8 @@ class Mage:
         self.drop_scorch_ignites = drop_scorch_ignites
         self.extend_ignite_with_scorch = extend_ignite_with_scorch
 
+        self.num_casts = {}
+
         if self.env:
             self.env.mages.append(self)
 
@@ -236,7 +238,7 @@ class Mage:
         yield from self._one_scorch_then_fireballs(delay=0, **cds)
 
     def print(self, msg):
-        if self.env.PRINT:
+        if self.env.print:
             self.env.p(f"{self.env.time()} - ({self.name}) {msg}")
 
     def get_cast_time(self, base_cast_time):
@@ -310,7 +312,7 @@ class Mage:
             yield self.env.timeout(casting_time + self.lag)
 
         description = ""
-        if self.env.PRINT:
+        if self.env.print:
             description = f"({round(casting_time, 2) + self.lag} cast)"
             if cooldown:
                 description += f" ({cooldown} gcd)"
@@ -353,6 +355,8 @@ class Mage:
             if random.randint(1, 100) <= 10:
                 self._t2proc = 1
                 self.print("T2 proc")
+
+        self.num_casts[name] = self.num_casts.get(name, 0) + 1
 
         # handle gcd
         if cooldown:
@@ -399,7 +403,7 @@ class Mage:
         yield self.env.timeout(casting_time)
 
         description = ""
-        if self.env.PRINT:
+        if self.env.print:
             description = f"({round(casting_time, 2) + self.lag} cast)"
             if cooldown:
                 description += f" ({cooldown} gcd)"
@@ -420,11 +424,14 @@ class Mage:
             if winters_chill_hit:
                 self.env.debuffs.winters_chill()
 
+        self.env.total_spell_dmg += dmg
         self.env.meter.register(self, dmg)
         if self.fullt2 and name == 'frostbolt':
             if random.randint(1, 100) <= 10:
                 self._t2proc = 1
                 self.print("T2 proc")
+
+        self.num_casts[name] = self.num_casts.get(name, 0) + 1
 
         # handle gcd
         if cooldown:

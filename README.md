@@ -146,6 +146,7 @@ mage4.one_scorch_one_frostbolt_then_fb()
 
 sim = Simulation(env=FireEnvironment, mages=[mage1, mage2, mage3, mage4])
 sim.run(iterations=1000, duration=90)
+sim.report()
 ```
 
 After the simulation finishes the result will look like this:

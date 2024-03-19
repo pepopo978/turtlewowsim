@@ -17,3 +17,4 @@ for i in range(num_mages):
 # multi run
 sim = Simulation(env=FireEnvironment, mages=mages, coe=True, nightfall=True)
 sim.run(iterations=1000, duration=222)
+sim.report()

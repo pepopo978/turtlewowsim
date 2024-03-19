@@ -9,6 +9,7 @@ ap_fire.spam_fireballs(combustion=10, mqg=10, arcane_power=10, presence_of_mind=
 
 sim = Simulation(env=FireEnvironment, mages=[reg_mage1, ap_fire])
 sim.run(iterations=1000, duration=200)
+sim.report()
 
 # env = FireEnvironment()
 # env.add_mages([reg_mage1, ap_fire])

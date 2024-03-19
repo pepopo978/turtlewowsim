@@ -15,6 +15,7 @@ reg_mage3.smart_scorch()
 
 sim = Simulation(env=FireEnvironment, mages=[reg_mage1, reg_mage2, reg_mage3])
 sim.run(iterations=1000, duration=300)
-
+sim.report()
 # sim = Simulation(env=FireEnvironment, mages=[reg_mage1, reg_mage2, reg_mage3, reg_mage4])
 # sim.run(iterations=5000, duration=200)
+# sim.report()

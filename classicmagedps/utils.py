@@ -1,8 +1,22 @@
+def _round(num):
+    if num > 100:
+        return round(num)
+    elif num > 10:
+        return round(num, 1)
+    else:
+        return round(num, 2)
+
 
 def mean(sequence):
     if not sequence:
         return 0
-    return round(sum(sequence)/len(sequence), 2)
+    return _round(sum(sequence) / len(sequence))
+
+
+def mean_percentage(sequence):
+    if not sequence:
+        return 0
+    return _round(100 * sum(sequence) / len(sequence))
 
 
 class DamageMeter:
@@ -23,10 +37,10 @@ class DamageMeter:
     def report(self):
         total_time = self.env.now
         for name, dps in self.dps().items():
-            print(f"{name} - {dps} dps")
+            print(f"{name.ljust(30, ' ')}: {dps} dps")
 
         total_raid_dmg = sum(self.mages.values())
-        print(f"Average mage DPS : {round(total_raid_dmg / total_time / len(self.mages.keys()), 1)}")
+        print(f"{'Average mage DPS'.ljust(30, ' ')}: {round(total_raid_dmg / total_time / len(self.mages.keys()), 1)}")
         if hasattr(self.env, 'ignite'):
             self.env.ignite.report()
 
