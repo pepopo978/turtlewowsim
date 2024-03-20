@@ -86,9 +86,9 @@ class Simulation:
 
     def report(self):
         print(f"{self._justify('Total spell dmg')}: {mean(self.results['total_spell_dmg'])}")
-        print(f"{self._justify('Total dot dmg')}: {mean(self.results['total_ignite_dmg'])}")
+        print(f"{self._justify('Total dot dmg')}: {mean(self.results['total_dot_dmg'])}")
         print(f"{self._justify('Total Ignite dmg')}: {mean(self.results['total_ignite_dmg'])}")
-        print(f"{self._justify('Total dmg')}: {mean(self.results['total_ignite_dmg'])}")
+        print(f"{self._justify('Total dmg')}: {mean(self.results['total_dmg'])}")
         print(f"{self._justify('Average mage dps')}: {mean(self.results['avg_mage_dps'])}")
         print(f"{self._justify('Average >=1 stack ignite uptime')}: {mean_percentage(self.results['>=1 stack uptime'])}%")
         print(f"{self._justify('Average >=3 stack ignite uptime')}: {mean_percentage(self.results['>=3 stack uptime'])}%")
