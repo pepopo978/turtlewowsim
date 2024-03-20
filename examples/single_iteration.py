@@ -1,15 +1,16 @@
-from classicmagedps import FireEnvironment, FireMage
-
-env = FireEnvironment(print_dots=True)
+from turtlewow_sim.env import Environment
+from turtlewow_sim.mage import Mage
+from turtlewow_sim.specs import FireMageTalents
 
 mages = []
 num_mages = 1
 
 for i in range(num_mages):
-    fm = FireMage(name=f'mage{i}', sp=1004, crit=32, hit=16, haste=2)
-    fm.smart_scorch_and_fireblast()
+    fm = Mage(name=f'mage{i}', sp=1009, crit=33.17, hit=16, tal=FireMageTalents())
+    fm.smart_scorch()
     mages.append(fm)
 
-env.add_mages(mages)
+env = Environment(print_dots=True)
+env.add_characters(mages)
 env.run(until=180)
 env.meter.report()

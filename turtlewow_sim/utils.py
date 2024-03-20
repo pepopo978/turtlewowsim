@@ -1,3 +1,8 @@
+from typing import Dict
+
+from turtlewow_sim.env import Environment
+
+
 def _round(num):
     if num > 100:
         return round(num)
@@ -22,31 +27,32 @@ def mean_percentage(sequence):
 class DamageMeter:
     def __init__(self, env):
         self.env = env
-        self.mages = {}
+        self.characters: Dict[str, int] = {}
 
-    def register(self, mage, dmg):
-        if not mage in self.mages:
-            self.mages[mage] = 0
-        self.mages[mage] += dmg
+    def register(self, name: str, dmg: int):
+        if not name in self.characters:
+            self.characters[name] = 0
+        self.characters[name] += dmg
 
     def raid_dmg(self):
-        total_raid_dmg = sum(self.mages.values())
+        total_raid_dmg = sum(self.characters.values())
         total_time = self.env.now
-        return round(total_raid_dmg / total_time / len(self.mages.keys()), 1)
+        return round(total_raid_dmg / total_time / len(self.characters.keys()), 1)
 
     def report(self):
         total_time = self.env.now
         for name, dps in self.dps().items():
             print(f"{name.ljust(30, ' ')}: {dps} dps")
 
-        total_raid_dmg = sum(self.mages.values())
-        print(f"{'Average mage DPS'.ljust(30, ' ')}: {round(total_raid_dmg / total_time / len(self.mages.keys()), 1)}")
-        if hasattr(self.env, 'ignite'):
+        total_raid_dmg = sum(self.characters.values())
+        print(
+            f"{'Average mage DPS'.ljust(30, ' ')}: {round(total_raid_dmg / total_time / len(self.characters.keys()), 1)}")
+        if isinstance(self.env, Environment):
             self.env.ignite.report()
 
     def dps(self):
         total_time = self.env.now
         dps = {}
-        for mage, dmg in self.mages.items():
-            dps[mage.name] = round(dmg / total_time, 1)
+        for name, dmg in self.characters.items():
+            dps[name] = round(dmg / total_time, 1)
         return dps

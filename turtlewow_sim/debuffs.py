@@ -1,4 +1,4 @@
-from classicmagedps.dots import FireballDot, PyroblastDot
+from turtlewow_sim.dots import FireballDot, PyroblastDot
 
 
 class Debuffs:

@@ -1,11 +1,24 @@
-from classicmagedps import FireEnvironment, FireMage, ApFrostMage, Simulation, WcMage
+from turtlewow_sim.env import Environment
+from turtlewow_sim.mage import Mage
+from turtlewow_sim.mage_options import MageOptions
+from turtlewow_sim.simulation import Simulation
+from turtlewow_sim.specs import FireMageTalents
 
-t2_mage = FireMage(name='pepo_t2', sp=939, crit=26.84, hit=15, fullt2=True)
-reg_mage = FireMage(name='pepo_reg', sp=953, crit=29.13, hit=16, fullt2=False)
+mages = []
+num_t2_mages = 1
+num_mages = 1
 
-t2_mage.smart_scorch()
-reg_mage.smart_scorch()
+for i in range(num_t2_mages):
+    fm = Mage(name=f't2 mage{i}', sp=1009, crit=33.17, hit=16,
+              opts=MageOptions(fullt2=True), tal=FireMageTalents())
+    fm.smart_scorch()
+    mages.append(fm)
 
-sim = Simulation(env=FireEnvironment, mages=[t2_mage, reg_mage])
-sim.run(iterations=2500, duration=200)
-sim.report()
+for i in range(num_mages):
+    fm = Mage(name=f'mage{i}', sp=1009, crit=33.17, hit=16, tal=FireMageTalents())
+    fm.smart_scorch()
+    mages.append(fm)
+
+sim = Simulation(env=Environment, mages=mages)
+sim.run(iterations=1000, duration=100)
+sim.detailed_report()

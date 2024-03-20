@@ -1,21 +1,30 @@
+from typing import Optional
+
+from turtlewow_sim.env import Environment
+from turtlewow_sim.mage import Mage
+
+
 class Ignite:
     def __init__(self, env):
-        self._uptimes = [0, 0, 0, 0, 0] # each index is number of ignite stacks
+        self._uptimes = [0, 0, 0, 0, 0]  # each index is number of ignite stacks
         self._num_ticks = [0, 0, 0, 0, 0]
 
+        self.owner: Optional[Mage] = None
+        self.env: Environment = env
+
         self.active = False
-        self.env = env
         self.cum_dmg = 0
         self.last_crit_time = 0
         self.ticks_left = 0
-        self.owner = None
         self.stacks = 0
         self.ticks = []
-        self.power_infusion = False
+
         self.crit_this_window = False
         self.contains_scorch = False
         self.contains_fireblast = False
         self.ignite_id = 0
+
+        self.had_any_ignites = False
 
     def is_suboptimal(self):
         return self.contains_scorch or self.contains_fireblast
@@ -32,9 +41,6 @@ class Ignite:
                     self.contains_scorch = True
                 elif spell_name.lower() == 'fireblast':
                     self.contains_fireblast = True
-
-            if self.owner.power_infusion.active:
-                self.power_infusion = True
 
             self.ticks_left = 2
         else:  # new ignite
@@ -53,7 +59,6 @@ class Ignite:
         self.owner = None
         self.cum_dmg = 0
         self.stacks = 0
-        self.power_infusion = False
         self.ticks_left = 0
         self.last_crit_time = 0
         self.contains_scorch = False
@@ -69,10 +74,10 @@ class Ignite:
 
     def monitor(self):
         while True:
-            # check if ignite dropped in last 0.05 sec
-            self.check_for_drop()
-
             if self.active:
+                # check if ignite dropped in last 0.05 sec
+                self.check_for_drop()
+
                 for i in range(self.stacks):
                     self._uptimes[i] += 0.05
 
@@ -82,6 +87,7 @@ class Ignite:
         while self.ignite_id == ignite_id:
             yield self.env.timeout(2)
             if self.ticks_left > 0:
+                self.had_any_ignites = True
                 self.ticks_left -= 1
                 self._do_dmg()
 
@@ -94,12 +100,11 @@ class Ignite:
         if self.env.debuffs.nightfall:
             tick_dmg *= 1.15
 
-        if self.power_infusion:
+        # doesn't snapshot on vmangos
+        if self.owner.cds.power_infusion.is_active():
             tick_dmg *= 1.2
 
         tick_dmg *= 1 + self.env.debuffs.scorch_stacks * 0.03  # ignite double dips on imp.scorch
-        if self.owner.dmf:
-            tick_dmg *= 1.1  # ignite double dips on DMF
 
         tick_dmg = int(tick_dmg)
         if self.env.print:
@@ -108,7 +113,7 @@ class Ignite:
                 f"{self.env.time()} - ({self.owner.name}) ({self.stacks}) ignite tick {tick_dmg} ticks remaining {self.ticks_left} time left {round(time_left, 2)}s")
 
         self._num_ticks[self.stacks - 1] += 1
-        self.env.meter.register(self.owner, tick_dmg)
+        self.env.meter.register(self.owner.name, tick_dmg)
         self.env.total_ignite_dmg += tick_dmg
         self.ticks.append(tick_dmg)
 
@@ -170,6 +175,8 @@ class Ignite:
         return string.ljust(30, ' ')
 
     def report(self):
+        if not self.had_any_ignites:
+            return
         print(f"{self._justify('Ignite uptime')}: {round(self.uptime_gte_1_stack * 100, 2)}%")
         print(f"{self._justify('>=3 stack ignite uptime')}: {round(self.uptime_gte_3_stacks * 100, 2)}%")
         print(f"{self._justify('5 stack ignite uptime')}: {round(self.uptime_5_stacks * 100, 2)}%")

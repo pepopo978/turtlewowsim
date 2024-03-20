@@ -1,5 +1,9 @@
+from turtlewow_sim.character import Character
+from turtlewow_sim.env import Environment
+
+
 class FireDot:
-    def __init__(self, owner, env):
+    def __init__(self, owner: Character, env: Environment):
         self.owner = owner
         self.env = env
 
@@ -24,11 +28,8 @@ class FireDot:
         if self.env.debuffs.nightfall:
             tick_dmg *= 1.15
 
-        if self.owner.power_infusion.active:
+        if self.owner.cds.power_infusion.is_active():
             tick_dmg *= 1.2
-
-        if self.owner.dmf:
-            tick_dmg *= 1.1
 
         tick_dmg *= 1 + self.env.debuffs.scorch_stacks * 0.03
         tick_dmg = int(tick_dmg)
@@ -36,7 +37,7 @@ class FireDot:
             self.env.p(
                 f"{self.env.time()} - ({self.owner.name}) {self.name} dot tick {tick_dmg} ticks remaining {self.ticks_left}")
         self.env.total_dot_dmg += tick_dmg
-        self.env.meter.register(self.owner, tick_dmg)
+        self.env.meter.register(self.owner.name, tick_dmg)
 
     def run(self):
         while self.ticks_left > 0:

@@ -14,10 +14,10 @@ Work in progress Simulation Framework for estimating Mage DPS for World of Warcr
 For a single iteration:
 
 ``` python
-from classicmagedps import FireEnvironment, FireMage
+from classicmagedps import Environment, FireMage
 
 # Instantiate the environment
-env = FireEnvironment()
+env = Environment()
 
 # Create as many Mages as you want
 # crit is a mage's TOTAL crit including worldbuffs/gear/int/talents etc (but not debuffs like WC)
@@ -130,7 +130,7 @@ Average tick: 1642.77
 For multiple iterations:
 
 ``` python
-from classicmagedps import FireEnvironment, FireMage, Simulation
+from classicmagedps import Environment, FireMage, Simulation
 
 # Create your mages, same as before
 mage1 = FireMage(name='Alice', sp=500, crit=30, hit=12, fullt2=True)
@@ -144,7 +144,7 @@ mage2.spam_scorch()
 mage3.spam_fireballs()
 mage4.one_scorch_one_frostbolt_then_fb()
 
-sim = Simulation(env=FireEnvironment, mages=[mage1, mage2, mage3, mage4])
+sim = Simulation(env=Environment, mages=[mage1, mage2, mage3, mage4])
 sim.run(iterations=1000, duration=90)
 sim.report()
 ```
@@ -200,7 +200,7 @@ env.debuffs.coe = False
 ```
 or by passing it as an argument in Simulation
 ```
-sim = Simulation(env=FireEnvironment, coe=False, mages=[mage1, mage2, mage3, mage4])
+sim = Simulation(env=Environment, coe=False, mages=[mage1, mage2, mage3, mage4])
 ```
 no consumables are assumed otherwise, you need to factor those in your total sp/crit
 

@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "classicmagedps"
-version = "0.3.0"
+name = "turtlewow_sim"
+version = "1.0.0"
 description = ""
-authors = ["mcdallas <mcdallas@protonmail.com>"]
+authors = ["mcdallas <mcdallas@protonmail.com>", "pepopo978 <pepopo978@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.7.3"
-simpy = "^4.0.1"
+python = "^3.10"
+simpy = "^4.1.1"
 tqdm = "^4.46.1"
 
 [tool.poetry.dev-dependencies]
