@@ -1,6 +1,6 @@
 # turtlewowsim
 
-Simulation for Turtle WoW that currently supports Fire/Frost Mages.
+Simulation for Turtle WoW that currently supports Fire/Frost Mages and Warlocks.
 
 ## Installation
 
