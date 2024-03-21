@@ -5,8 +5,11 @@ Simulation for Turtle WoW that currently supports Fire/Frost Mages and Warlocks.
 ## Installation
 
 Need python 3.10 or later and Poetry to install dependencies
+
 https://www.python.org/downloads/
+
 `pip install poetry` or `pipx install poetry`
+
 `poetry run python your_script.py`
 
 ## Usage
