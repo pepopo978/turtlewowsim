@@ -3,7 +3,7 @@ from sim.env import Environment
 from sim.mage import Mage
 from sim.mage_options import MageOptions
 from sim.simulation import Simulation
-from sim.talents import FireMageTalents
+from sim.mage_talents import FireMageTalents
 
 mages = []
 num_mages = 5
@@ -21,6 +21,6 @@ for i in range(num_mages):
 # env.meter.report()
 
 # multi run
-sim = Simulation(env=Environment, mages=mages, coe=True, nightfall=True)
+sim = Simulation(characters=mages, permanent_coe=True, nightfall=True)
 sim.run(iterations=1000, duration=222)
 sim.report()

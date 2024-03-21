@@ -3,34 +3,35 @@ from dataclasses import fields, dataclass
 from typing import Optional
 
 from sim.env import Environment
-from sim.mage_options import MageOptions
-from sim.talents import MageTalents
 
 
 @dataclass(kw_only=True)
 class CooldownUsages:
+    # Mage
     combustion: Optional[float] = None
     arcane_power: Optional[float] = None
-    power_infusion: Optional[float] = None
     presence_of_mind: Optional[float] = None
-    toep: Optional[float] = None
-    mqg: Optional[float] = None
+
+    # Buffs
+    power_infusion: Optional[float] = None
     berserking30: Optional[float] = None
     berserking20: Optional[float] = None
     berserking10: Optional[float] = None
 
+    # Trinkets
+    toep: Optional[float] = None
+    mqg: Optional[float] = None
+
 
 class Character:
     def __init__(self,
-                 tal: MageTalents,
-                 env: Optional[Environment] = None,
-                 name: str = '',
-                 sp: int = 0,
-                 crit: float = 0,
-                 hit: float = 0,
-                 haste: float = 0,
-                 lag: float = 0.1,  # default lag between spells that seems to occur on turtle
-                 opts: MageOptions = MageOptions(),
+                 env: Optional[Environment],
+                 name: str,
+                 sp: int,
+                 crit: float,
+                 hit: float,
+                 haste: float,
+                 lag: float,
                  ):
 
         self.env = env
@@ -40,9 +41,6 @@ class Character:
         self.hit = hit
         self.haste = haste
         self.lag = lag
-
-        self.opts = opts
-        self.tal = tal
 
         # avoid circular import
         from sim.cooldowns import Cooldowns
@@ -57,12 +55,6 @@ class Character:
 
         if self.env:
             self.env.add_character(self)
-
-        self.class_setup()
-
-    # For use in subclasses
-    def class_setup(self):
-        pass
 
     def reset(self):
         # avoid circular import
@@ -86,6 +78,7 @@ class Character:
     def _random_delay(self, secs=2):
         if secs:
             delay = round(random.random() * secs, 2)
+            self.print(f"Random initial delay of {delay} seconds")
             yield self.env.timeout(delay)
 
     def _use_cds(self, cooldown_usages: CooldownUsages = CooldownUsages()):

@@ -1,7 +1,7 @@
 from sim.env import Environment
 from sim.mage import Mage
 from sim.character import CooldownUsages
-from sim.talents import FireMageTalents
+from sim.mage_talents import FireMageTalents
 
 env = Environment()
 

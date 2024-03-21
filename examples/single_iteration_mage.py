@@ -1,7 +1,7 @@
 from sim.env import Environment
 from sim.mage import Mage
 from sim.mage_options import MageOptions
-from sim.talents import FireMageTalents
+from sim.mage_talents import FireMageTalents
 
 mages = []
 num_mages = 3

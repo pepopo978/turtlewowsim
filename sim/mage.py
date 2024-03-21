@@ -1,9 +1,13 @@
 import random
 from enum import Enum
 from functools import partial
+from typing import Optional
 
 from sim.character import Character, CooldownUsages
 from sim.cooldowns import Cooldown
+from sim.env import Environment
+from sim.mage_options import MageOptions
+from sim.mage_talents import MageTalents
 
 
 # spell name enum
@@ -35,79 +39,59 @@ class FireBlastCooldown(Cooldown):
 
     def activate(self):
         super().activate()
+        self.deactivate()
 
         def callback(self):
-            yield self.character.env.timeout(self.cooldown)
-            self.deactivate()
+            yield self.env.timeout(self.cooldown)
+            self._on_cooldown = False
 
         self.character.env.process(callback(self))
 
-    def deactivate(self):
-        super().deactivate()
-
 
 class Mage(Character):
-    def class_setup(self):
+    def __init__(self,
+                 tal: MageTalents,
+                 opts: MageOptions = MageOptions(),
+                 env: Optional[Environment] = None,
+                 name: str = '',
+                 sp: int = 0,
+                 crit: float = 0,
+                 hit: float = 0,
+                 haste: float = 0,
+                 lag: float = 0.1,  # default lag between spells that seems to occur on turtle
+                 ):
+        super().__init__(env, name, sp, crit, hit, haste, lag)
+        self.tal = tal
+        self.opts = opts
         self.fire_blast_cd = FireBlastCooldown(self, self.tal.fire_blast_cooldown)
-
-    def spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function
-        return partial(self._set_rotation, name="spam_fireballs")(cds=cds, delay=delay)
-
-    def spam_pyroblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="spam_pyroblast")(cds=cds, delay=delay)
-
-    def spam_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="spam_scorch")(cds=cds, delay=delay)
-
-    def spam_scorch_unless_mqg(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="spam_scorch_unless_mqg")(cds=cds, delay=delay)
-
-    def smart_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="smart_scorch")(cds=cds, delay=delay)
-
-    def smart_scorch_and_fireblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="smart_scorch_and_fireblast")(cds=cds, delay=delay)
-
-    def one_scorch_then_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="one_scorch_then_fireballs")(cds=cds, delay=delay)
-
-    def one_scorch_one_pyro_then_fb(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="one_scorch_one_pyro_then_fb")(cds=cds, delay=delay)
-
-    def one_scorch_one_frostbolt_then_fb(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="one_scorch_one_frostbolt_then_fb")(cds=cds, delay=delay)
-
-    def spam_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="spam_frostbolts")(cds=cds, delay=delay)
 
     def _spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(cds)
-            yield from self.fireball()
+            yield from self._fireball()
 
     def _spam_pyroblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(cds)
-            yield from self.pyroblast()
+            yield from self._pyroblast()
 
     def _spam_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(cds)
-            yield from self.frostbolt()
+            yield from self._frostbolt()
 
     def _spam_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(cds)
-            yield from self.scorch()
+            yield from self._scorch()
 
     def _spam_scorch_unless_mqg(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         yield from self._random_delay(delay)
@@ -115,9 +99,9 @@ class Mage(Character):
         while True:
             self._use_cds(cds)
             if self.cds.mqg.is_active():
-                yield from self.fireball()
+                yield from self._fireball()
             else:
-                yield from self.scorch()
+                yield from self._scorch()
 
     def _one_scorch_then_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         """1 scorch then 9 fireballs rotation"""
@@ -125,10 +109,10 @@ class Mage(Character):
 
         while True:
             self._use_cds(cds)
-            yield from self.scorch()
+            yield from self._scorch()
             for _ in range(9):
                 self._use_cds(cds)
-                yield from self.fireball()
+                yield from self._fireball()
 
     def _smart_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         """ Cast scorch if less than 5 imp scorch stacks or if 5 stack ignite
@@ -138,9 +122,9 @@ class Mage(Character):
             self._use_cds(cds)
 
             if self.env.debuffs.scorch_stacks < 5 or self.env.debuffs.scorch_timer <= 4.5:
-                yield from self.scorch()
+                yield from self._scorch()
             else:
-                yield from self.fireball()
+                yield from self._fireball()
 
     def _smart_scorch_and_fireblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         """Same as above except fireblast on cd"""
@@ -148,22 +132,22 @@ class Mage(Character):
         while True:
             self._use_cds(cds)
             if self.env.debuffs.scorch_stacks < 5 or self.env.debuffs.scorch_timer <= 4.5:
-                yield from self.scorch()
+                yield from self._scorch()
             elif self.fire_blast_cd.usable:
-                yield from self.fire_blast()
+                yield from self._fire_blast()
             else:
-                yield from self.fireball()
+                yield from self._fireball()
 
     def _one_scorch_one_pyro_then_fb(self, cds: CooldownUsages = CooldownUsages(), delay=1):
         yield from self._random_delay(delay)
 
         self._use_cds(cds)
-        yield from self.scorch()
+        yield from self._scorch()
         self._use_cds(cds)
-        yield from self.pyroblast()
+        yield from self._pyroblast()
         for _ in range(7):
             self._use_cds(cds)
-            yield from self.fireball()
+            yield from self._fireball()
 
         yield from self._one_scorch_then_fireballs(cds, delay=0)
 
@@ -171,16 +155,16 @@ class Mage(Character):
         yield from self._random_delay(delay)
 
         self._use_cds(cds)
-        yield from self.scorch()
+        yield from self._scorch()
         self._use_cds(cds)
-        yield from self.frostbolt()
+        yield from self._frostbolt()
         for _ in range(8):
             self._use_cds(cds)
-            yield from self.fireball()
+            yield from self._fireball()
 
         yield from self._one_scorch_then_fireballs(cds, delay=0)
 
-    def get_cast_time(self, base_cast_time):
+    def _get_cast_time(self, base_cast_time):
         # check for pom
         if self.cds.presence_of_mind.is_active():
             self.cds.presence_of_mind.deactivate()
@@ -191,7 +175,7 @@ class Mage(Character):
         haste_scaling_factor = trinket_haste * gear_and_consume_haste
 
         if base_cast_time and haste_scaling_factor:
-            return max(base_cast_time / haste_scaling_factor, 1.5)
+            return max(base_cast_time / haste_scaling_factor, self.env.GCD)
         else:
             return base_cast_time
 
@@ -209,7 +193,7 @@ class Mage(Character):
 
         # check for scorch ignite drop
         if self.opts.drop_suboptimal_ignites and has_scorch_ignite and spell != Spell.PYROBLAST:
-            yield from self.pyroblast()
+            yield from self._pyroblast()
             return
 
         # check for ignite extension
@@ -218,13 +202,13 @@ class Mage(Character):
             if spell not in (Spell.FIREBLAST, Spell.SCORCH):
                 if self.env.ignite.ticks_left <= self.opts.remaining_ticks_for_ignite_extend:
                     if self.opts.extend_ignite_with_fire_blast and self.fire_blast_cd.usable:
-                        yield from self.fire_blast()
+                        yield from self._fire_blast()
                         return
                     if self.opts.extend_ignite_with_scorch:
-                        yield from self.scorch()
+                        yield from self._scorch()
                         return
 
-        casting_time = self.get_cast_time(base_cast_time)
+        casting_time = self._get_cast_time(base_cast_time)
         if self._t2proc >= 0:
             casting_time = 0
             self._t2proc = -1
@@ -233,8 +217,8 @@ class Mage(Character):
             self._t2proc = 0  # delay using t2 until next spell
 
         # account for gcd
-        if casting_time < 1.5:
-            cooldown = 1.5 - casting_time
+        if casting_time < self.env.GCD:
+            cooldown = self.env.GCD - casting_time
 
         hit_chance = min(83 + self.hit, 99)
         hit = random.randint(1, 100) <= hit_chance
@@ -254,9 +238,9 @@ class Mage(Character):
             dmg *= 1.1  # Fire Power
         if self.tal.arcane_instability:
             dmg *= 1.03
-        if self.env.debuffs.coe:
+        if self.env.debuffs.has_coe:
             dmg *= 1.1  # CoE
-        if self.env.debuffs.nightfall:
+        if self.env.debuffs.has_nightfall:
             dmg *= 1.15
 
         dmg *= 1 + self.env.debuffs.scorch_stacks * 0.03  # imp. scorch
@@ -321,7 +305,7 @@ class Mage(Character):
                      crit_modifier: float = 0,
                      cooldown: float = 0.0):
 
-        casting_time = self.get_cast_time(base_cast_time)
+        casting_time = self._get_cast_time(base_cast_time)
         if self._t2proc == 0:
             casting_time = 0
             self._t2proc = -1
@@ -330,8 +314,8 @@ class Mage(Character):
             self._t2proc = 0  # delay using t2 until next spell
 
         # account for gcd
-        if casting_time < 1.5:
-            cooldown = 1.5 - casting_time
+        if casting_time < self.env.GCD:
+            cooldown = self.env.GCD - casting_time
 
         hit_chance = min(83 + self.hit, 99)
         hit = random.randint(1, 100) <= hit_chance
@@ -352,9 +336,9 @@ class Mage(Character):
             dmg *= 1.06  # Piercing Ice
         if self.tal.arcane_instability:
             dmg *= 1.03
-        if self.env.debuffs.coe:
+        if self.env.debuffs.has_coe:
             dmg *= 1.1  # CoE
-        if self.env.debuffs.nightfall:
+        if self.env.debuffs.has_nightfall:
             dmg *= 1.15
 
         dmg = int(dmg * self._dmg_modifier)
@@ -395,7 +379,7 @@ class Mage(Character):
         if cooldown:
             yield self.env.timeout(cooldown + self.lag / 2)
 
-    def scorch(self):
+    def _scorch(self):
         min_dmg = 237
         max_dmg = 280
         casting_time = 1.5
@@ -404,19 +388,19 @@ class Mage(Character):
         yield from self._fire_spell(spell=Spell.SCORCH, min_dmg=min_dmg, max_dmg=max_dmg, base_cast_time=casting_time,
                                     crit_modifier=crit_modifier)
 
-    def fireball(self):
+    def _fireball(self):
         min_dmg = 596
         max_dmg = 760
         casting_time = 3
 
         if self.opts.pyro_on_t2_proc and self._t2proc >= 0:
             yield self.env.timeout(0.05)  # small delay between spells
-            yield from self.pyroblast()
+            yield from self._pyroblast()
         else:
             yield from self._fire_spell(spell=Spell.FIREBALL, min_dmg=min_dmg, max_dmg=max_dmg,
                                         base_cast_time=casting_time)
 
-    def fire_blast(self):
+    def _fire_blast(self):
         min_dmg = 431
         max_dmg = 510
         casting_time = 0
@@ -424,19 +408,50 @@ class Mage(Character):
 
         yield from self._fire_spell(spell=Spell.FIREBLAST, min_dmg=min_dmg, max_dmg=max_dmg,
                                     base_cast_time=casting_time,
-                                    crit_modifier=crit_modifier, cooldown=1.5)
+                                    crit_modifier=crit_modifier, cooldown=self.env.GCD)
 
-    def pyroblast(self, casting_time=6):
+    def _pyroblast(self, casting_time=6):
         min_dmg = 716
         max_dmg = 890
 
         yield from self._fire_spell(spell=Spell.PYROBLAST, min_dmg=min_dmg, max_dmg=max_dmg,
                                     base_cast_time=casting_time)
 
-    def frostbolt(self):
+    def _frostbolt(self):
         min_dmg = 440
         max_dmg = 475
         casting_time = 2.5
 
         yield from self._frost_spell(spell=Spell.FROSTBOLT, min_dmg=min_dmg, max_dmg=max_dmg,
                                      base_cast_time=casting_time)
+
+    def spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function
+        return partial(self._set_rotation, name="spam_fireballs")(cds=cds, delay=delay)
+
+    def spam_pyroblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="spam_pyroblast")(cds=cds, delay=delay)
+
+    def spam_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="spam_scorch")(cds=cds, delay=delay)
+
+    def spam_scorch_unless_mqg(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="spam_scorch_unless_mqg")(cds=cds, delay=delay)
+
+    def smart_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="smart_scorch")(cds=cds, delay=delay)
+
+    def smart_scorch_and_fireblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="smart_scorch_and_fireblast")(cds=cds, delay=delay)
+
+    def one_scorch_then_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="one_scorch_then_fireballs")(cds=cds, delay=delay)
+
+    def one_scorch_one_pyro_then_fb(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="one_scorch_one_pyro_then_fb")(cds=cds, delay=delay)
+
+    def one_scorch_one_frostbolt_then_fb(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="one_scorch_one_frostbolt_then_fb")(cds=cds, delay=delay)
+
+    def spam_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="spam_frostbolts")(cds=cds, delay=delay)

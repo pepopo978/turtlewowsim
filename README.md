@@ -13,23 +13,45 @@ Need python 3.10 or later and Poetry to install dependencies
 For a single iteration:
 
 ``` python
-from turtlewow_sim.env import Environment
-from turtlewow_sim.mage import Mage
-from turtlewow_sim.specs import FireMageTalents
+from sim.env import Environment
+from sim.mage import Mage
+from sim.mage_options import MageOptions
+from sim.mage_talents import FireMageTalents
 
 mages = []
-num_mages = 1
+num_mages = 3
 
 for i in range(num_mages):
-    fm = Mage(name=f'mage{i}', sp=1009, crit=33.17, hit=16, tal=FireMageTalents)
+    tal = FireMageTalents
+    fm = Mage(name=f'mage{i}', sp=1009, crit=33.17, hit=16, tal=tal,
+              opts=MageOptions(extend_ignite_with_scorch=True))
     fm.smart_scorch()
     mages.append(fm)
 
-env = Environment(print_dots=True)
+env = Environment()
 env.add_characters(mages)
 env.run(until=180)
 env.meter.report()
+```
+or
+``` python
+from sim.env import Environment
+from sim.warlock import Warlock
+from sim.warlock_options import WarlockOptions
+from sim.warlock_talents import SMRuin
 
+locks = []
+num_locks = 3
+
+for i in range(num_locks):
+    fm = Warlock(name=f'lock{i}', sp=1009, crit=33.17, hit=16, tal=SMRuin, opts=WarlockOptions())
+    fm.corruption_immolate_shadowbolt()
+    locks.append(fm)
+
+env = Environment(print_dots=True)
+env.add_characters(locks)
+env.run(until=180)
+env.meter.report()
 ```
 
 You will get an output like this
@@ -64,6 +86,37 @@ You will get an output like this
 [24.6] - (mage1) fireball (3.1 cast) 2295
 [24.8] - (mage0) Ignite dropped
 ```
+or
+```
+[0] - (lock2) Random initial delay of 1.69 seconds
+[0] - (lock1) Random initial delay of 0.5 seconds
+[0] - (lock0) Random initial delay of 1.68 seconds
+[0.5] - (lock1) Corruption (0.1 cast) (1.5 gcd)
+[1.7] - (lock0) Corruption (0.1 cast) (1.5 gcd)
+[1.7] - (lock2) Corruption (0.1 cast) (1.5 gcd)
+[2.0] - (lock1) Immolate (0.1 cast) (1.5 gcd) RESIST
+[3.2] - (lock0) Immolate (0.1 cast) (1.5 gcd) **934**
+[3.2] - (lock2) Immolate (0.1 cast) (1.5 gcd) 467
+[3.5] - (lock1)  Corruption dot tick 366 ticks remaining 5
+[4.7] - (lock0)  Corruption dot tick 366 ticks remaining 5
+[4.7] - (lock2)  Corruption dot tick 366 ticks remaining 5
+[6.1] - (lock1)  Shadowbolt (2.6 cast) **2712**
+[6.1] - (lock1) Immolate (0.1 cast) (1.5 gcd) **934**
+[6.2] - (lock0) Immolate dot tick 278 ticks remaining 3
+[6.2] - (lock2) Immolate dot tick 278 ticks remaining 3
+[6.5] - (lock1) (ISB) Corruption dot tick 439 ticks remaining 4
+[7.3] - (lock0)  Shadowbolt (2.6 cast) **2794**
+[7.3] - (lock2)  Shadowbolt (2.6 cast) 1362
+[7.7] - (lock0) (ISB) Corruption dot tick 439 ticks remaining 4
+[7.7] - (lock2) (ISB) Corruption dot tick 439 ticks remaining 4
+[9.1] - (lock1) Immolate dot tick 278 ticks remaining 3
+[9.2] - (lock0) Immolate dot tick 278 ticks remaining 2
+[9.2] - (lock2) Immolate dot tick 278 ticks remaining 2
+[9.5] - (lock1) (ISB) Corruption dot tick 439 ticks remaining 3
+[9.8] - (lock0) (ISB) Shadowbolt (2.6 cast) 1615
+[9.8] - (lock2) (ISB) Shadowbolt (2.6 cast) **3348**
+[10.1] - (lock1) (ISB) Shadowbolt (2.6 cast) 1624
+```
 
 For multiple iterations:
 
@@ -81,7 +134,7 @@ for i in range(num_mages):
     fm.smart_scorch()
     mages.append(fm)
 
-sim = Simulation(env=Environment, mages=mages)
+sim = Simulation(characters=mages)
 sim.run(iterations=1000, duration=180)
 sim.detailed_report()
 ```
@@ -98,6 +151,21 @@ Average >=1 stack ignite uptime         : 90.6%
 Average >=3 stack ignite uptime         : 76.1%
 Average   5 stack ignite uptime         : 63.1%
 Average ignite tick                     : 3437
+```
+or
+```
+lock0 average DPS                       : 1018 in 80.0 casts
+lock1 average DPS                       : 1016 in 80.0 casts
+lock2 average DPS                       : 1016 in 80.0 casts
+Total spell dmg                         : 423084
+Total dot dmg                           : 125970
+Total dmg                               : 549054
+Average char dps                        : 1017
+Highest single char dps                 : 1173.3
+------ ISB ------
+ISB uptime                              : 77.2%
+Total added dot dmg                     : 10570
+Total added spell dmg                   : 43159
 ```
 
 but you can run with the `detailed_report()` method to get a more detailed output
@@ -122,39 +190,68 @@ You can customize each character by passing additional arguments. The full const
 
 There are premade talent configurations for each spec:
 ```
-@dataclass(kw_only=True)
-class FireMageTalents(MageTalents):
-    imp_scorch: bool = True,
-    critial_mass: bool = False,  # this is usually included in character's crit chance already
-    fire_power: bool = True,
-    fire_blast_cooldown: float = 8,
+FireMageTalents = MageTalents(
+    imp_scorch=True,
+    fire_power=True,
+    critial_mass=False,
+    fire_blast_cooldown=8
 
+)
 
-@dataclass(kw_only=True)
-class ApFrostMageTalents(MageTalents):
-    arcane_instability: bool = True,
-    piercing_ice: bool = True,
+ApFrostMageTalents = MageTalents(
+    arcane_instability=True,
+    piercing_ice=True
+)
 
+WcFrostMageTalents = MageTalents(
+    winters_chill=True,
+    piercing_ice=True
+)
+    
+SMRuin = WarlockTalents(
+    # affliction
+    suppression=3,
+    improved_corruption=5,
+    improved_curse_of_agony=3,
+    nightfall=2,
+    shadow_mastery=5,
 
-@dataclass(kw_only=True)
-class WcFrostMageTalents(MageTalents):
-    winters_chill: bool = True,
-    piercing_ice: bool = True
+    # destruction
+    improved_shadow_bolt=5,
+    bane=5,
+    devastation=5,
+    ruin=1,
+)
+
+DSRuin = WarlockTalents(
+    # affliction
+    suppression=2,
+    improved_corruption=5,
+
+    # demonology
+    demonic_sacrifice=1,
+
+    # destruction
+    improved_shadow_bolt=5,
+    bane=5,
+    devastation=5,
+    ruin=1,
+)
 ```
 
 Every simulation assumes Curse of Elements is applied, you can turn it off by adding this line after you create your env
 ```
-env.debuffs.coe = False
+env.debuffs.permanent_coe = False
 ```
 or by passing it as an argument in Simulation
 ```
-sim = Simulation(env=Environment, coe=False)
+sim = Simulation(permanent_coe=False)
 ```
 no consumables are assumed otherwise, you need to factor those in your total sp/crit
 
 You can also enable permanent nightfall proc using 
 ```
-sim = Simulation(env=Environment, nightfall=True)
+sim = Simulation(permanent_nightfall=True)
 ```
 
 ## Rotations
@@ -182,6 +279,12 @@ Some currently supported rotations are:
  else cast fireball
 * smart_scorch()  
 
+* spam_shadowbolt()
+
+* agony_corruption_immolate_shadowbolt()
+
+* cos_corruption_immolate_shadowbolt()
+     
 
 You can pass as arguments to each rotation when you want each mage to attempt
 to activate their cooldowns. For example `mage1.one_scorch_one_pyro_then_fb(cds=CooldownUsages(arcane_power=5, power_infusion=6, mqg=7))

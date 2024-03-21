@@ -46,9 +46,10 @@ class DamageMeter:
 
         total_raid_dmg = sum(self.characters.values())
         print(
-            f"{'Average mage DPS'.ljust(30, ' ')}: {round(total_raid_dmg / total_time / len(self.characters.keys()), 1)}")
-        if isinstance(self.env, Environment):
-            self.env.ignite.report()
+            f"{'Average DPS'.ljust(30, ' ')}: {round(total_raid_dmg / total_time / len(self.characters.keys()), 1)}")
+
+        self.env.ignite.report()
+        self.env.improved_shadow_bolt.report()
 
     def dps(self):
         total_time = self.env.now

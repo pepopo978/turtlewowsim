@@ -2,7 +2,7 @@ from sim.env import Environment
 from sim.mage import Mage
 from sim.mage_options import MageOptions
 from sim.simulation import Simulation
-from sim.talents import FireMageTalents
+from sim.mage_talents import FireMageTalents
 
 mages = []
 num_t2_mages = 1
@@ -19,6 +19,6 @@ for i in range(num_mages):
     fm.smart_scorch()
     mages.append(fm)
 
-sim = Simulation(env=Environment, mages=mages)
+sim = Simulation(characters=mages)
 sim.run(iterations=1000, duration=100)
 sim.detailed_report()

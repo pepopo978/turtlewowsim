@@ -4,7 +4,14 @@ import simpy
 
 
 class Environment(simpy.Environment):
-    def __init__(self, print=True, print_dots=False, *args, **kwargs):
+    def __init__(self,
+                 print=True,
+                 print_dots=False,
+                 permanent_coe=False,
+                 permanent_cos=False,
+                 permanent_nightfall=False,
+                 *args,
+                 **kwargs):
         super().__init__(*args, **kwargs)
         from sim.debuffs import Debuffs
         from sim.utils import DamageMeter
@@ -12,7 +19,7 @@ class Environment(simpy.Environment):
         self.characters = []
         self.print = print
         self.print_dots = print_dots
-        self.debuffs = Debuffs(self)
+        self.debuffs = Debuffs(self, permanent_coe=permanent_coe, permanent_cos=permanent_cos, permanent_nightfall=permanent_nightfall)
         self.meter = DamageMeter(self)
         self.process(self.debuffs.run())
 
@@ -20,9 +27,14 @@ class Environment(simpy.Environment):
         self.ignite = Ignite(self)
         self.process(self.ignite.monitor())
 
+        from sim.improved_shadow_bolt import ImprovedShadowBolt
+        self.improved_shadow_bolt = ImprovedShadowBolt(self)
+        self.process(self.improved_shadow_bolt.monitor())
+
         self.total_spell_dmg = 0
         self.total_dot_dmg = 0
         self.total_ignite_dmg = 0
+        self.GCD = 1.5
 
     def get_total_dmg(self):
         return self.total_spell_dmg + self.total_dot_dmg + self.total_ignite_dmg

@@ -94,10 +94,10 @@ class Ignite:
     def _do_dmg(self):
         tick_dmg = self.cum_dmg * 0.2
 
-        if self.env.debuffs.coe:
+        if self.env.debuffs.has_coe:
             tick_dmg *= 1.1  # ignite double dips on CoE
 
-        if self.env.debuffs.nightfall:
+        if self.env.debuffs.has_nightfall:
             tick_dmg *= 1.15
 
         # doesn't snapshot on vmangos
@@ -177,6 +177,7 @@ class Ignite:
     def report(self):
         if not self.had_any_ignites:
             return
+        print(f"------ Ignite ------")
         print(f"{self._justify('Ignite uptime')}: {round(self.uptime_gte_1_stack * 100, 2)}%")
         print(f"{self._justify('>=3 stack ignite uptime')}: {round(self.uptime_gte_3_stacks * 100, 2)}%")
         print(f"{self._justify('5 stack ignite uptime')}: {round(self.uptime_5_stacks * 100, 2)}%")

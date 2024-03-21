@@ -1,31 +1,17 @@
-from sim.character import Character
-from sim.env import Environment
+from sim.dot import Dot
+from sim.mage import Spell as MageSpell
+from sim.warlock import Spell as LockSpell
 
 
-class FireDot:
-    def __init__(self, owner: Character, env: Environment):
-        self.owner = owner
-        self.env = env
-
-        self.time_between_ticks = 0
-        self.starting_ticks = 0
-        self.ticks_left = 0
-        self.base_tick_dmg = 0
-        self.name = ""
-
-    def refresh(self):
-        self.ticks_left = self.starting_ticks
-
-    def active(self):
-        return self.ticks_left > 0
-
+class FireDot(Dot):
     def _do_dmg(self):
-        tick_dmg = self.base_tick_dmg
+        tick_dmg = self._get_effective_tick_dmg()
+        tick_dmg *= self.dmg_multiplier
 
-        if self.env.debuffs.coe:
+        if self.env.debuffs.has_coe:
             tick_dmg *= 1.1
 
-        if self.env.debuffs.nightfall:
+        if self.env.debuffs.has_nightfall:
             tick_dmg *= 1.15
 
         if self.owner.cds.power_infusion.is_active():
@@ -50,21 +36,36 @@ class FireballDot(FireDot):
     def __init__(self, owner, env, has_firepower=True):
         super().__init__(owner, env)
 
+        self.coefficient = 0
         self.time_between_ticks = 2
         self.ticks_left = 4
         self.starting_ticks = 4
-        self.firepower_multiplier = 1.1 if has_firepower else 1
-        self.base_tick_dmg = 19 * self.firepower_multiplier
-        self.name = "Fireball"
+        self.dmg_multiplier = 1.1 if has_firepower else 1
+        self.base_tick_dmg = 19
+        self.name = MageSpell.FIREBALL.value
 
 
 class PyroblastDot(FireDot):
     def __init__(self, owner, env, has_firepower=True):
         super().__init__(owner, env)
 
+        self.coefficient = 0.15
         self.time_between_ticks = 3
         self.ticks_left = 4
         self.starting_ticks = 4
-        self.firepower_multiplier = 1.1 if has_firepower else 1
-        self.base_tick_dmg = (67 + self.owner.sp * 0.15) * self.firepower_multiplier
-        self.name = "Pyroblast"
+        self.dmg_multiplier = 1.1 if has_firepower else 1
+        self.base_tick_dmg = 67
+        self.name = MageSpell.PYROBLAST.value
+
+
+class ImmolateDot(FireDot):
+    def __init__(self, owner, env, has_emberstorm=True):
+        super().__init__(owner, env)
+
+        self.coefficient = 0.15
+        self.time_between_ticks = 3
+        self.ticks_left = 4
+        self.starting_ticks = 4
+        self.dmg_multiplier = 1.1 if has_emberstorm else 1
+        self.base_tick_dmg = 102
+        self.name = LockSpell.IMMOLATE.value
