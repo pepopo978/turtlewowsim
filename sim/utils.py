@@ -1,6 +1,6 @@
 from typing import Dict
 
-from turtlewow_sim.env import Environment
+from sim.env import Environment
 
 
 def _round(num):

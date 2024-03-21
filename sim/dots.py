@@ -1,5 +1,5 @@
-from turtlewow_sim.character import Character
-from turtlewow_sim.env import Environment
+from sim.character import Character
+from sim.env import Environment
 
 
 class FireDot:

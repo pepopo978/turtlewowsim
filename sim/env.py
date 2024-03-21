@@ -6,8 +6,8 @@ import simpy
 class Environment(simpy.Environment):
     def __init__(self, print=True, print_dots=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from turtlewow_sim.debuffs import Debuffs
-        from turtlewow_sim.utils import DamageMeter
+        from sim.debuffs import Debuffs
+        from sim.utils import DamageMeter
 
         self.characters = []
         self.print = print
@@ -16,7 +16,7 @@ class Environment(simpy.Environment):
         self.meter = DamageMeter(self)
         self.process(self.debuffs.run())
 
-        from turtlewow_sim.ignite import Ignite
+        from sim.ignite import Ignite
         self.ignite = Ignite(self)
         self.process(self.ignite.monitor())
 

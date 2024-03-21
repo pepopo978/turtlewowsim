@@ -1,16 +1,16 @@
-from turtlewow_sim.character import CooldownUsages
-from turtlewow_sim.env import Environment
-from turtlewow_sim.mage import Mage
-from turtlewow_sim.mage_options import MageOptions
-from turtlewow_sim.specs import ApFrostMageTalents, WcFrostMageTalents
+from sim.character import CooldownUsages
+from sim.env import Environment
+from sim.mage import Mage
+from sim.mage_options import MageOptions
+from sim.talents import ApFrostMageTalents, WcFrostMageTalents
 
 env = Environment()
 
-alice = Mage(env=env, name='Alice', sp=500, crit=30, hit=12, opts=MageOptions(fullt2=True), tal=ApFrostMageTalents())
-bob = Mage(env=env, name='Bob', sp=456, crit=22, hit=16, tal=WcFrostMageTalents())
-charlie = Mage(env=env, name='Charlie', sp=525, crit=28, hit=9, tal=ApFrostMageTalents())
-duncan = Mage(env=env, name='Duncan', sp=525, crit=28, hit=9, tal=ApFrostMageTalents())
-eddie = Mage(env=env, name='Eddie', sp=570, crit=33, hit=15, tal=ApFrostMageTalents())
+alice = Mage(env=env, name='Alice', sp=500, crit=30, hit=12, opts=MageOptions(fullt2=True), tal=ApFrostMageTalents)
+bob = Mage(env=env, name='Bob', sp=456, crit=22, hit=16, tal=WcFrostMageTalents)
+charlie = Mage(env=env, name='Charlie', sp=525, crit=28, hit=9, tal=ApFrostMageTalents)
+duncan = Mage(env=env, name='Duncan', sp=525, crit=28, hit=9, tal=ApFrostMageTalents)
+eddie = Mage(env=env, name='Eddie', sp=570, crit=33, hit=15, tal=ApFrostMageTalents)
 
 env.add_characters([alice, bob, charlie, duncan, eddie])
 

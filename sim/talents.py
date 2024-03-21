@@ -18,10 +18,20 @@ class MageTalents:
     arcane_instability: bool = False
 
 
-@dataclass(kw_only=True)
-class MageOptions:
-    fullt2: bool = False
+FireMageTalents = MageTalents(
+    imp_scorch=True,
+    fire_power=True,
+    critial_mass=False,
+    fire_blast_cooldown=8
 
-    drop_scorch_ignites: bool = False
-    extend_ignite_with_scorch: bool = False
-    pyro_on_t2_proc: bool = True
+)
+
+ApFrostMageTalents = MageTalents(
+    arcane_instability=True,
+    piercing_ice=True
+)
+
+WcFrostMageTalents = MageTalents(
+    winters_chill=True,
+    piercing_ice=True
+)

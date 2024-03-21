@@ -1,14 +1,14 @@
-from turtlewow_sim.env import Environment
-from turtlewow_sim.mage import Mage
-from turtlewow_sim.character import CooldownUsages
-from turtlewow_sim.specs import FireMageTalents
+from sim.env import Environment
+from sim.mage import Mage
+from sim.character import CooldownUsages
+from sim.talents import FireMageTalents
 
 env = Environment()
 
-mage1 = Mage(env=env, name='Alice', sp=500, crit=30, hit=12, tal=FireMageTalents())
-mage2 = Mage(env=env, name='Bob', sp=456, crit=22, hit=16, tal=FireMageTalents())
-mage3 = Mage(env=env, name='Charlie', sp=525, crit=28, hit=9, tal=FireMageTalents())
-mage4 = Mage(env=env, name='Duncan', sp=525, crit=28, hit=9, tal=FireMageTalents())
+mage1 = Mage(env=env, name='Alice', sp=500, crit=30, hit=12, tal=FireMageTalents)
+mage2 = Mage(env=env, name='Bob', sp=456, crit=22, hit=16, tal=FireMageTalents)
+mage3 = Mage(env=env, name='Charlie', sp=525, crit=28, hit=9, tal=FireMageTalents)
+mage4 = Mage(env=env, name='Duncan', sp=525, crit=28, hit=9, tal=FireMageTalents)
 
 
 env.add_characters([mage1, mage2, mage3, mage4])

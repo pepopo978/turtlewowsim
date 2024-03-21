@@ -2,8 +2,9 @@ import random
 from dataclasses import fields, dataclass
 from typing import Optional
 
-from turtlewow_sim.env import Environment
-from turtlewow_sim.mage_options import MageOptions, MageTalents
+from sim.env import Environment
+from sim.mage_options import MageOptions
+from sim.talents import MageTalents
 
 
 @dataclass(kw_only=True)
@@ -44,7 +45,7 @@ class Character:
         self.tal = tal
 
         # avoid circular import
-        from turtlewow_sim.cooldowns import Cooldowns
+        from sim.cooldowns import Cooldowns
         self.cds = Cooldowns(self)
 
         self._dmg_modifier = 1
@@ -57,9 +58,15 @@ class Character:
         if self.env:
             self.env.add_character(self)
 
+        self.class_setup()
+
+    # For use in subclasses
+    def class_setup(self):
+        pass
+
     def reset(self):
         # avoid circular import
-        from turtlewow_sim.cooldowns import Cooldowns
+        from sim.cooldowns import Cooldowns
         self.cds = Cooldowns(self)
 
         self._dmg_modifier = 1

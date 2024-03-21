@@ -1,4 +1,4 @@
-from turtlewow_sim.character import Character
+from sim.character import Character
 
 
 class Cooldown:

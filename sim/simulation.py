@@ -2,8 +2,8 @@ from collections import defaultdict
 
 from tqdm import trange
 
-from turtlewow_sim.env import Environment
-from turtlewow_sim.utils import mean, mean_percentage
+from sim.env import Environment
+from sim.utils import mean, mean_percentage
 
 
 class Simulation:

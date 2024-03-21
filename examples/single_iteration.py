@@ -1,12 +1,15 @@
-from turtlewow_sim.env import Environment
-from turtlewow_sim.mage import Mage
-from turtlewow_sim.specs import FireMageTalents
+from sim.env import Environment
+from sim.mage import Mage
+from sim.mage_options import MageOptions
+from sim.talents import FireMageTalents
 
 mages = []
-num_mages = 1
+num_mages = 3
 
 for i in range(num_mages):
-    fm = Mage(name=f'mage{i}', sp=1009, crit=33.17, hit=16, tal=FireMageTalents())
+    tal = FireMageTalents
+    fm = Mage(name=f'mage{i}', sp=1009, crit=33.17, hit=16, tal=tal,
+              opts=MageOptions(extend_ignite_with_scorch=True))
     fm.smart_scorch()
     mages.append(fm)
 

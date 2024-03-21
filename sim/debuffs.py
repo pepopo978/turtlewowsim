@@ -1,4 +1,4 @@
-from turtlewow_sim.dots import FireballDot, PyroblastDot
+from sim.dots import FireballDot, PyroblastDot
 
 
 class Debuffs:

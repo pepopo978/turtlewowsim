@@ -1,7 +1,7 @@
 from typing import Optional
 
-from turtlewow_sim.env import Environment
-from turtlewow_sim.mage import Mage
+from sim.env import Environment
+from sim.mage import Mage, Spell
 
 
 class Ignite:
@@ -21,15 +21,15 @@ class Ignite:
 
         self.crit_this_window = False
         self.contains_scorch = False
-        self.contains_fireblast = False
+        self.contains_fire_blast = False
         self.ignite_id = 0
 
         self.had_any_ignites = False
 
     def is_suboptimal(self):
-        return self.contains_scorch or self.contains_fireblast
+        return self.contains_scorch or self.contains_fire_blast
 
-    def refresh(self, mage, dmg, spell_name):
+    def refresh(self, mage: Mage, dmg: int, spell: Spell):
         self.check_for_drop()
         self.last_crit_time = self.env.now
 
@@ -37,10 +37,10 @@ class Ignite:
             if self.stacks <= 4:
                 self.cum_dmg += dmg
                 self.stacks += 1
-                if spell_name.lower() == 'scorch':
+                if spell == Spell.SCORCH:
                     self.contains_scorch = True
-                elif spell_name.lower() == 'fireblast':
-                    self.contains_fireblast = True
+                elif spell == Spell.FIREBLAST:
+                    self.contains_fire_blast = True
 
             self.ticks_left = 2
         else:  # new ignite
@@ -62,7 +62,7 @@ class Ignite:
         self.ticks_left = 0
         self.last_crit_time = 0
         self.contains_scorch = False
-        self.contains_fireblast = False
+        self.contains_fire_blast = False
         self.ignite_id += 1  # increment ignite id
 
     def check_for_drop(self):
