@@ -77,6 +77,15 @@ class ArcanePower(Cooldown):
         self.character.remove_dmg_modifier(self.DMG_MOD)
 
 
+class PowerInfusion(ArcanePower):
+    DURATION = 15
+    DMG_MOD = 0.2
+
+    @property
+    def usable(self):
+        return not self._active and not self.on_cooldown and not self.character.cds.arcane_power.is_active()
+
+
 class Combustion(Cooldown):
     COOLDOWN = 180
 
@@ -139,15 +148,6 @@ class Berserking(Cooldown):
     def deactivate(self):
         super().deactivate()
         self.character.remove_trinket_haste(self.haste)
-
-
-class PowerInfusion(ArcanePower):
-    DURATION = 15
-    DMG_MOD = 0.2
-
-    @property
-    def usable(self):
-        return super().usable and not self.character.cds.arcane_power.is_active()
 
 
 class TOEP(Cooldown):

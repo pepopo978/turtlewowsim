@@ -1,18 +1,19 @@
-from sim.env import Environment
-from sim.mage import Mage
 from sim.simulation import Simulation
-from sim.mage_talents import FireMageTalents
 from sim.warlock import Warlock
 from sim.warlock_options import WarlockOptions
-from sim.warlock_talents import SMRuin
+from sim.warlock_talents import SMRuin, DSRuin
 
 locks = []
-num_locks = 3
+num_locks = 1
 
 for i in range(num_locks):
-    fm = Warlock(name=f'lock{i}', sp=1009, crit=33.17, hit=16, tal=SMRuin, opts=WarlockOptions())
-    fm.corruption_immolate_shadowbolt()
-    locks.append(fm)
+    lock = Warlock(name=f'lock{i}', sp=1005, crit=30.73, hit=10, tal=SMRuin, opts=WarlockOptions())
+    lock.cos_corruption_shadowbolt()
+    locks.append(lock)
+
+    lock = Warlock(name=f'immolate_lock{i}', sp=1005, crit=30.73, hit=10, tal=SMRuin, opts=WarlockOptions())
+    lock.cos_corruption_immolate_shadowbolt()
+    locks.append(lock)
 
 sim = Simulation(characters=locks)
 sim.run(iterations=1000, duration=180)

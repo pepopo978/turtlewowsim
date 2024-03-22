@@ -15,7 +15,7 @@ class WarlockTalents:
     demonic_sacrifice: int = 0  # 15% shadow damage per point
 
     # destruction
-    improved_shadow_bolt: int = 0  # 4% shadow damage per point
+    improved_shadow_bolt: int = 0  # 4% shadow damage per point on crits
     bane: int = 0  # -.1 sec shadowbolt and -.4 sec immolate per point
     improved_firebolt: int = 0  # 0.5 sec cast time per point
     devastation: int = 0  # 1% destruction crit per point

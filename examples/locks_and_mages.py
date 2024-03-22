@@ -15,9 +15,9 @@ for i in range(num_mages):
     characters.append(fm)
 
 for i in range(num_locks):
-    fm = Warlock(name=f'lock{i}', sp=1009, crit=33.17, hit=16, tal=SMRuin, opts=WarlockOptions())
-    fm.corruption_immolate_shadowbolt()
-    characters.append(fm)
+    lock = Warlock(name=f'lock{i}', sp=1005, crit=30.73, hit=10, tal=SMRuin, opts=WarlockOptions())
+    lock.corruption_immolate_shadowbolt()
+    characters.append(lock)
 
 sim = Simulation(characters=characters)
 sim.run(iterations=1000, duration=60)

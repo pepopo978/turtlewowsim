@@ -104,6 +104,10 @@ class Character:
     def remove_sp_bonus(self, sp):
         self._sp_bonus -= sp
 
+    @property
+    def dmg_modifier(self):
+        return self._dmg_modifier
+
     def add_dmg_modifier(self, mod):
         self._dmg_modifier += mod
 

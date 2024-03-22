@@ -1,5 +1,7 @@
+import random
+
 from sim.dot import Dot
-from sim.warlock import Spell
+from sim.warlock import Spell, Warlock
 
 
 class ShadowDot(Dot):
@@ -13,8 +15,7 @@ class ShadowDot(Dot):
         if self.env.debuffs.has_nightfall:
             tick_dmg *= 1.15
 
-        if self.owner.cds.power_infusion.is_active():
-            tick_dmg *= 1.2
+        tick_dmg *= self.owner.dmg_modifier
 
         isb_msg = "(ISB)" if self.env.improved_shadow_bolt.is_active else ""
         tick_dmg = int(self.env.improved_shadow_bolt.apply_to_dot(self.owner, tick_dmg))
@@ -27,22 +28,30 @@ class ShadowDot(Dot):
 
 
 class CorruptionDot(ShadowDot):
-    def __init__(self, owner, env, has_shadow_mastery=True, has_demonic_sacrifice=False):
+    def __init__(self, owner, env):
         super().__init__(owner, env)
 
         self.coefficient = 0.1666
         self.time_between_ticks = 3
         self.ticks_left = 6
         self.starting_ticks = 6
-        self.dmg_multiplier = 1.1 if has_shadow_mastery else 1
         self.base_tick_dmg = 137
         self.name = Spell.CORRUPTION.value
 
-        if has_demonic_sacrifice:
-            self.dmg_multiplier += 0.15
+        if isinstance(owner, Warlock):
+            if owner.tal.demonic_sacrifice:
+                self.dmg_multiplier += 0.15
 
-        if has_shadow_mastery:
-            self.dmg_multiplier += 0.1
+            if owner.tal.shadow_mastery:
+                self.dmg_multiplier += 0.1
+
+    def _do_dmg(self):
+        super()._do_dmg()
+
+        if isinstance(self.owner, Warlock):
+            if self.owner.tal.nightfall > 0:
+                if random.randint(1, 100) <= self.owner.tal.nightfall * 2:
+                    self.owner.nightfall_proc()
 
 
 class CurseOfAgonyDot(ShadowDot):
@@ -91,7 +100,7 @@ class CurseOfShadow(ShadowDot):
 
         self.coefficient = 0
         self.time_between_ticks = 1
-        self.ticks_left = 300 # ideally use event for this instead at some point
+        self.ticks_left = 300  # ideally use event for this instead at some point
         self.starting_ticks = 300
         self.base_tick_dmg = 0
         self.name = Spell.CURSE_OF_SHADOW.value

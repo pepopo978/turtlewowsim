@@ -71,7 +71,6 @@ class Warlock(Character):
         self.nightfall = False
 
     def _get_cast_time(self, base_cast_time):
-        # TODO nightfall
         trinket_haste = 1 + self._trinket_haste / 100
         gear_and_consume_haste = 1 + self.haste / 100
         haste_scaling_factor = trinket_haste * gear_and_consume_haste
@@ -119,6 +118,17 @@ class Warlock(Character):
                 yield from self._corruption()
             if not self.env.debuffs.is_immolate_active(self):
                 yield from self._immolate()
+            yield from self._shadowbolt()
+
+    def _cos_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(cds)
+            if not self.env.debuffs.has_cos:
+                yield from self._curse_of_shadow()
+            if not self.env.debuffs.is_corruption_active(self):
+                yield from self._corruption()
             yield from self._shadowbolt()
 
     def _cos_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
@@ -169,6 +179,11 @@ class Warlock(Character):
             dmg *= 1.1  # CoE
         if self.env.debuffs.has_nightfall:
             dmg *= 1.15
+        if self.tal.demonic_sacrifice:
+            dmg *= 1.15
+        if self.tal.shadow_mastery:
+            dmg *= 1.1
+
         if self._dmg_modifier != 1:
             dmg *= self._dmg_modifier
 
@@ -317,7 +332,12 @@ class Warlock(Character):
     def _shadowbolt(self):
         min_dmg = 482
         max_dmg = 539
-        casting_time = 3 - self.tal.bane * 0.1
+        if self.nightfall:
+            casting_time = 0
+            self.nightfall = False
+        else:
+            casting_time = 3 - self.tal.bane * 0.1
+
         crit_modifier = self.tal.devastation
 
         yield from self._shadow_spell(spell=Spell.SHADOWBOLT,
@@ -327,14 +347,14 @@ class Warlock(Character):
                                       base_cast_time=casting_time)
 
     def _immolate(self):
-        min_dmg = 279
-        max_dmg = 279
+        mult = 1 + .05 * self.tal.improved_immolate
+        dmg = int(279 * mult)
         casting_time = 2 - self.tal.bane * 0.4
         crit_modifier = self.tal.devastation
 
         yield from self._fire_spell(spell=Spell.IMMOLATE,
-                                    min_dmg=min_dmg,
-                                    max_dmg=max_dmg,
+                                    min_dmg=dmg,
+                                    max_dmg=dmg,
                                     crit_modifier=crit_modifier,
                                     base_cast_time=casting_time)
 
@@ -360,6 +380,10 @@ class Warlock(Character):
     def _curse_of_agony(self):
         yield from self._shadow_dot(spell=Spell.CURSE_OF_AGONY, base_cast_time=0)
 
+    def nightfall_proc(self):
+        self.nightfall = True
+        self.print("Nightfall proc!")
+
     def spam_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function
         return partial(self._set_rotation, name="spam_shadowbolt")(cds=cds, delay=delay)
@@ -372,6 +396,9 @@ class Warlock(Character):
 
     def agony_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="agony_corruption_immolate_shadowbolt")(cds=cds, delay=delay)
+
+    def cos_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="cos_corruption_shadowbolt")(cds=cds, delay=delay)
 
     def cos_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="cos_corruption_immolate_shadowbolt")(cds=cds, delay=delay)
