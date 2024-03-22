@@ -167,8 +167,7 @@ class Warlock(Character):
 
         hit = random.randint(1, 100) <= self._get_hit_chance(spell)
 
-        # TODO account for other crit
-        crit_chance = self.crit
+        crit_chance = self.crit + crit_modifier
         crit = random.randint(1, 100) <= crit_chance
 
         dmg = random.randint(min_dmg, max_dmg)
