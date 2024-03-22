@@ -3,6 +3,8 @@ from dataclasses import fields, dataclass
 from typing import Optional
 
 from sim.env import Environment
+from sim.spell_school import DamageType
+from sim.talent_school import TalentSchool
 
 
 @dataclass(kw_only=True)
@@ -87,6 +89,26 @@ class Character:
             cooldown_obj = getattr(self.cds, field.name)
             if use_time and cooldown_obj.usable and self.env.now >= use_time:
                 cooldown_obj.activate()
+
+    def _roll_hit(self, hit_chance: float):
+        return random.randint(1, 100) <= hit_chance
+
+    def _roll_crit(self, crit_chance: float):
+        return random.randint(1, 100) <= crit_chance
+
+    def _roll_spell_dmg(self, min_dmg: int, max_dmg: int, spell_coeff: float):
+        dmg = random.randint(min_dmg, max_dmg)
+        dmg += (self.sp + self._sp_bonus) * spell_coeff
+        return dmg
+
+    def _get_crit_multiplier(self, dmg_type: DamageType, talent_school: TalentSchool):
+        return 1.5
+
+    def modify_dmg(self, dmg: int, dmg_type: DamageType, is_periodic: bool):
+        if self._dmg_modifier != 1:
+            dmg *= self._dmg_modifier
+        # apply env debuffs
+        return self.env.debuffs.modify_dmg(self, dmg, dmg_type, is_periodic)
 
     def print(self, msg):
         if self.env.print:

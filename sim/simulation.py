@@ -3,6 +3,7 @@ from typing import List
 
 from tqdm import trange
 
+from sim import JUSTIFY
 from sim.character import Character
 from sim.env import Environment
 from sim.utils import mean, mean_percentage
@@ -107,12 +108,12 @@ class Simulation:
                 self.results['had_any_isbs'] = True
 
     def _justify(self, string):
-        return string.ljust(40, ' ')
+        return string.ljust(JUSTIFY, ' ')
 
     def report(self):
         print(f"{self._justify('Total spell dmg')}: {mean(self.results['total_spell_dmg'])}")
         print(f"{self._justify('Total dot dmg')}: {mean(self.results['total_dot_dmg'])}")
-        print(f"{self._justify('Total Ignite dmg')}: {mean(self.results['total_ignite_dmg'])}")
+        print(f"{self._justify('Total ignite dmg')}: {mean(self.results['total_ignite_dmg'])}")
         print(f"{self._justify('Total dmg')}: {mean(self.results['total_dmg'])}")
         print(f"{self._justify('Average character dps')}: {mean(self.results['avg_dps'])}")
 
@@ -136,7 +137,7 @@ class Simulation:
         print(f"{self._justify('Total spell dmg')}: {mean(self.results['total_spell_dmg'])}")
         print(f"{self._justify('Total dot dmg')}: {mean(self.results['total_dot_dmg'])}")
         if self.results['had_any_ignite']:
-            print(f"{self._justify('Total Ignite dmg')}: {mean(self.results['total_ignite_dmg'])}")
+            print(f"{self._justify('Total ignite dmg')}: {mean(self.results['total_ignite_dmg'])}")
         print(f"{self._justify('Total dmg')}: {mean(self.results['total_dmg'])}")
 
         print(f"{self._justify('Average char dps')}: {mean(self.results['avg_dps'])}")

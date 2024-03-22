@@ -1,35 +1,13 @@
 import random
 
 from sim.dot import Dot
+from sim.spell_school import DamageType
 from sim.warlock import Spell, Warlock
 
 
-class ShadowDot(Dot):
-    def _do_dmg(self):
-        tick_dmg = self._get_effective_tick_dmg()
-        tick_dmg *= self.dmg_multiplier
-
-        if self.env.debuffs.has_cos:
-            tick_dmg *= 1.1
-
-        if self.env.debuffs.has_nightfall:
-            tick_dmg *= 1.15
-
-        tick_dmg *= self.owner.dmg_modifier
-
-        isb_msg = "(ISB)" if self.env.improved_shadow_bolt.is_active else ""
-        tick_dmg = int(self.env.improved_shadow_bolt.apply_to_dot(self.owner, tick_dmg))
-
-        if self.env.print_dots:
-            self.env.p(
-                f"{self.env.time()} - ({self.owner.name}) {isb_msg} {self.name} dot tick {tick_dmg} ticks remaining {self.ticks_left}")
-        self.env.total_dot_dmg += tick_dmg
-        self.env.meter.register(self.owner.name, tick_dmg)
-
-
-class CorruptionDot(ShadowDot):
+class CorruptionDot(Dot):
     def __init__(self, owner, env):
-        super().__init__(owner, env)
+        super().__init__(owner, env, DamageType.Shadow)
 
         self.coefficient = 0.1666
         self.time_between_ticks = 3
@@ -37,13 +15,6 @@ class CorruptionDot(ShadowDot):
         self.starting_ticks = 6
         self.base_tick_dmg = 137
         self.name = Spell.CORRUPTION.value
-
-        if isinstance(owner, Warlock):
-            if owner.tal.demonic_sacrifice:
-                self.dmg_multiplier += 0.15
-
-            if owner.tal.shadow_mastery:
-                self.dmg_multiplier += 0.1
 
     def _do_dmg(self):
         super()._do_dmg()
@@ -54,9 +25,9 @@ class CorruptionDot(ShadowDot):
                     self.owner.nightfall_proc()
 
 
-class CurseOfAgonyDot(ShadowDot):
-    def __init__(self, owner, env, has_shadow_mastery=True, has_demonic_sacrifice=False):
-        super().__init__(owner, env)
+class CurseOfAgonyDot(Dot):
+    def __init__(self, owner, env):
+        super().__init__(owner, env, DamageType.Shadow)
 
         self.coefficient = 0.0833
         self.time_between_ticks = 2
@@ -64,12 +35,6 @@ class CurseOfAgonyDot(ShadowDot):
         self.starting_ticks = 12
         self.base_tick_dmg = 87
         self.name = Spell.CURSE_OF_AGONY.value
-
-        if has_demonic_sacrifice:
-            self.dmg_multiplier += 0.15
-
-        if has_shadow_mastery:
-            self.dmg_multiplier += 0.1
 
     def _get_effective_tick_dmg(self):
         standard_tick_dmg = super()._get_effective_tick_dmg()
@@ -92,15 +57,3 @@ class CurseOfAgonyDot(ShadowDot):
             return standard_tick_dmg * 1.5
         else:
             return 0
-
-
-class CurseOfShadow(ShadowDot):
-    def __init__(self, owner, env):
-        super().__init__(owner, env)
-
-        self.coefficient = 0
-        self.time_between_ticks = 1
-        self.ticks_left = 300  # ideally use event for this instead at some point
-        self.starting_ticks = 300
-        self.base_tick_dmg = 0
-        self.name = Spell.CURSE_OF_SHADOW.value

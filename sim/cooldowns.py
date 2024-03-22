@@ -2,8 +2,8 @@ from sim.character import Character
 
 
 class Cooldown:
-    DURATION = NotImplemented
-    COOLDOWN = NotImplemented
+    DURATION = 0
+    COOLDOWN = 0
 
     def __init__(self, character: Character):
         self.character = character

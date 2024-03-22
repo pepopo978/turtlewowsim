@@ -1,14 +1,15 @@
 from typing import Dict
 
+from sim import JUSTIFY
 from sim.env import Environment
-from sim.warlock import Warlock
+from sim.warlock import Character
 
 
 class ImprovedShadowBolt:
     def __init__(self, env):
         self._uptime = 0
-        self._added_dot_dmg: Dict[Warlock, int] = {}
-        self._added_spell_dmg: Dict[Warlock, int] = {}
+        self._added_dot_dmg: Dict[Character, int] = {}
+        self._added_spell_dmg: Dict[Character, int] = {}
 
         self.env: Environment = env
 
@@ -18,14 +19,14 @@ class ImprovedShadowBolt:
         self.had_any_isbs = False
         self.total_activations = 0
         self.total_usages = 0
-        self.activations: Dict[Warlock, int] = {}
-        self.usages: Dict[Warlock, int] = {}
+        self.activations: Dict[Character, int] = {}
+        self.usages: Dict[Character, int] = {}
 
     @property
     def is_active(self):
         return self.stacks > 0 and self.env.now - self.activation_time <= 12
 
-    def apply_to_dot(self, warlock: Warlock, dmg: int):
+    def apply_to_dot(self, warlock: Character, dmg: int):
         if self.is_active:
             added_dmg = int(dmg * 0.2)
             self._added_dot_dmg[warlock] = self._added_dot_dmg.get(warlock, 0) + added_dmg
@@ -33,7 +34,7 @@ class ImprovedShadowBolt:
         else:
             return dmg
 
-    def apply_to_spell(self, warlock: Warlock, dmg: int):
+    def apply_to_spell(self, warlock: Character, dmg: int):
         if self.is_active:
             self.stacks -= 1
             self.total_usages += 1
@@ -44,7 +45,7 @@ class ImprovedShadowBolt:
         else:
             return dmg
 
-    def refresh(self, warlock: Warlock):
+    def refresh(self, warlock: Character):
         self.had_any_isbs = True
         self.activation_time = self.env.now
         self.stacks = 5
@@ -75,7 +76,7 @@ class ImprovedShadowBolt:
         return sum(self._added_spell_dmg.values())
 
     def _justify(self, string):
-        return string.ljust(30, ' ')
+        return string.ljust(JUSTIFY, ' ')
 
     def report(self):
         if not self.had_any_isbs:

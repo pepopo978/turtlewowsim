@@ -1,5 +1,6 @@
 from typing import Optional
 
+from sim import JUSTIFY
 from sim.env import Environment
 from sim.mage import Mage, Spell
 
@@ -171,7 +172,7 @@ class Ignite:
         return self._num_ticks[4]
 
     def _justify(self, string):
-        return string.ljust(30, ' ')
+        return string.ljust(JUSTIFY, ' ')
 
     def report(self):
         if not self.had_any_ignites:

@@ -147,7 +147,7 @@ After the simulation finishes the result will look like this:
 ```
 Total spell dmg                         : 765822
 Total dot dmg                           : 275181
-Total Ignite dmg                        : 275181
+Total ignite dmg                        : 275181
 Total dmg                               : 275181
 Average mage dps                        : 1169
 Average >=1 stack ignite uptime         : 90.6%

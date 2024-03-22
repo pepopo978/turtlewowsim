@@ -1,6 +1,6 @@
 from typing import Dict
 
-from sim.env import Environment
+from sim import JUSTIFY
 
 
 def _round(num):
@@ -42,11 +42,11 @@ class DamageMeter:
     def report(self):
         total_time = self.env.now
         for name, dps in self.dps().items():
-            print(f"{name.ljust(30, ' ')}: {dps} dps")
+            print(f"{name.ljust(JUSTIFY, ' ')}: {dps} dps")
 
         total_raid_dmg = sum(self.characters.values())
         print(
-            f"{'Average DPS'.ljust(30, ' ')}: {round(total_raid_dmg / total_time / len(self.characters.keys()), 1)}")
+            f"{'Average DPS'.ljust(JUSTIFY, ' ')}: {round(total_raid_dmg / total_time / len(self.characters.keys()), 1)}")
 
         self.env.ignite.report()
         self.env.improved_shadow_bolt.report()

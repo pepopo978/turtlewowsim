@@ -21,9 +21,8 @@ class MageTalents:
 FireMageTalents = MageTalents(
     imp_scorch=True,
     fire_power=True,
-    critial_mass=False,
+    critial_mass=False,  # generally counted in crit already
     fire_blast_cooldown=8
-
 )
 
 ApFrostMageTalents = MageTalents(

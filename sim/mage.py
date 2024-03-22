@@ -1,5 +1,4 @@
 import random
-from enum import Enum
 from functools import partial
 from typing import Optional
 
@@ -8,24 +7,9 @@ from sim.cooldowns import Cooldown
 from sim.env import Environment
 from sim.mage_options import MageOptions
 from sim.mage_talents import MageTalents
-
-
-# spell name enum
-class Spell(Enum):
-    FIREBALL = "fireball"
-    PYROBLAST = "pyroblast"
-    SCORCH = "scorch"
-    FIREBLAST = "fireblast"
-    FROSTBOLT = "frostbolt"
-
-
-SPELL_COEFFICIENTS = {
-    Spell.FIREBALL: 1.0,
-    Spell.PYROBLAST: 1.0,
-    Spell.SCORCH: 0.4285,
-    Spell.FIREBLAST: 0.4285,
-    Spell.FROSTBOLT: 0.814,
-}
+from sim.spell import Spell, SPELL_COEFFICIENTS
+from sim.spell_school import DamageType
+from sim.talent_school import TalentSchool
 
 
 class FireBlastCooldown(Cooldown):
@@ -179,12 +163,45 @@ class Mage(Character):
         else:
             return base_cast_time
 
+    def _get_talent_school(self, spell: Spell):
+        if spell in [Spell.CORRUPTION, Spell.CURSE_OF_AGONY, Spell.CURSE_OF_SHADOW]:
+            return TalentSchool.Affliction
+        elif spell in [Spell.SHADOWBOLT, Spell.IMMOLATE, Spell.SEARING_PAIN, Spell.CONFLAGRATE]:
+            return TalentSchool.Destruction
+        else:
+            raise ValueError(f"Unknown spell {spell}")
+
+    def _get_hit_chance(self, spell: Spell):
+        # elemental precision assumed to be included in hit already
+        return min(83 + self.hit, 99)
+
+    def _get_crit_multiplier(self, dmg_type: DamageType, talent_school: TalentSchool):
+        mult = super()._get_crit_multiplier(dmg_type, talent_school)
+        if dmg_type == DamageType.Frost:
+            # ice shards assumed
+            mult = 2
+        return mult
+
+    def modify_dmg(self, dmg: int, dmg_type: DamageType, is_periodic:bool):
+        dmg = super().modify_dmg(dmg, dmg_type, is_periodic)
+
+        if self.tal.arcane_instability:
+            dmg *= 1.03
+
+        if dmg_type == DamageType.Fire and self.tal.fire_power:
+            dmg *= 1.1
+
+        if self.tal.piercing_ice and dmg_type == DamageType.Frost:
+            dmg *= 1.06
+
+        return int(dmg)
+
     def _fire_spell(self,
                     spell: Spell,
                     min_dmg: int,
                     max_dmg: int,
                     base_cast_time: float,
-                    crit_modifier: float = 0,
+                    crit_modifier: float,
                     cooldown: float = 0.0):
         # check for ignite conditions
         has_5_stack_scorch = self.env.debuffs.scorch_stacks == 5
@@ -220,32 +237,11 @@ class Mage(Character):
         if casting_time < self.env.GCD:
             cooldown = self.env.GCD - casting_time
 
-        hit_chance = min(83 + self.hit, 99)
-        hit = random.randint(1, 100) <= hit_chance
+        hit = self._roll_hit(self._get_hit_chance(spell))
+        crit = self._roll_crit(self.crit + crit_modifier)
+        dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
+        dmg = self.modify_dmg(dmg, DamageType.Fire, is_periodic=False)
 
-        crit_chance = self.crit + crit_modifier + self.cds.combustion.crit_bonus
-        if self.tal.arcane_instability:
-            crit_chance += 3
-
-        crit = random.randint(1, 100) <= crit_chance
-
-        coeff = SPELL_COEFFICIENTS[spell]
-
-        dmg = random.randint(min_dmg, max_dmg)
-        dmg += (self.sp + self._sp_bonus) * coeff
-
-        if self.tal.fire_power:
-            dmg *= 1.1  # Fire Power
-        if self.tal.arcane_instability:
-            dmg *= 1.03
-        if self.env.debuffs.has_coe:
-            dmg *= 1.1  # CoE
-        if self.env.debuffs.has_nightfall:
-            dmg *= 1.15
-
-        dmg *= 1 + self.env.debuffs.scorch_stacks * 0.03  # imp. scorch
-
-        dmg = int(dmg * self._dmg_modifier)
         if casting_time:
             yield self.env.timeout(casting_time + self.lag)
 
@@ -262,7 +258,8 @@ class Mage(Character):
             self.print(f"{spell.value} {description} {dmg}")
             self.cds.combustion.cast_fire_spell()  # only happens on hit
         else:
-            dmg = int(dmg * 1.5)
+            mult = self._get_crit_multiplier(DamageType.Fire, TalentSchool.Fire)
+            dmg = int(dmg * mult)
             self.print(f"{spell.value} {description} **{dmg}**")
             self.env.ignite.refresh(self, dmg, spell)
 
@@ -280,7 +277,7 @@ class Mage(Character):
 
         if spell == Spell.SCORCH and self.tal.imp_scorch and hit:
             # roll for whether debuff hits
-            fire_vuln_hit = random.randint(1, 100) <= hit_chance
+            fire_vuln_hit = self._roll_hit(self._get_hit_chance(spell))
             if fire_vuln_hit:
                 self.env.debuffs.scorch()
 
@@ -302,7 +299,7 @@ class Mage(Character):
                      min_dmg: int,
                      max_dmg: int,
                      base_cast_time: float,
-                     crit_modifier: float = 0,
+                     crit_modifier: float,
                      cooldown: float = 0.0):
 
         casting_time = self._get_cast_time(base_cast_time)
@@ -317,29 +314,10 @@ class Mage(Character):
         if casting_time < self.env.GCD:
             cooldown = self.env.GCD - casting_time
 
-        hit_chance = min(83 + self.hit, 99)
-        hit = random.randint(1, 100) <= hit_chance
-
-        crit_chance = self.crit + self.env.debuffs.wc_stacks * 2
-        if self.tal.arcane_instability:
-            crit_chance += 3
-        if self.tal.critial_mass:
-            crit_chance += 6
-
-        crit = random.randint(1, 100) <= crit_chance
-
-        dmg = random.randint(min_dmg, max_dmg)
-        coeff = SPELL_COEFFICIENTS[spell]
-        dmg += (self.sp + self._sp_bonus) * coeff
-
-        if self.tal.piercing_ice:
-            dmg *= 1.06  # Piercing Ice
-        if self.tal.arcane_instability:
-            dmg *= 1.03
-        if self.env.debuffs.has_coe:
-            dmg *= 1.1  # CoE
-        if self.env.debuffs.has_nightfall:
-            dmg *= 1.15
+        hit = self._roll_hit(self._get_hit_chance(spell))
+        crit = self._roll_crit(self.crit + self.env.debuffs.wc_stacks * 2 + crit_modifier)
+        dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
+        dmg = self.modify_dmg(dmg, DamageType.Frost, is_periodic=False)
 
         dmg = int(dmg * self._dmg_modifier)
         yield self.env.timeout(casting_time)
@@ -362,7 +340,7 @@ class Mage(Character):
 
         if self.tal.winters_chill:
             # roll for whether debuff hits
-            winters_chill_hit = random.randint(1, 100) <= hit_chance
+            winters_chill_hit = random.randint(1, 100) <= self._roll_hit(self._get_hit_chance(spell))
             if winters_chill_hit:
                 self.env.debuffs.winters_chill()
 
@@ -383,47 +361,85 @@ class Mage(Character):
         min_dmg = 237
         max_dmg = 280
         casting_time = 1.5
-        crit_modifier = 4 if self.tal.incinerate else 0
+        crit_modifier = 0
+        if self.tal.arcane_instability:
+            crit_modifier += 3
+        if self.tal.incinerate:
+            crit_modifier += 4
 
-        yield from self._fire_spell(spell=Spell.SCORCH, min_dmg=min_dmg, max_dmg=max_dmg, base_cast_time=casting_time,
+        yield from self._fire_spell(spell=Spell.SCORCH,
+                                    min_dmg=min_dmg,
+                                    max_dmg=max_dmg,
+                                    base_cast_time=casting_time,
                                     crit_modifier=crit_modifier)
 
     def _fireball(self):
         min_dmg = 596
         max_dmg = 760
         casting_time = 3
+        crit_modifier = 0
+        if self.tal.arcane_instability:
+            crit_modifier += 3
+        if self.tal.critial_mass:
+            crit_modifier += 6
 
         if self.opts.pyro_on_t2_proc and self._t2proc >= 0:
             yield self.env.timeout(0.05)  # small delay between spells
             yield from self._pyroblast()
         else:
-            yield from self._fire_spell(spell=Spell.FIREBALL, min_dmg=min_dmg, max_dmg=max_dmg,
-                                        base_cast_time=casting_time)
+            yield from self._fire_spell(spell=Spell.FIREBALL,
+                                        min_dmg=min_dmg,
+                                        max_dmg=max_dmg,
+                                        base_cast_time=casting_time,
+                                        crit_modifier=crit_modifier)
 
     def _fire_blast(self):
         min_dmg = 431
         max_dmg = 510
         casting_time = 0
-        crit_modifier = 4 if self.tal.incinerate else 0
+        crit_modifier = 0
+        if self.tal.arcane_instability:
+            crit_modifier += 3
+        if self.tal.incinerate:
+            crit_modifier += 4
+        if self.tal.critial_mass:
+            crit_modifier += 6
 
-        yield from self._fire_spell(spell=Spell.FIREBLAST, min_dmg=min_dmg, max_dmg=max_dmg,
+        yield from self._fire_spell(spell=Spell.FIREBLAST,
+                                    min_dmg=min_dmg,
+                                    max_dmg=max_dmg,
                                     base_cast_time=casting_time,
-                                    crit_modifier=crit_modifier, cooldown=self.env.GCD)
+                                    crit_modifier=crit_modifier,
+                                    cooldown=self.env.GCD)
 
     def _pyroblast(self, casting_time=6):
         min_dmg = 716
         max_dmg = 890
+        crit_modifier = 0
+        if self.tal.arcane_instability:
+            crit_modifier += 3
+        if self.tal.critial_mass:
+            crit_modifier += 6
 
-        yield from self._fire_spell(spell=Spell.PYROBLAST, min_dmg=min_dmg, max_dmg=max_dmg,
-                                    base_cast_time=casting_time)
+        yield from self._fire_spell(spell=Spell.PYROBLAST,
+                                    min_dmg=min_dmg,
+                                    max_dmg=max_dmg,
+                                    base_cast_time=casting_time,
+                                    crit_modifier=crit_modifier)
 
     def _frostbolt(self):
         min_dmg = 440
         max_dmg = 475
         casting_time = 2.5
+        crit_modifier = 0
+        if self.tal.arcane_instability:
+            crit_modifier += 3
 
-        yield from self._frost_spell(spell=Spell.FROSTBOLT, min_dmg=min_dmg, max_dmg=max_dmg,
-                                     base_cast_time=casting_time)
+        yield from self._frost_spell(spell=Spell.FROSTBOLT,
+                                     min_dmg=min_dmg,
+                                     max_dmg=max_dmg,
+                                     base_cast_time=casting_time,
+                                     crit_modifier=crit_modifier)
 
     def spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function

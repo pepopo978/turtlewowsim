@@ -1,5 +1,7 @@
+from sim.character import Character
 from sim.fire_dots import PyroblastDot, FireballDot, ImmolateDot
 from sim.shadow_dots import CorruptionDot, CurseOfAgonyDot
+from sim.spell_school import DamageType
 
 
 class Debuffs:
@@ -32,6 +34,26 @@ class Debuffs:
     @property
     def has_nightfall(self):
         return self.permanent_nightfall
+
+    def modify_dmg(self, character: Character, dmg: int, dmg_type: DamageType, is_periodic: bool):
+        if self.env.debuffs.has_cos and dmg_type in [DamageType.Shadow, DamageType.Arcane]:
+            dmg *= 1.1
+        elif self.env.debuffs.has_coe and dmg_type in [DamageType.Fire, DamageType.Frost]:
+            dmg *= 1.1
+
+        if dmg_type == DamageType.Fire and self.scorch_stacks:
+            dmg *= 1 + self.scorch_stacks * 0.03
+
+        if self.env.debuffs.has_nightfall:
+            dmg *= 1.15
+
+        if dmg_type == DamageType.Shadow:
+            if is_periodic:
+                dmg = self.env.improved_shadow_bolt.apply_to_dot(warlock=character, dmg=dmg)
+            else:
+                dmg = self.env.improved_shadow_bolt.apply_to_spell(warlock=character, dmg=dmg)
+
+        return dmg
 
     def scorch(self):
         self.scorch_stacks = min(self.scorch_stacks + 1, 5)
