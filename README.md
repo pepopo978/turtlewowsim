@@ -246,13 +246,14 @@ DSRuin = WarlockTalents(
 )
 ```
 
-Every simulation assumes Curse of Elements is applied, you can turn it off by adding this line after you create your env
+Simulation defaults assume Curse of Elements and Shadow are permanently on, you can turn it off by passing the appropriate argument to the constructor
 ```
-env.debuffs.permanent_coe = False
-```
-or by passing it as an argument in Simulation
-```
-sim = Simulation(permanent_coe=False)
+class Simulation:
+    def __init__(self,
+                 characters: List[Character] = None,
+                 permanent_coe: bool = True,
+                 permanent_cos: bool = True,
+                 permanent_nightfall: bool = False):
 ```
 no consumables are assumed otherwise, you need to factor those in your total sp/crit
 
