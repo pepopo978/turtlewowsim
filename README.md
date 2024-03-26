@@ -10,7 +10,11 @@ https://www.python.org/downloads/
 
 `pip install poetry` or `pipx install poetry`
 
-`poetry run python your_script.py`
+`poetry shell`
+
+`poetry install`
+
+`poetry run examples/mage.py`
 
 ## Usage
 For a single iteration:
