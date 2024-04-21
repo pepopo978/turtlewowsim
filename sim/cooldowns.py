@@ -2,14 +2,20 @@ from sim.character import Character
 
 
 class Cooldown:
-    DURATION = 0
-    COOLDOWN = 0
+    STARTS_CD_ON_ACTIVATION = True
 
     def __init__(self, character: Character):
         self.character = character
         self._on_cooldown = False
-
         self._active = False
+
+    @property
+    def duration(self):
+        return 0
+
+    @property
+    def cooldown(self):
+        return 0
 
     @property
     def env(self):
@@ -35,34 +41,55 @@ class Cooldown:
             self._active = True
             self.character.print(f"{self.name} activated")
 
-            if self.DURATION:
+            if self.duration:
                 def callback(self):
-                    yield self.character.env.timeout(self.DURATION)
+                    yield self.character.env.timeout(self.duration)
                     self.deactivate()
 
                 self.character.env.process(callback(self))
+            else:
+                self.deactivate()
 
     def deactivate(self):
         self._active = False
-        self._on_cooldown = True
         self.character.print(f"{self.name} deactivated")
 
-        if self.COOLDOWN:
+        if self.cooldown:
+            self._on_cooldown = True
+
             def callback(self):
-                yield self.env.timeout(self.COOLDOWN)
+                if self.STARTS_CD_ON_ACTIVATION:
+                    yield self.env.timeout(self.cooldown - self.duration)
+                else:
+                    yield self.env.timeout(self.cooldown)
+
                 self._on_cooldown = False
 
             self.character.env.process(callback(self))
 
 
 class PresenceOfMind(Cooldown):
-    pass
+    STARTS_CD_ON_ACTIVATION = False
+
+    @property
+    def duration(self):
+        return 9999
+
+    @property
+    def cooldown(self):
+        return 180
 
 
 class ArcanePower(Cooldown):
-    DURATION = 15
-    COOLDOWN = 180
     DMG_MOD = 0.3
+
+    @property
+    def duration(self):
+        return 15
+
+    @property
+    def cooldown(self):
+        return 180
 
     @property
     def usable(self):
@@ -82,17 +109,29 @@ class PowerInfusion(ArcanePower):
     DMG_MOD = 0.2
 
     @property
+    def duration(self):
+        return 15
+
+    @property
+    def cooldown(self):
+        return 180
+
+    @property
     def usable(self):
         return not self._active and not self.on_cooldown and not self.character.cds.arcane_power.is_active()
 
 
 class Combustion(Cooldown):
-    COOLDOWN = 180
+    STARTS_CD_ON_ACTIVATION = False
 
     def __init__(self, character: Character):
         super().__init__(character)
         self._charges = 0
         self._crit_bonus = 0
+
+    @property
+    def cooldown(self):
+        return 180
 
     @property
     def crit_bonus(self):
@@ -115,7 +154,13 @@ class Combustion(Cooldown):
 
 
 class MQG(Cooldown):
-    DURATION = 20
+    @property
+    def duration(self):
+        return 20
+
+    @property
+    def cooldown(self):
+        return 300
 
     @property
     def usable(self):
@@ -131,7 +176,13 @@ class MQG(Cooldown):
 
 
 class Berserking(Cooldown):
-    DURATION = 10
+    @property
+    def duration(self):
+        return 10
+
+    @property
+    def cooldown(self):
+        return 180
 
     def __init__(self, character: Character, haste: float):
         super().__init__(character)
@@ -151,8 +202,15 @@ class Berserking(Cooldown):
 
 
 class TOEP(Cooldown):
-    DURATION = 15
     DMG_BONUS = 175
+
+    @property
+    def duration(self):
+        return 15
+
+    @property
+    def cooldown(self):
+        return 90
 
     @property
     def usable(self):

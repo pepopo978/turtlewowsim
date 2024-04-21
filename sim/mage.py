@@ -15,21 +15,15 @@ from sim.talent_school import TalentSchool
 class FireBlastCooldown(Cooldown):
     def __init__(self, character: Character, cooldown: float):
         super().__init__(character)
-        self.cooldown = cooldown
+        self._cd = cooldown
 
     @property
-    def usable(self):
-        return not self._active
+    def duration(self):
+        return 0
 
-    def activate(self):
-        super().activate()
-        self.deactivate()
-
-        def callback(self):
-            yield self.env.timeout(self.cooldown)
-            self._on_cooldown = False
-
-        self.character.env.process(callback(self))
+    @property
+    def cooldown(self):
+        return self._cd
 
 
 class Mage(Character):
@@ -182,7 +176,7 @@ class Mage(Character):
             mult = 2
         return mult
 
-    def modify_dmg(self, dmg: int, dmg_type: DamageType, is_periodic:bool):
+    def modify_dmg(self, dmg: int, dmg_type: DamageType, is_periodic: bool):
         dmg = super().modify_dmg(dmg, dmg_type, is_periodic)
 
         if self.tal.arcane_instability:

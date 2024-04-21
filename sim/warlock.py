@@ -13,28 +13,35 @@ from sim.warlock_talents import WarlockTalents
 
 
 class AmplifyCurseCooldown(Cooldown):
-    DURATION = 30
-    COOLDOWN = 180
-
-    def __init__(self, character: Character, cooldown: float):
+    def __init__(self, character: Character):
         super().__init__(character)
-        self.cooldown = cooldown
 
     def use_on_curse(self):
         super().deactivate()
+
+    @property
+    def duration(self):
+        return 30
+
+    @property
+    def cooldown(self):
+        return 180
 
 
 class ConflagrateCooldown(Cooldown):
-    DURATION = 30
-    COOLDOWN = 180
-
-    def __init__(self, character: Character, cooldown: float):
+    def __init__(self, character: Character):
         super().__init__(character)
-        self.cooldown = cooldown
 
     def use_on_curse(self):
         super().deactivate()
 
+    @property
+    def duration(self):
+        return 0
+
+    @property
+    def cooldown(self):
+        return 10
 
 class Warlock(Character):
     def __init__(self,
