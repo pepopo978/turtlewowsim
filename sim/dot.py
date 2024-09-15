@@ -9,6 +9,7 @@ class Dot:
         self.env = env
         self.dmg_type = dmg_type
 
+        self.sp = self.owner.sp # snapshot sp
         self.coefficient = 0
         self.time_between_ticks = 0
         self.starting_ticks = 0
@@ -17,7 +18,7 @@ class Dot:
         self.name = ""
 
     def _get_effective_tick_dmg(self):
-        dmg = self.base_tick_dmg + self.owner.sp * self.coefficient
+        dmg = self.base_tick_dmg + self.sp * self.coefficient
         return self.owner.modify_dmg(dmg, self.dmg_type, is_periodic=True)
 
     # This method is overridden in the child class
