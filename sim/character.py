@@ -129,6 +129,10 @@ class Character:
     @property
     def dmg_modifier(self):
         return self._dmg_modifier
+        
+    @property
+    def eff_sp(self):
+        return self.sp + self._sp_bonus
 
     def add_dmg_modifier(self, mod):
         self._dmg_modifier += mod
