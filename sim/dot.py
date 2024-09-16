@@ -9,7 +9,7 @@ class Dot:
         self.env = env
         self.dmg_type = dmg_type
 
-        self.sp = self.owner.sp + sef.owner._sp_bonus # snapshot sp
+        self.sp = self.owner.eff_sp # snapshot sp
         self.coefficient = 0
         self.time_between_ticks = 0
         self.starting_ticks = 0
