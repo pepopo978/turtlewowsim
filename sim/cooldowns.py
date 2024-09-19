@@ -154,6 +154,7 @@ class Combustion(Cooldown):
 
 
 class MQG(Cooldown):
+    # Mind Quickening Gem
     @property
     def duration(self):
         return 20
@@ -202,6 +203,7 @@ class Berserking(Cooldown):
 
 
 class TOEP(Cooldown):
+    # Talisman of Ephemeral Power
     DMG_BONUS = 175
 
     @property
@@ -225,6 +227,33 @@ class TOEP(Cooldown):
         self.character.remove_sp_bonus(self.DMG_BONUS)
 
 
+
+class REOS(Cooldown):
+    # Restrained Essence of Sapphiron
+    DMG_BONUS = 130
+
+    @property
+    def duration(self):
+        return 20
+
+    @property
+    def cooldown(self):
+        return 120
+
+    @property
+    def usable(self):
+        return super().usable and not self.character.cds.mqg.is_active() and not self.character.cds.toep.is_active()
+
+    def activate(self):
+        super().activate()
+        self.character.add_sp_bonus(self.DMG_BONUS)
+
+    def deactivate(self):
+        super().deactivate()
+        self.character.remove_sp_bonus(self.DMG_BONUS)
+
+
+
 class Cooldowns:
     def __init__(self, character):
         self.combustion = Combustion(character)
@@ -232,6 +261,7 @@ class Cooldowns:
         self.power_infusion = PowerInfusion(character)
         self.presence_of_mind = PresenceOfMind(character)
         self.toep = TOEP(character)
+        self.reos = REOS(character)
         self.mqg = MQG(character)
         self.berserking30 = Berserking(character, 30)
         self.berserking20 = Berserking(character, 20)

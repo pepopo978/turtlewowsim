@@ -4,7 +4,7 @@ from sim.warlock_options import WarlockOptions
 from sim.warlock_talents import SMRuin, DSRuin
 
 locks = []
-num_locks = 1
+num_locks = 3
 
 for i in range(num_locks):
     lock = Warlock(name=f'lock{i}', sp=1005, crit=30.73, hit=10, tal=SMRuin, opts=WarlockOptions())

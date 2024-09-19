@@ -8,6 +8,11 @@ from sim.character import Character
 from sim.env import Environment
 from sim.utils import mean, mean_percentage
 
+# histogram dependencies
+import plotly.express as px
+import numpy as np
+import plotly.graph_objects as go
+
 
 class Simulation:
     def __init__(self,
@@ -19,6 +24,57 @@ class Simulation:
         self.permanent_coe = permanent_coe
         self.permanent_cos = permanent_cos
         self.permanent_nightfall = permanent_nightfall
+
+    def run_iteration(self, i, duration):
+        env = Environment(print=False,
+                          print_dots=False,
+                          permanent_coe=self.permanent_coe,
+                          permanent_cos=self.permanent_cos,
+                          permanent_nightfall=self.permanent_nightfall)
+
+        # reset each char to clear last run
+        for character in self.characters:
+            character.reset()
+
+        env.add_characters(self.characters)
+        env.run(until=duration)
+
+        results = {
+            'dps': {},
+            'casts': {},
+            'total_spell_dmg': env.total_spell_dmg,
+            'total_dot_dmg': env.total_dot_dmg,
+            'total_ignite_dmg': env.total_ignite_dmg,
+            'total_dmg': env.get_total_dmg(),
+            'avg_dps': env.meter.raid_dmg(),
+            'max_single_dps': max(env.meter.dps().values()),
+            '>=1 stack uptime': env.ignite.uptime_gte_1_stack,
+            '>=2 stack uptime': env.ignite.uptime_gte_2_stacks,
+            '>=3 stack uptime': env.ignite.uptime_gte_3_stacks,
+            '>=4 stack uptime': env.ignite.uptime_gte_4_stacks,
+            '5 stack uptime': env.ignite.uptime_5_stacks,
+            '1 stack ticks': env.ignite.num_1_stack_ticks,
+            '2 stack ticks': env.ignite.num_2_stack_ticks,
+            '3 stack ticks': env.ignite.num_3_stack_ticks,
+            '4 stack ticks': env.ignite.num_4_stack_ticks,
+            '5 stack ticks': env.ignite.num_5_stack_ticks,
+            'num_ticks': env.ignite.num_ticks,
+            'avg_tick': env.ignite.avg_tick,
+            'max_tick': env.ignite.max_tick,
+            'ISB uptime': env.improved_shadow_bolt.uptime_percent,
+            'Total added dot dmg': env.improved_shadow_bolt.total_added_dot_dmg,
+            'Total added spell dmg': env.improved_shadow_bolt.total_added_spell_dmg,
+            'had_any_ignite': env.ignite.had_any_ignites,
+            'had_any_isbs': env.improved_shadow_bolt.had_any_isbs,
+        }
+
+        # Collect DPS and casts data
+        for character, mdps in env.meter.dps().items():
+            results['dps'][character] = mdps
+        for character in self.characters:
+            results['casts'][character.name] = sum(character.num_casts.values())
+
+        return i, results
 
     def run(self, iterations, duration):
         self.results = {
@@ -53,7 +109,7 @@ class Simulation:
             'Total added spell dmg': [None] * iterations,
         }
 
-        for i in trange(iterations):
+        for i in trange(iterations, ascii=True):
             env = Environment(print=False,
                               print_dots=False,
                               permanent_coe=self.permanent_coe,
@@ -110,29 +166,30 @@ class Simulation:
     def _justify(self, string):
         return string.ljust(JUSTIFY, ' ')
 
-    def report(self):
-        print(f"{self._justify('Total spell dmg')}: {mean(self.results['total_spell_dmg'])}")
-        print(f"{self._justify('Total dot dmg')}: {mean(self.results['total_dot_dmg'])}")
-        print(f"{self._justify('Total ignite dmg')}: {mean(self.results['total_ignite_dmg'])}")
-        print(f"{self._justify('Total dmg')}: {mean(self.results['total_dmg'])}")
-        print(f"{self._justify('Average character dps')}: {mean(self.results['avg_dps'])}")
+    def report(self, verbosity=1):
+        if verbosity > 1:
+            # per character stats
+            for char in self.results['dps']:
+                label = f"{char} DPS Mean"
+                print(
+                    f"{self._justify(label)}: {mean(self.results['dps'][char])} in {mean(self.results['casts'][char])} casts")
 
-        # include ignite info if there was any
-        if self.results['had_any_ignite']:
-            print(f"------ Ignite ------")
-            print(
-                f"{self._justify('Average >=1 stack ignite uptime')}: {mean_percentage(self.results['>=1 stack uptime'])}%")
-            print(
-                f"{self._justify('Average >=3 stack ignite uptime')}: {mean_percentage(self.results['>=3 stack uptime'])}%")
-            print(
-                f"{self._justify('Average   5 stack ignite uptime')}: {mean_percentage(self.results['5 stack uptime'])}%")
-            print(f"{self._justify('Average ignite tick')}: {mean(self.results['avg_tick'])}")
+                if verbosity > 2:
+                    label = f"{char} DPS standard deviation"
+                    print(f"{self._justify(label)}: {np.std(self.results['dps'][char])}")
+                    label = f"{char} DPS min"
+                    print(f"{self._justify(label)}: {np.min(self.results['dps'][char])}")
+                    label = f"{char} DPS 25th percentile"
+                    print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 25)}")
+                    label = f"{char} DPS 50th percentile"
+                    print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 50)}")
+                    label = f"{char} DPS 75th percentile"
+                    print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 75)}")
+                    label = f"{char} DPS max"
+                    print(f"{self._justify(label)}: {np.max(self.results['dps'][char])}")
 
-    def detailed_report(self):
-        for char in self.results['dps']:
-            label = f"{char} average DPS"
-            print(
-                f"{self._justify(label)}: {mean(self.results['dps'][char])} in {mean(self.results['casts'][char])} casts")
+                # label = f"{char} DPS Variance"
+                # print(f"{self._justify(label)}: {np.var(self.results['dps'][char])}")
 
         print(f"{self._justify('Total spell dmg')}: {mean(self.results['total_spell_dmg'])}")
         print(f"{self._justify('Total dot dmg')}: {mean(self.results['total_dot_dmg'])}")
@@ -143,30 +200,57 @@ class Simulation:
         print(f"{self._justify('Average char dps')}: {mean(self.results['avg_dps'])}")
         print(f"{self._justify('Highest single char dps')}: {max(self.results['max_single_dps'])}")
 
-        # include ignite info if there was any
-        if self.results['had_any_ignite']:
-            print(f"------ Ignite ------")
-            print(
-                f"{self._justify('Average >=1 stack ignite uptime')}: {mean_percentage(self.results['>=1 stack uptime'])}%")
-            print(
-                f"{self._justify('Average >=2 stack ignite uptime')}: {mean_percentage(self.results['>=2 stack uptime'])}%")
-            print(
-                f"{self._justify('Average >=3 stack ignite uptime')}: {mean_percentage(self.results['>=3 stack uptime'])}%")
-            print(
-                f"{self._justify('Average >=4 stack ignite uptime')}: {mean_percentage(self.results['>=4 stack uptime'])}%")
-            print(
-                f"{self._justify('Average   5 stack ignite uptime')}: {mean_percentage(self.results['5 stack uptime'])}%")
-            print(f"{self._justify('Average   1 stack ticks')}: {mean(self.results['1 stack ticks'])}")
-            print(f"{self._justify('Average   2 stack ticks')}: {mean(self.results['2 stack ticks'])}")
-            print(f"{self._justify('Average   3 stack ticks')}: {mean(self.results['3 stack ticks'])}")
-            print(f"{self._justify('Average   4 stack ticks')}: {mean(self.results['4 stack ticks'])}")
-            print(f"{self._justify('Average   5 stack ticks')}: {mean(self.results['5 stack ticks'])}")
-            print(f"{self._justify('Average ignite tick')}: {mean(self.results['avg_tick'])}")
-            print(f"{self._justify('Average num tick')}: {mean(self.results['num_ticks'])}")
-            print(f"{self._justify('Average max tick')}: {mean(self.results['max_tick'])}")
+        if verbosity > 1:
+            if self.results['had_any_ignite']:
+                # include ignite info if there was any
+                print(f"------ Ignite ------")
+                if verbosity > 2:
+                    print(
+                        f"{self._justify('Average >=1 stack ignite uptime')}: {mean_percentage(self.results['>=1 stack uptime'])}%")
+                    print(
+                        f"{self._justify('Average >=2 stack ignite uptime')}: {mean_percentage(self.results['>=2 stack uptime'])}%")
+                    print(
+                        f"{self._justify('Average >=3 stack ignite uptime')}: {mean_percentage(self.results['>=3 stack uptime'])}%")
+                    print(
+                        f"{self._justify('Average >=4 stack ignite uptime')}: {mean_percentage(self.results['>=4 stack uptime'])}%")
+                print(
+                    f"{self._justify('Average   5 stack ignite uptime')}: {mean_percentage(self.results['5 stack uptime'])}%")
+                if verbosity > 2:
+                    print(f"{self._justify('Average   1 stack ticks')}: {mean(self.results['1 stack ticks'])}")
+                    print(f"{self._justify('Average   2 stack ticks')}: {mean(self.results['2 stack ticks'])}")
+                    print(f"{self._justify('Average   3 stack ticks')}: {mean(self.results['3 stack ticks'])}")
+                    print(f"{self._justify('Average   4 stack ticks')}: {mean(self.results['4 stack ticks'])}")
+                print(f"{self._justify('Average   5 stack ticks')}: {mean(self.results['5 stack ticks'])}")
+                print(f"{self._justify('Average ignite tick')}: {mean(self.results['avg_tick'])}")
+                print(f"{self._justify('Average num tick')}: {mean(self.results['num_ticks'])}")
+                print(f"{self._justify('Average max tick')}: {mean(self.results['max_tick'])}")
 
-        if self.results['had_any_isbs']:
-            print(f"------ ISB ------")
-            print(f"{self._justify('ISB uptime')}: {mean(self.results['ISB uptime'])}%")
-            print(f"{self._justify('Total added dot dmg')}: {mean(self.results['Total added dot dmg'])}")
-            print(f"{self._justify('Total added spell dmg')}: {mean(self.results['Total added spell dmg'])}")
+        if verbosity > 1:
+            if self.results['had_any_isbs']:
+                print(f"------ ISB ------")
+                print(f"{self._justify('ISB uptime')}: {mean(self.results['ISB uptime'])}%")
+                print(f"{self._justify('Total added dot dmg')}: {mean(self.results['Total added dot dmg'])}")
+                print(f"{self._justify('Total added spell dmg')}: {mean(self.results['Total added spell dmg'])}")
+
+    def extended_report(self):
+        self.report(verbosity=2)
+
+    def detailed_report(self):
+        self.report(verbosity=3)
+
+    def histogram_report_individual(self):
+        for char in self.results['dps']:
+            fig = px.histogram(x=self.results['dps'][char], histnorm='probability density')
+            fig.update_layout(title=f"DPS of {char}")
+            fig.show()
+
+    def histogram_report_overlay(self):
+        fig = go.Figure()
+        for char in self.results['dps']:
+            fig.add_trace(go.Histogram(x=self.results['dps'][char], name=char))
+
+        # Overlay both histograms
+        fig.update_layout(title=f"DPS Distributions", barmode='overlay')
+        # Reduce opacity to see both histograms
+        fig.update_traces(opacity=0.50)
+        fig.show()

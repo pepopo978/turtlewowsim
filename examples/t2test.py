@@ -21,4 +21,4 @@ for i in range(num_mages):
 
 sim = Simulation(characters=mages)
 sim.run(iterations=1000, duration=100)
-sim.detailed_report()
+sim.extended_report()

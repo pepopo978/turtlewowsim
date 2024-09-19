@@ -5,12 +5,16 @@ Simulation for Turtle WoW that currently supports Fire/Frost Mages and Warlocks.
 ## Installation
 
 Need python 3.10 or later and Poetry to install dependencies
-
 https://www.python.org/downloads/
+
+If you use pypy instead it is roughly 2x faster
+https://pypy.org/download.html
 
 `pip install poetry` or `pipx install poetry`
 
 `poetry shell`
+
+If you have pypy use it with `poetry env use path\to\pypy`
 
 `poetry install`
 
@@ -143,7 +147,7 @@ for i in range(num_mages):
 
 sim = Simulation(characters=mages)
 sim.run(iterations=1000, duration=180)
-sim.detailed_report()
+sim.report()
 ```
 
 After the simulation finishes the result will look like this:
@@ -154,10 +158,6 @@ Total dot dmg                           : 275181
 Total ignite dmg                        : 275181
 Total dmg                               : 275181
 Average mage dps                        : 1169
-Average >=1 stack ignite uptime         : 90.6%
-Average >=3 stack ignite uptime         : 76.1%
-Average   5 stack ignite uptime         : 63.1%
-Average ignite tick                     : 3437
 ```
 or
 ```
@@ -169,13 +169,11 @@ Total dot dmg                           : 125970
 Total dmg                               : 549054
 Average char dps                        : 1017
 Highest single char dps                 : 1173.3
------- ISB ------
-ISB uptime                              : 77.2%
-Total added dot dmg                     : 10570
-Total added spell dmg                   : 43159
 ```
 
-but you can run with the `detailed_report()` method to get a more detailed output
+but you can run with either `extended_report()` or `detailed_report()` method to get a more detailed output
+
+You can also display histograms for each character with `histogram_report_individual()` or all characters with `histogram_report_overlay()`
 
 ## Talents and Debuffs
 
