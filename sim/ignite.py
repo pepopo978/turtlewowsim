@@ -102,7 +102,7 @@ class Ignite:
             tick_dmg *= 1.15
 
         # doesn't snapshot on vmangos
-        tick_dmg *= self.owner.dmg_modifier
+        tick_dmg *= self.owner.dmg_modifier # includes AP/PI
 
         tick_dmg *= 1 + self.env.debuffs.scorch_stacks * 0.03  # ignite double dips on imp.scorch
 

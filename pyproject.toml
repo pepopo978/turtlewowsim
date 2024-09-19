@@ -3,6 +3,10 @@ name = "turtlewow_sim"
 version = "1.0.0"
 description = ""
 authors = ["mcdallas <mcdallas@protonmail.com>", "pepopo978 <pepopo978@gmail.com>"]
+packages = [
+    { include = "sim" },
+    { include = "examples" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
