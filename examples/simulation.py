@@ -19,4 +19,4 @@ reg_mage3.smart_scorch()
 
 sim = Simulation(characters=[reg_mage1, reg_mage2, reg_mage3])
 sim.run(iterations=1000, duration=60)
-sim.detailed_report()
+sim.extended_report()

@@ -88,6 +88,18 @@ class Warlock(Character):
                 yield from self._corruption()
             yield from self._shadowbolt()
 
+    def _corruption_agony_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(cds)
+            if not self.env.debuffs.is_corruption_active(self):
+                yield from self._corruption()
+            if not self.env.debuffs.is_curse_of_agony_active(self):
+                yield from self._curse_of_agony()
+            yield from self._shadowbolt()
+
+
     def _corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         yield from self._random_delay(delay)
 
@@ -99,15 +111,15 @@ class Warlock(Character):
                 yield from self._immolate()
             yield from self._shadowbolt()
 
-    def _agony_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+    def _corruption_agony_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(cds)
-            if not self.env.debuffs.is_agony_active(self):
-                yield from self._curse_of_agony()
             if not self.env.debuffs.is_corruption_active(self):
                 yield from self._corruption()
+            if not self.env.debuffs.is_curse_of_agony_active(self):
+                yield from self._curse_of_agony()
             if not self.env.debuffs.is_immolate_active(self):
                 yield from self._immolate()
             yield from self._shadowbolt()
@@ -300,7 +312,7 @@ class Warlock(Character):
             if spell == Spell.CORRUPTION:
                 self.env.debuffs.add_corruption_dot(self)
             elif spell == Spell.CURSE_OF_AGONY:
-                self.env.debuffs.add_agony_dot(self)
+                self.env.debuffs.add_curse_of_agony_dot(self)
             elif spell == Spell.CURSE_OF_SHADOW:
                 self.env.debuffs.add_curse_of_shadows_dot()
 
@@ -375,8 +387,11 @@ class Warlock(Character):
     def corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="corruption_immolate_shadowbolt")(cds=cds, delay=delay)
 
-    def agony_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="agony_corruption_immolate_shadowbolt")(cds=cds, delay=delay)
+    def corruption_agony_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="corruption_agony_shadowbolt")(cds=cds, delay=delay)
+
+    def corruption_agony_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="corruption_agony_immolate_shadowbolt")(cds=cds, delay=delay)
 
     def cos_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="cos_corruption_shadowbolt")(cds=cds, delay=delay)

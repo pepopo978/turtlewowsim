@@ -1,4 +1,3 @@
-from sim.env import Environment
 from sim.mage import Mage
 from sim.simulation import Simulation
 from sim.mage_talents import FireMageTalents
@@ -13,4 +12,4 @@ for i in range(num_mages):
 
 sim = Simulation(characters=mages)
 sim.run(iterations=1000, duration=180)
-sim.detailed_report()
+sim.extended_report()

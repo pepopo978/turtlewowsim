@@ -1,3 +1,4 @@
+import functools
 import random
 from dataclasses import fields, dataclass
 from typing import Optional
@@ -23,6 +24,7 @@ class CooldownUsages:
     # Trinkets
     toep: Optional[float] = None
     mqg: Optional[float] = None
+    reos: Optional[float] = None
 
 
 class Character:
@@ -70,12 +72,12 @@ class Character:
 
         self.num_casts = {}
 
-    def _set_rotation(self, name, *args, **kwargs):
-        def callback(mage):
-            rotation = getattr(mage, '_' + name)
-            return rotation(*args, **kwargs)
+    def _rotation_callback(self, mage, name, *args, **kwargs):
+        rotation = getattr(mage, '_' + name)
+        return rotation(*args, **kwargs)
 
-        self.rotation = callback
+    def _set_rotation(self, name, *args, **kwargs):
+        self.rotation = functools.partial(self._rotation_callback, name=name, *args, **kwargs)
 
     def _random_delay(self, secs=2):
         if secs:
@@ -129,7 +131,7 @@ class Character:
     @property
     def dmg_modifier(self):
         return self._dmg_modifier
-        
+
     @property
     def eff_sp(self):
         return self.sp + self._sp_bonus

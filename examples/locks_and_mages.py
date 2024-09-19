@@ -21,4 +21,4 @@ for i in range(num_locks):
 
 sim = Simulation(characters=characters)
 sim.run(iterations=1000, duration=60)
-sim.detailed_report()
+sim.extended_report()
