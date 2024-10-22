@@ -36,7 +36,7 @@ class Mage(Character):
                  crit: float = 0,
                  hit: float = 0,
                  haste: float = 0,
-                 lag: float = 0.1,  # default lag between spells that seems to occur on turtle
+                 lag: float = 0.06,  # lag added by server tick time
                  ):
         super().__init__(env, name, sp, crit, hit, haste, lag)
         self.tal = tal
@@ -172,8 +172,7 @@ class Mage(Character):
     def _get_crit_multiplier(self, dmg_type: DamageType, talent_school: TalentSchool):
         mult = super()._get_crit_multiplier(dmg_type, talent_school)
         if dmg_type == DamageType.Frost:
-            # ice shards assumed
-            mult = 2
+            mult = 1.5 + self.tal.ice_shards * 0.1
         return mult
 
     def modify_dmg(self, dmg: int, dmg_type: DamageType, is_periodic: bool):
@@ -228,7 +227,7 @@ class Mage(Character):
             self._t2proc = 0  # delay using t2 until next spell
 
         # account for gcd
-        if casting_time < self.env.GCD:
+        if casting_time < self.env.GCD and cooldown == 0:
             cooldown = self.env.GCD - casting_time
 
         hit = self._roll_hit(self._get_hit_chance(spell))
@@ -329,7 +328,8 @@ class Mage(Character):
             self.print(f"{spell.value} {description} {dmg}")
 
         else:
-            dmg = int(dmg * 2)
+            mult = self._get_crit_multiplier(DamageType.Frost, TalentSchool.Frost)
+            dmg = int(dmg * mult)
             self.print(f"{spell.value} {description} **{dmg}**")
 
         if self.tal.winters_chill:
@@ -422,8 +422,8 @@ class Mage(Character):
                                     crit_modifier=crit_modifier)
 
     def _frostbolt(self):
-        min_dmg = 440
-        max_dmg = 475
+        min_dmg = 515
+        max_dmg = 556
         casting_time = 2.5
         crit_modifier = 0
         if self.tal.arcane_instability:

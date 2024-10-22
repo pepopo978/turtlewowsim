@@ -53,7 +53,7 @@ class Warlock(Character):
                  crit: float = 0,
                  hit: float = 0,
                  haste: float = 0,
-                 lag: float = 0.1,  # default lag between spells that seems to occur on turtle
+                 lag: float = 0.06,  # lag added by server tick time
                  ):
         super().__init__(env, name, sp, crit, hit, haste, lag)
         self.tal = tal

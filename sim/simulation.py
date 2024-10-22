@@ -61,6 +61,7 @@ class Simulation:
             'num_ticks': env.ignite.num_ticks,
             'avg_tick': env.ignite.avg_tick,
             'max_tick': env.ignite.max_tick,
+            'num_drops': env.ignite.num_drops,
             'ISB uptime': env.improved_shadow_bolt.uptime_percent,
             'Total added dot dmg': env.improved_shadow_bolt.total_added_dot_dmg,
             'Total added spell dmg': env.improved_shadow_bolt.total_added_spell_dmg,
@@ -103,6 +104,7 @@ class Simulation:
             'avg_tick': [None] * iterations,
             'num_ticks': [None] * iterations,
             'max_tick': [None] * iterations,
+            'num_drops': [None] * iterations,
             # isb
             'ISB uptime': [None] * iterations,
             'Total added dot dmg': [None] * iterations,
@@ -152,6 +154,7 @@ class Simulation:
             self.results['num_ticks'][i] = env.ignite.num_ticks
             self.results['avg_tick'][i] = env.ignite.avg_tick
             self.results['max_tick'][i] = env.ignite.max_tick
+            self.results['num_drops'][i] = env.ignite.num_drops
 
             # include isb info if there was any
             self.results['ISB uptime'][i] = env.improved_shadow_bolt.uptime_percent
@@ -224,6 +227,7 @@ class Simulation:
                 print(f"{self._justify('Average ignite tick')}: {mean(self.results['avg_tick'])}")
                 print(f"{self._justify('Average num tick')}: {mean(self.results['num_ticks'])}")
                 print(f"{self._justify('Average max tick')}: {mean(self.results['max_tick'])}")
+                print(f"{self._justify('Average num drops')}: {mean(self.results['num_drops'])}")
 
         if verbosity > 1:
             if self.results['had_any_isbs']:
