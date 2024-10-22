@@ -30,7 +30,6 @@ class Mage(Character):
     def __init__(self,
                  tal: MageTalents,
                  opts: MageOptions = MageOptions(),
-                 env: Optional[Environment] = None,
                  name: str = '',
                  sp: int = 0,
                  crit: float = 0,
@@ -38,9 +37,14 @@ class Mage(Character):
                  haste: float = 0,
                  lag: float = 0.06,  # lag added by server tick time
                  ):
-        super().__init__(env, name, sp, crit, hit, haste, lag)
+        super().__init__(name, sp, crit, hit, haste, lag)
         self.tal = tal
         self.opts = opts
+        self.fire_blast_cd = FireBlastCooldown(self, self.tal.fire_blast_cooldown)
+
+    def attach_env(self, env: Environment):
+        super().attach_env(env)
+        # reset fire blast cd
         self.fire_blast_cd = FireBlastCooldown(self, self.tal.fire_blast_cooldown)
 
     def _spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):

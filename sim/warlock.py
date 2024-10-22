@@ -47,7 +47,6 @@ class Warlock(Character):
     def __init__(self,
                  tal: WarlockTalents,
                  opts: WarlockOptions = WarlockOptions(),
-                 env: Optional[Environment] = None,
                  name: str = '',
                  sp: int = 0,
                  crit: float = 0,
@@ -55,7 +54,7 @@ class Warlock(Character):
                  haste: float = 0,
                  lag: float = 0.06,  # lag added by server tick time
                  ):
-        super().__init__(env, name, sp, crit, hit, haste, lag)
+        super().__init__(name, sp, crit, hit, haste, lag)
         self.tal = tal
         self.opts = opts
 
