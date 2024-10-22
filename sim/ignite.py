@@ -4,8 +4,8 @@ from sim import JUSTIFY
 from sim.env import Environment
 from sim.mage import Mage, Spell
 
-IGNITE_WINDOW = 4
-IGNITE_TICK_TIME = 2
+IGNITE_WINDOW = 6
+IGNITE_TICK_TIME = 3
 
 class Ignite:
     def __init__(self, env):

@@ -5,6 +5,7 @@ from typing import Optional
 from sim.character import Character, CooldownUsages
 from sim.cooldowns import Cooldown
 from sim.env import Environment
+from sim.hot_streak import HotStreak
 from sim.mage_options import MageOptions
 from sim.mage_talents import MageTalents
 from sim.spell import Spell, SPELL_COEFFICIENTS
@@ -13,6 +14,8 @@ from sim.talent_school import TalentSchool
 
 
 class FireBlastCooldown(Cooldown):
+    PRINTS_ACTIVATION = False
+
     def __init__(self, character: Character, cooldown: float):
         super().__init__(character)
         self._cd = cooldown
@@ -30,7 +33,6 @@ class Mage(Character):
     def __init__(self,
                  tal: MageTalents,
                  opts: MageOptions = MageOptions(),
-                 env: Optional[Environment] = None,
                  name: str = '',
                  sp: int = 0,
                  crit: float = 0,
@@ -38,10 +40,18 @@ class Mage(Character):
                  haste: float = 0,
                  lag: float = 0.06,  # lag added by server tick time
                  ):
-        super().__init__(env, name, sp, crit, hit, haste, lag)
+        super().__init__(name, sp, crit, hit, haste, lag)
+        self.hot_streak = None
         self.tal = tal
         self.opts = opts
+
+    def attach_env(self, env: Environment):
+        super().attach_env(env)
+
         self.fire_blast_cd = FireBlastCooldown(self, self.tal.fire_blast_cooldown)
+
+        if self.tal.hot_streak:
+            self.hot_streak = HotStreak(env, self)
 
     def _spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         yield from self._random_delay(delay)
@@ -201,6 +211,13 @@ class Mage(Character):
         has_5_stack_ignite = self.env.ignite and self.env.ignite.stacks == 5
         has_scorch_ignite = has_5_stack_ignite and self.env.ignite.is_suboptimal()
 
+        # check for hot streak pyroblast
+        if self.hot_streak and self.hot_streak.get_stacks() == 9 and self.opts.pyro_on_9_hot_streak:
+            self.print("Hot Streak Pyroblast")
+            self.hot_streak.use_stacks()
+            yield from self._pyroblast(casting_time=1.5)
+            return
+
         # check for scorch ignite drop
         if self.opts.drop_suboptimal_ignites and has_scorch_ignite and spell != Spell.PYROBLAST:
             yield from self._pyroblast()
@@ -237,6 +254,8 @@ class Mage(Character):
 
         if casting_time:
             yield self.env.timeout(casting_time + self.lag)
+        else:
+            yield self.env.timeout(self.lag)
 
         description = ""
         if self.env.print:
@@ -255,6 +274,10 @@ class Mage(Character):
             dmg = int(dmg * mult)
             self.print(f"{spell.value} {description} **{dmg}**")
             self.env.ignite.refresh(self, dmg, spell)
+
+            # check for hot streak
+            if self.hot_streak and (spell == Spell.FIREBALL or spell == Spell.FIREBLAST):
+                self.hot_streak.add_stack()
 
             self.cds.combustion.use_charge()  # only used on crit
             self.cds.combustion.cast_fire_spell()
@@ -285,7 +308,7 @@ class Mage(Character):
 
         # handle gcd
         if cooldown:
-            yield self.env.timeout(cooldown + self.lag / 2)
+            yield self.env.timeout(cooldown)
 
     def _frost_spell(self,
                      spell: Spell,
@@ -349,7 +372,7 @@ class Mage(Character):
 
         # handle gcd
         if cooldown:
-            yield self.env.timeout(cooldown + self.lag / 2)
+            yield self.env.timeout(cooldown)
 
     def _scorch(self):
         min_dmg = 237
@@ -358,8 +381,8 @@ class Mage(Character):
         crit_modifier = 0
         if self.tal.arcane_instability:
             crit_modifier += 3
-        if self.tal.incinerate:
-            crit_modifier += 4
+
+        crit_modifier += self.tal.incinerate_crit  # incinerate added crit (2 or 4%)
 
         yield from self._fire_spell(spell=Spell.SCORCH,
                                     min_dmg=min_dmg,
@@ -394,19 +417,19 @@ class Mage(Character):
         crit_modifier = 0
         if self.tal.arcane_instability:
             crit_modifier += 3
-        if self.tal.incinerate:
-            crit_modifier += 4
         if self.tal.critial_mass:
             crit_modifier += 6
+
+        crit_modifier += self.tal.incinerate_crit  # incinerate added crit (2 or 4%)
 
         yield from self._fire_spell(spell=Spell.FIREBLAST,
                                     min_dmg=min_dmg,
                                     max_dmg=max_dmg,
                                     base_cast_time=casting_time,
                                     crit_modifier=crit_modifier,
-                                    cooldown=self.env.GCD)
+                                    cooldown=self.tal.fire_blast_gcd)
 
-    def _pyroblast(self, casting_time=6):
+    def _pyroblast(self, casting_time=6.0):
         min_dmg = 716
         max_dmg = 890
         crit_modifier = 0

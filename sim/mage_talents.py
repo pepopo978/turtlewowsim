@@ -5,10 +5,12 @@ from dataclasses import dataclass
 class MageTalents:
     # Fire
     imp_scorch: bool = False
-    incinerate: bool = False
     fire_power: bool = False
     critial_mass: bool = False
+    hot_streak: bool = False
+    incinerate_crit: int = 0
     fire_blast_cooldown: float = 8
+    fire_blast_gcd: float = 1.5
 
     # Frost
     winters_chill: bool = False
@@ -23,7 +25,10 @@ FireMageTalents = MageTalents(
     imp_scorch=True,
     fire_power=True,
     critial_mass=False,  # generally counted in crit already
-    fire_blast_cooldown=8
+    hot_streak=True,
+    incinerate_crit=4,
+    fire_blast_cooldown=6.5,
+    fire_blast_gcd=1
 )
 
 ApFrostMageTalents = MageTalents(

@@ -49,7 +49,7 @@ class Environment(simpy.Environment):
 
     def add_character(self, character):
         self.characters.append(character)
-        character.env = self
+        character.attach_env(self)
 
     def add_characters(self, characters):
         for char in characters:
