@@ -13,6 +13,7 @@ class MageTalents:
     # Frost
     winters_chill: bool = False
     piercing_ice: bool = False
+    ice_shards: int = 0
 
     # Arcane
     arcane_instability: bool = False
@@ -27,10 +28,12 @@ FireMageTalents = MageTalents(
 
 ApFrostMageTalents = MageTalents(
     arcane_instability=True,
-    piercing_ice=True
+    piercing_ice=True,
+    ice_shards=5
 )
 
 WcFrostMageTalents = MageTalents(
     winters_chill=True,
-    piercing_ice=True
+    piercing_ice=True,
+    ice_shards=5
 )

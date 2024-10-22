@@ -4,6 +4,8 @@ from sim import JUSTIFY
 from sim.env import Environment
 from sim.mage import Mage, Spell
 
+IGNITE_WINDOW = 4
+IGNITE_TICK_TIME = 2
 
 class Ignite:
     def __init__(self, env):
@@ -14,6 +16,7 @@ class Ignite:
         self.env: Environment = env
 
         self.active = False
+        self.num_drops = 0
         self.cum_dmg = 0
         self.last_crit_time = 0
         self.ticks_left = 0
@@ -65,12 +68,13 @@ class Ignite:
         self.contains_scorch = False
         self.contains_fire_blast = False
         self.ignite_id += 1  # increment ignite id
+        self.num_drops += 1
 
     def check_for_drop(self):
         # only check last crit time if ignite is active and down to 0 ticks
         if self.active and self.ticks_left == 0:
-            # check if 4 seconds have passed since last crit
-            if self.env.now - self.last_crit_time > 4:
+            # check if 6 seconds have passed since last crit
+            if self.env.now - self.last_crit_time > IGNITE_WINDOW:
                 self.drop()
 
     def monitor(self):
@@ -86,7 +90,7 @@ class Ignite:
 
     def run(self, ignite_id):
         while self.ignite_id == ignite_id:
-            yield self.env.timeout(2)
+            yield self.env.timeout(IGNITE_TICK_TIME)
             if self.ticks_left > 0:
                 self.had_any_ignites = True
                 self.ticks_left -= 1
@@ -108,7 +112,7 @@ class Ignite:
 
         tick_dmg = int(tick_dmg)
         if self.env.print:
-            time_left = self.last_crit_time + 4 - self.env.now
+            time_left = self.last_crit_time + IGNITE_WINDOW - self.env.now
             self.env.p(
                 f"{self.env.time()} - ({self.owner.name}) ({self.stacks}) ignite tick {tick_dmg} ticks remaining {self.ticks_left} time left {round(time_left, 2)}s")
 
