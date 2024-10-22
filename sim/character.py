@@ -29,7 +29,6 @@ class CooldownUsages:
 
 class Character:
     def __init__(self,
-                 env: Optional[Environment],
                  name: str,
                  sp: int,
                  crit: float,
@@ -38,13 +37,13 @@ class Character:
                  lag: float,
                  ):
 
-        self.env = env
         self.name = name
         self.sp = sp
         self.crit = crit
         self.hit = hit
         self.haste = haste
         self.lag = lag
+        self.env = None
 
         # avoid circular import
         from sim.cooldowns import Cooldowns
@@ -57,8 +56,8 @@ class Character:
 
         self.num_casts = {}
 
-        if self.env:
-            self.env.add_character(self)
+    def attach_env(self, env: Environment):
+        self.env = env
 
     def reset(self):
         # avoid circular import

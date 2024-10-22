@@ -3,6 +3,7 @@ from sim.character import Character
 
 class Cooldown:
     STARTS_CD_ON_ACTIVATION = True
+    PRINTS_ACTIVATION = True
 
     def __init__(self, character: Character):
         self.character = character
@@ -39,7 +40,8 @@ class Cooldown:
     def activate(self):
         if self.usable:
             self._active = True
-            self.character.print(f"{self.name} activated")
+            if self.PRINTS_ACTIVATION:
+                self.character.print(f"{self.name} activated")
 
             if self.duration:
                 def callback(self):
@@ -52,7 +54,8 @@ class Cooldown:
 
     def deactivate(self):
         self._active = False
-        self.character.print(f"{self.name} deactivated")
+        if self.PRINTS_ACTIVATION:
+            self.character.print(f"{self.name} deactivated")
 
         if self.cooldown:
             self._on_cooldown = True

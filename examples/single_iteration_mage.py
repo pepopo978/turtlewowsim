@@ -4,13 +4,15 @@ from sim.mage_options import MageOptions
 from sim.mage_talents import FireMageTalents
 
 mages = []
-num_mages = 1
+num_mages = 3
 
 for i in range(num_mages):
-    tal = FireMageTalents
-    fm = Mage(name=f'mage{i}', sp=1009, crit=33.17, hit=16, tal=tal,
-              opts=MageOptions(extend_ignite_with_scorch=True))
-    fm.smart_scorch_and_fireblast()
+    fm = Mage(name=f'mage{i}', sp=1009, crit=33.17, hit=16, tal=FireMageTalents)
+    fm.tal.hot_streak = False
+    if i==0:
+        fm.smart_scorch_and_fireblast()
+    else:
+        fm.smart_scorch()
     mages.append(fm)
 
 env = Environment()

@@ -41,8 +41,12 @@ class DamageMeter:
 
     def report(self):
         total_time = self.env.now
+        casts = {}
+        for character in self.env.characters:
+            casts[character.name] = sum(character.num_casts.values())
+
         for name, dps in self.dps().items():
-            print(f"{name.ljust(JUSTIFY, ' ')}: {dps} dps")
+            print(f"{name.ljust(JUSTIFY, ' ')}: {dps} dps in {casts[name]} casts")
 
         total_raid_dmg = sum(self.characters.values())
         print(
