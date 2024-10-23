@@ -194,8 +194,8 @@ class Warlock(Character):
         casting_time = self._get_cast_time(base_cast_time)
 
         # account for gcd
-        if casting_time < self.env.GCD:
-            cooldown = self.env.GCD - casting_time
+        if casting_time < self.env.GCD and cooldown == 0:
+            cooldown = self.env.GCD - casting_time + self.lag
 
         isb_msg = "(ISB)" if self.env.improved_shadow_bolt.is_active else ""
 
@@ -242,9 +242,10 @@ class Warlock(Character):
                     cooldown: float = 0.0):
 
         casting_time = self._get_cast_time(base_cast_time)
+
         # account for gcd
-        if casting_time < self.env.GCD:
-            cooldown = self.env.GCD - casting_time
+        if casting_time < self.env.GCD and cooldown == 0:
+            cooldown = self.env.GCD - casting_time + self.lag
 
         hit = self._roll_hit(self._get_hit_chance(spell))
         crit = self._roll_crit(self.crit + crit_modifier)
@@ -295,9 +296,10 @@ class Warlock(Character):
                     cooldown: float = 0.0):
 
         casting_time = self._get_cast_time(base_cast_time)
+
         # account for gcd
-        if casting_time < self.env.GCD:
-            cooldown = self.env.GCD - casting_time
+        if casting_time < self.env.GCD and cooldown == 0:
+            cooldown = self.env.GCD - casting_time + self.lag
 
         hit_chance = self._get_hit_chance(spell)
         hit = random.randint(1, 100) <= hit_chance
