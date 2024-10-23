@@ -24,9 +24,15 @@ class Dot:
     # This method is overridden in the child class
     def _do_dmg(self):
         tick_dmg = self._get_effective_tick_dmg()
+        partial_amount = self.owner.roll_partial(is_dot=True, is_binary=False)
+        partial_desc = ""
+        if partial_amount < 1:
+            tick_dmg = int(tick_dmg * partial_amount)
+            partial_desc = f"({int(partial_amount * 100)}% partial)"
+
         if self.env.print_dots:
             self.env.p(
-                f"{self.env.time()} - ({self.owner.name}) {self.name} dot tick {tick_dmg} ticks remaining {self.ticks_left}")
+                f"{self.env.time()} - ({self.owner.name}) {self.name} dot tick {partial_desc} {tick_dmg} ticks remaining {self.ticks_left}")
         self.env.total_dot_dmg += tick_dmg
         self.env.meter.register(self.owner.name, tick_dmg)
 
