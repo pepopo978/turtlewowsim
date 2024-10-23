@@ -52,7 +52,7 @@ class Warlock(Character):
                  crit: float = 0,
                  hit: float = 0,
                  haste: float = 0,
-                 lag: float = 0.06,  # lag added by server tick time
+                 lag: float = 0.07,  # lag added by server tick time
                  ):
         super().__init__(name, sp, crit, hit, haste, lag)
         self.tal = tal
@@ -62,6 +62,7 @@ class Warlock(Character):
         self.nightfall = False
 
     def _get_cast_time(self, base_cast_time):
+        base_cast_time += self.lag
         trinket_haste = 1 + self._trinket_haste / 100
         gear_and_consume_haste = 1 + self.haste / 100
         haste_scaling_factor = trinket_haste * gear_and_consume_haste
@@ -208,7 +209,7 @@ class Warlock(Character):
 
         description = ""
         if self.env.print:
-            description = f"({round(casting_time, 2) + self.lag} cast)"
+            description = f"({round(casting_time, 2)} cast)"
             if cooldown:
                 description += f" ({cooldown} gcd)"
 
@@ -251,14 +252,19 @@ class Warlock(Character):
         dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
         dmg = self.modify_dmg(dmg, DamageType.Fire, is_periodic=False)
 
+        partial_amount = self.roll_partial(is_dot=False, is_binary=False)
+
+        partial_desc = ""
+        if partial_amount < 1:
+            dmg = int(dmg * partial_amount)
+            partial_desc = f"({int(partial_amount * 100)}% partial)"
+
         if casting_time:
-            yield self.env.timeout(casting_time + self.lag)
-        else:
-            yield self.env.timeout(self.lag)
+            yield self.env.timeout(casting_time)
 
         description = ""
         if self.env.print:
-            description = f"({round(casting_time, 2) + self.lag} cast)"
+            description = f"({round(casting_time, 2)} cast)"
             if cooldown:
                 description += f" ({cooldown} gcd)"
 
@@ -266,11 +272,11 @@ class Warlock(Character):
             dmg = 0
             self.print(f"{spell.value} {description} RESIST")
         elif not crit:
-            self.print(f"{spell.value} {description} {dmg}")
+            self.print(f"{spell.value} {description} {partial_desc} {dmg}")
         else:
             crit_mult = self._get_crit_multiplier(DamageType.Shadow, self._get_talent_school(spell))
             dmg = int(dmg * crit_mult)
-            self.print(f"{spell.value} {description} **{dmg}**")
+            self.print(f"{spell.value} {description} {partial_desc} **{dmg}**")
 
         if spell == Spell.IMMOLATE and hit:
             self.env.debuffs.add_immolate_dot(self)
@@ -298,13 +304,11 @@ class Warlock(Character):
         hit = random.randint(1, 100) <= hit_chance
 
         if casting_time:
-            yield self.env.timeout(casting_time + self.lag)
-        else:
-            yield self.env.timeout(self.lag)
+            yield self.env.timeout(casting_time)
 
         description = ""
         if self.env.print:
-            description = f"({round(casting_time, 2) + self.lag} cast)"
+            description = f"({round(casting_time, 2)} cast)"
             if cooldown:
                 description += f" ({cooldown} gcd)"
 
