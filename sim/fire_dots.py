@@ -20,7 +20,7 @@ class PyroblastDot(Dot):
     def __init__(self, owner, env):
         super().__init__(owner, env, DamageType.Fire)
 
-        self.coefficient = 0.15
+        self.coefficient = 0.175
         self.time_between_ticks = 3
         self.ticks_left = 4
         self.starting_ticks = 4
