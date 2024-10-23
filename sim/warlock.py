@@ -62,15 +62,14 @@ class Warlock(Character):
         self.nightfall = False
 
     def _get_cast_time(self, base_cast_time):
-        base_cast_time += self.lag
         trinket_haste = 1 + self._trinket_haste / 100
         gear_and_consume_haste = 1 + self.haste / 100
         haste_scaling_factor = trinket_haste * gear_and_consume_haste
 
         if base_cast_time and haste_scaling_factor:
-            return max(base_cast_time / haste_scaling_factor, self.env.GCD)
+            return max(base_cast_time / haste_scaling_factor, self.env.GCD) + self.lag
         else:
-            return base_cast_time
+            return base_cast_time + self.lag
 
     def _spam_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         yield from self._random_delay(delay)
