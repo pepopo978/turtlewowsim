@@ -245,7 +245,7 @@ class Mage(Character):
 
         # account for gcd
         if casting_time < self.env.GCD and cooldown == 0:
-            cooldown = self.env.GCD - casting_time
+            cooldown = self.env.GCD - casting_time + self.lag
 
         hit = self._roll_hit(self._get_hit_chance(spell))
         crit = self._roll_crit(self.crit + crit_modifier)
@@ -331,8 +331,8 @@ class Mage(Character):
             self._t2proc = 0  # delay using t2 until next spell
 
         # account for gcd
-        if casting_time < self.env.GCD:
-            cooldown = self.env.GCD - casting_time
+        if casting_time < self.env.GCD and cooldown == 0:
+            cooldown = self.env.GCD - casting_time + self.lag
 
         is_binary_spell = spell == Spell.FROSTBOLT
 
