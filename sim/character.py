@@ -100,7 +100,39 @@ class Character:
     def _roll_spell_dmg(self, min_dmg: int, max_dmg: int, spell_coeff: float):
         dmg = random.randint(min_dmg, max_dmg)
         dmg += (self.sp + self._sp_bonus) * spell_coeff
+
         return dmg
+
+    def roll_partial(self, is_dot: bool, is_binary: bool):
+        if is_binary:
+            return 1
+
+        roll = random.random()
+        if is_dot:
+            # No partial: 98.53 %
+            # 25 % partial: 1.1 %
+            # 50 % partial: .366 %
+            # 75 % partial: 0 %
+            if roll <= .9853:
+                return 1
+            elif roll <= .9963:
+                return .75
+            elif roll <= 1:
+                return .5
+        else:
+            # No partial: 82.666 %
+            # 25 % partial: 13 %
+            # 50 % partial: 4.166 %
+            # 75 % partial: 1 %
+            if roll <= .82666:
+                return 1
+            elif roll <= .95666:
+                return .75
+            elif roll <= .99832:
+                return .5
+            elif roll <= 1:
+                return .25
+
 
     def _get_crit_multiplier(self, dmg_type: DamageType, talent_school: TalentSchool):
         return 1.5
