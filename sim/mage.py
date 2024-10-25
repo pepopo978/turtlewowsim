@@ -410,7 +410,7 @@ class Mage(Character):
         crit_modifier = 0
         if self.tal.arcane_instability:
             crit_modifier += 3
-        if self.tal.critial_mass:
+        if self.tal.critical_mass:
             crit_modifier += 6
 
         if self.opts.pyro_on_t2_proc and self._t2proc >= 0:
@@ -430,7 +430,7 @@ class Mage(Character):
         crit_modifier = 0
         if self.tal.arcane_instability:
             crit_modifier += 3
-        if self.tal.critial_mass:
+        if self.tal.critical_mass:
             crit_modifier += 6
 
         crit_modifier += self.tal.incinerate_crit  # incinerate added crit (2 or 4%)
@@ -448,7 +448,7 @@ class Mage(Character):
         crit_modifier = 0
         if self.tal.arcane_instability:
             crit_modifier += 3
-        if self.tal.critial_mass:
+        if self.tal.critical_mass:
             crit_modifier += 6
 
         yield from self._fire_spell(spell=Spell.PYROBLAST,
