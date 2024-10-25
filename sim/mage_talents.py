@@ -6,7 +6,7 @@ class MageTalents:
     # Fire
     imp_scorch: bool = False
     fire_power: bool = False
-    critial_mass: bool = False
+    critical_mass: bool = False
     hot_streak: bool = False
     incinerate_crit: int = 0
     fire_blast_cooldown: float = 8
@@ -24,7 +24,7 @@ class MageTalents:
 FireMageTalents = MageTalents(
     imp_scorch=True,
     fire_power=True,
-    critial_mass=False,  # generally counted in crit already
+    critical_mass=False,  # generally counted in crit already
     hot_streak=True,
     incinerate_crit=4,
     fire_blast_cooldown=6.5,
