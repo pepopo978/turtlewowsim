@@ -220,7 +220,7 @@ class Mage(Character):
 
         # check for scorch ignite drop
         if self.opts.drop_suboptimal_ignites and has_scorch_ignite and spell != Spell.PYROBLAST:
-            yield from self._pyroblast()
+            yield from self._frostbolt() # have to use frostbolt with 6s ignite window
             return
 
         # check for ignite extension
