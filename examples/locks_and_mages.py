@@ -1,9 +1,4 @@
-from sim.mage import Mage
-from sim.mage_talents import FireMageTalents
-from sim.simulation import Simulation
-from sim.warlock import Warlock
-from sim.warlock_options import WarlockOptions
-from sim.warlock_talents import SMRuin
+from _example_imports import *
 
 characters = []
 num_mages = 3

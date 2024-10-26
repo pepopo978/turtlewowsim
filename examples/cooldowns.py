@@ -1,7 +1,4 @@
-from sim.env import Environment
-from sim.mage import Mage
-from sim.character import CooldownUsages
-from sim.mage_talents import FireMageTalents
+from _example_imports import *
 
 env = Environment()
 
