@@ -19,17 +19,16 @@ class Environment(simpy.Environment):
         self.characters = []
         self.print = print
         self.print_dots = print_dots
-        self.debuffs = Debuffs(self, permanent_coe=permanent_coe, permanent_cos=permanent_cos, permanent_nightfall=permanent_nightfall)
+        self.debuffs = Debuffs(self, permanent_coe=permanent_coe, permanent_cos=permanent_cos,
+                               permanent_nightfall=permanent_nightfall)
         self.meter = DamageMeter(self)
         self.process(self.debuffs.run())
 
         from sim.ignite import Ignite
         self.ignite = Ignite(self)
-        self.process(self.ignite.monitor())
 
         from sim.improved_shadow_bolt import ImprovedShadowBolt
         self.improved_shadow_bolt = ImprovedShadowBolt(self)
-        self.process(self.improved_shadow_bolt.monitor())
 
         self.total_spell_dmg = 0
         self.total_dot_dmg = 0

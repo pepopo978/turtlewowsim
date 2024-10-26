@@ -4,6 +4,7 @@ from sim import JUSTIFY
 from sim.env import Environment
 from sim.warlock import Character
 
+ISB_DURATION = 12
 
 class ImprovedShadowBolt:
     def __init__(self, env):
@@ -13,8 +14,9 @@ class ImprovedShadowBolt:
 
         self.env: Environment = env
 
-        self.activation_time = 0
+        self.activation_time = -ISB_DURATION
         self.stacks = 0
+        self.last_monitor_time = 0
 
         self.had_any_isbs = False
         self.total_activations = 0
@@ -24,10 +26,18 @@ class ImprovedShadowBolt:
 
     @property
     def is_active(self):
-        return self.stacks > 0 and self.env.now - self.activation_time <= 12
+        return self.stacks > 0 and self.env.now - self.activation_time <= ISB_DURATION
+
+    def record_uptimes(self):
+        if self.is_active:
+            self._uptime += self.env.now - self.last_monitor_time
+
+        self.last_monitor_time = self.env.now
 
     def apply_to_dot(self, warlock: Character, dmg: int):
         if self.is_active:
+            self.record_uptimes()
+
             added_dmg = int(dmg * 0.2)
             self._added_dot_dmg[warlock] = self._added_dot_dmg.get(warlock, 0) + added_dmg
             return dmg + added_dmg
@@ -36,6 +46,8 @@ class ImprovedShadowBolt:
 
     def apply_to_spell(self, warlock: Character, dmg: int):
         if self.is_active:
+            self.record_uptimes()
+
             self.stacks -= 1
             self.total_usages += 1
             self.usages[warlock] = self.usages.get(warlock, 0) + 1
@@ -46,18 +58,13 @@ class ImprovedShadowBolt:
             return dmg
 
     def refresh(self, warlock: Character):
+        self.record_uptimes()
+
         self.had_any_isbs = True
         self.activation_time = self.env.now
         self.stacks = 5
         self.total_activations += 1
         self.activations[warlock] = self.activations.get(warlock, 0) + 1
-
-    def monitor(self):
-        while True:
-            if self.is_active:
-                self._uptime += 0.05
-
-            yield self.env.timeout(0.05)
 
     @property
     def uptime(self):

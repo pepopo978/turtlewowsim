@@ -7,6 +7,7 @@ from sim.mage import Mage, Spell
 IGNITE_WINDOW = 6
 IGNITE_TICK_TIME = 3
 
+
 class Ignite:
     def __init__(self, env):
         self._uptimes = [0, 0, 0, 0, 0]  # each index is number of ignite stacks
@@ -23,6 +24,8 @@ class Ignite:
         self.stacks = 0
         self.ticks = []
 
+        self.last_monitor_time = 0
+
         self.crit_this_window = False
         self.contains_scorch = False
         self.contains_fire_blast = False
@@ -33,9 +36,18 @@ class Ignite:
     def is_suboptimal(self):
         return self.contains_scorch or self.contains_fire_blast
 
+    def record_uptimes(self):
+        if self.active:
+            for i in range(self.stacks):
+                self._uptimes[i] += self.env.now - self.last_monitor_time
+
+        self.last_monitor_time = self.env.now
+
     def refresh(self, mage: Mage, dmg: int, spell: Spell):
         self.check_for_drop()
         self.last_crit_time = self.env.now
+
+        self.record_uptimes()
 
         if self.active:
             if self.stacks <= 4:
@@ -74,29 +86,28 @@ class Ignite:
         # only check last crit time if ignite is active and down to 0 ticks
         if self.active and self.ticks_left == 0:
             # check if 6 seconds have passed since last crit
-            if self.env.now - self.last_crit_time > IGNITE_WINDOW:
+            if self.env.now - self.last_crit_time >= IGNITE_WINDOW:
                 self.drop()
 
-    def monitor(self):
-        while True:
-            if self.active:
-                # check if ignite dropped in last 0.05 sec
-                self.check_for_drop()
-
-                for i in range(self.stacks):
-                    self._uptimes[i] += 0.05
-
-            yield self.env.timeout(0.05)
+    def check_for_drop_after(self, delay):
+        yield self.env.timeout(delay)
+        self.check_for_drop()
 
     def run(self, ignite_id):
         while self.ignite_id == ignite_id:
             yield self.env.timeout(IGNITE_TICK_TIME)
-            if self.ticks_left > 0:
+
+            if self.ticks_left > 0 and self.ignite_id == ignite_id:
                 self.had_any_ignites = True
                 self.ticks_left -= 1
                 self._do_dmg()
 
+                if self.ticks_left == 0:
+                    time_left = self.last_crit_time + IGNITE_WINDOW - self.env.now
+                    self.env.process(self.check_for_drop_after(time_left))
+
     def _do_dmg(self):
+        self.record_uptimes()
         tick_dmg = self.cum_dmg * 0.2
 
         if self.env.debuffs.has_coe:
@@ -106,7 +117,7 @@ class Ignite:
             tick_dmg *= 1.15
 
         # doesn't snapshot on vmangos
-        tick_dmg *= self.owner.dmg_modifier # includes AP/PI
+        tick_dmg *= self.owner.dmg_modifier  # includes AP/PI
 
         tick_dmg *= 1 + self.env.debuffs.scorch_stacks * 0.03  # ignite double dips on imp.scorch
 
