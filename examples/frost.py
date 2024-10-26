@@ -1,8 +1,4 @@
-from sim.character import CooldownUsages
-from sim.env import Environment
-from sim.mage import Mage
-from sim.mage_options import MageOptions
-from sim.mage_talents import ApFrostMageTalents, WcFrostMageTalents
+from _example_imports import *
 
 env = Environment(permanent_coe=True)
 

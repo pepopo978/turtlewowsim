@@ -1,7 +1,4 @@
-from sim.simulation import Simulation
-from sim.warlock import Warlock
-from sim.warlock_options import WarlockOptions
-from sim.warlock_talents import SMRuin, DSRuin
+from _example_imports import *
 
 locks = []
 num_locks = 3

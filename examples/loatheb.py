@@ -1,9 +1,4 @@
-from sim.character import CooldownUsages
-from sim.env import Environment
-from sim.mage import Mage
-from sim.mage_options import MageOptions
-from sim.simulation import Simulation
-from sim.mage_talents import FireMageTalents
+from _example_imports import *
 
 mages = []
 num_mages = 5

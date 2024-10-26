@@ -152,7 +152,7 @@ class Mage(Character):
 
         yield from self._one_scorch_then_fireballs(cds, delay=0)
 
-    def _get_cast_time(self, base_cast_time):
+    def _get_cast_time(self, base_cast_time: float):
         # check for pom
         if self.cds.presence_of_mind.is_active():
             self.cds.presence_of_mind.deactivate()
@@ -199,6 +199,69 @@ class Mage(Character):
 
         return int(dmg)
 
+    # caller must handle any gcd cooldown
+    def _spell(self,
+               spell: Spell,
+               damage_type: DamageType,
+               talent_school: TalentSchool,
+               min_dmg: int,
+               max_dmg: int,
+               base_cast_time: float,
+               crit_modifier: float,
+               cooldown: float = 0.0):
+        casting_time = self._get_cast_time(base_cast_time)
+        if self._t2proc >= 0:
+            casting_time = self.lag
+            self._t2proc = -1
+            self.print("T2 proc used")
+        elif self._t2proc == 1:
+            self._t2proc = 0  # delay using t2 until next spell
+
+        # account for gcd
+        if casting_time < self.env.GCD and cooldown == 0:
+            cooldown = self.env.GCD - casting_time + self.lag
+
+        hit = self._roll_hit(self._get_hit_chance(spell))
+        crit = False
+        dmg = 0
+        if hit:
+            crit = self._roll_crit(self.crit + crit_modifier)
+            dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
+            dmg = self.modify_dmg(dmg, damage_type, is_periodic=False)
+
+        is_binary_spell = spell == Spell.FROSTBOLT
+
+        partial_amount = self.roll_partial(is_dot=False, is_binary=is_binary_spell)
+        partial_desc = ""
+        if partial_amount < 1:
+            dmg = int(dmg * partial_amount)
+            partial_desc = f"({int(partial_amount * 100)}% partial)"
+
+        if casting_time:
+            yield self.env.timeout(casting_time)
+
+        description = ""
+        if self.env.print:
+            description = f"({round(casting_time, 2)} cast)"
+            if cooldown:
+                description += f" ({cooldown} gcd)"
+
+        if not hit:
+            self.print(f"{spell.value} {description} RESIST")
+        elif not crit:
+            self.print(f"{spell.value} {description} {partial_desc} {dmg}")
+        else:
+            mult = self._get_crit_multiplier(damage_type, talent_school)
+            dmg = int(dmg * mult)
+            self.print(f"{spell.value} {description} {partial_desc} **{dmg}**")
+
+        self.env.total_spell_dmg += dmg
+        self.env.meter.register(self.name, dmg)
+
+        self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
+
+        return hit, crit, dmg, cooldown
+
     def _fire_spell(self,
                     spell: Spell,
                     min_dmg: int,
@@ -220,7 +283,7 @@ class Mage(Character):
 
         # check for scorch ignite drop
         if self.opts.drop_suboptimal_ignites and has_scorch_ignite and spell != Spell.PYROBLAST:
-            yield from self._frostbolt() # have to use frostbolt with 6s ignite window
+            yield from self._frostbolt()  # have to use frostbolt with 6s ignite window
             return
 
         # check for ignite extension
@@ -235,48 +298,29 @@ class Mage(Character):
                         yield from self._scorch()
                         return
 
-        casting_time = self._get_cast_time(base_cast_time)
-        if self._t2proc >= 0:
-            casting_time = self.lag
-            self._t2proc = -1
-            self.print("T2 proc used")
-        elif self._t2proc == 1:
-            self._t2proc = 0  # delay using t2 until next spell
+        hit, crit, dmg, cooldown = yield from self._spell(spell=spell,
+                                                          damage_type=DamageType.Fire,
+                                                          talent_school=TalentSchool.Fire,
+                                                          min_dmg=min_dmg,
+                                                          max_dmg=max_dmg,
+                                                          base_cast_time=base_cast_time,
+                                                          crit_modifier=crit_modifier,
+                                                          cooldown=cooldown)
 
-        # account for gcd
-        if casting_time < self.env.GCD and cooldown == 0:
-            cooldown = self.env.GCD - casting_time + self.lag
-
-        hit = self._roll_hit(self._get_hit_chance(spell))
-        crit = self._roll_crit(self.crit + crit_modifier)
-        dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
-        dmg = self.modify_dmg(dmg, DamageType.Fire, is_periodic=False)
-
-        partial_amount = self.roll_partial(is_dot=False, is_binary=False)
-        partial_desc = ""
-        if partial_amount < 1:
-            dmg = int(dmg * partial_amount)
-            partial_desc = f"({int(partial_amount * 100)}% partial)"
-
-        if casting_time:
-            yield self.env.timeout(casting_time)
-
-        description = ""
-        if self.env.print:
-            description = f"({round(casting_time, 2)} cast)"
-            if cooldown:
-                description += f" ({cooldown} gcd)"
-
-        if not hit:
-            dmg = 0
-            self.print(f"{spell.value} {description} RESIST")
-        elif not crit:
-            self.print(f"{spell.value} {description} {partial_desc} {dmg}")
+        if hit:
             self.cds.combustion.cast_fire_spell()  # only happens on hit
-        else:
-            mult = self._get_crit_multiplier(DamageType.Fire, TalentSchool.Fire)
-            dmg = int(dmg * mult)
-            self.print(f"{spell.value} {description} {partial_desc} **{dmg}**")
+
+            if spell == Spell.FIREBALL:
+                self.env.debuffs.add_fireball_dot(self)
+            elif spell == Spell.PYROBLAST:
+                self.env.debuffs.add_pyroblast_dot(self)
+            elif spell == Spell.SCORCH and self.tal.imp_scorch:
+                # roll for whether debuff hits
+                fire_vuln_hit = self._roll_hit(self._get_hit_chance(spell))
+                if fire_vuln_hit:
+                    self.env.debuffs.scorch()
+
+        if crit:
             if self.tal.ignite:
                 self.env.ignite.refresh(self, dmg, spell)
 
@@ -285,31 +329,14 @@ class Mage(Character):
                 self.hot_streak.add_stack()
 
             self.cds.combustion.use_charge()  # only used on crit
-            self.cds.combustion.cast_fire_spell()
 
         if spell == Spell.FIREBLAST:
             self.fire_blast_cd.activate()
 
-        if spell == Spell.FIREBALL:
-            self.env.debuffs.add_fireball_dot(self)
-
-        if spell == Spell.PYROBLAST:
-            self.env.debuffs.add_pyroblast_dot(self)
-
-        if spell == Spell.SCORCH and self.tal.imp_scorch and hit:
-            # roll for whether debuff hits
-            fire_vuln_hit = self._roll_hit(self._get_hit_chance(spell))
-            if fire_vuln_hit:
-                self.env.debuffs.scorch()
-
-        self.env.total_spell_dmg += dmg
-        self.env.meter.register(self.name, dmg)
         if self.opts.fullt2 and spell == Spell.FIREBALL:
             if random.randint(1, 100) <= 10:
                 self._t2proc = 1
                 self.print("T2 proc")
-
-        self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
 
         # handle gcd
         if cooldown:
@@ -323,66 +350,22 @@ class Mage(Character):
                      crit_modifier: float,
                      cooldown: float = 0.0):
 
-        casting_time = self._get_cast_time(base_cast_time)
-        if self._t2proc == 0:
-            casting_time = 0
-            self._t2proc = -1
-            self.print("T2 proc used")
-        elif self._t2proc == 1:
-            self._t2proc = 0  # delay using t2 until next spell
+        crit_modifier += self.env.debuffs.wc_stacks * 2  # winters chill added crit (2% per stack)
 
-        # account for gcd
-        if casting_time < self.env.GCD and cooldown == 0:
-            cooldown = self.env.GCD - casting_time + self.lag
+        hit, crit, dmg, cooldown = self._spell(spell=spell,
+                                               damage_type=DamageType.Frost,
+                                               talent_school=TalentSchool.Frost,
+                                               min_dmg=min_dmg,
+                                               max_dmg=max_dmg,
+                                               base_cast_time=base_cast_time,
+                                               crit_modifier=crit_modifier,
+                                               cooldown=cooldown)
 
-        is_binary_spell = spell == Spell.FROSTBOLT
-
-        hit = self._roll_hit(self._get_hit_chance(spell, is_binary_spell))
-        crit = self._roll_crit(self.crit + self.env.debuffs.wc_stacks * 2 + crit_modifier)
-        dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
-        dmg = self.modify_dmg(dmg, DamageType.Frost, is_periodic=False)
-
-        partial_amount = self.roll_partial(is_dot=False, is_binary=is_binary_spell)
-
-        partial_desc = ""
-        if partial_amount < 1:
-            dmg = int(dmg * partial_amount)
-            partial_desc = f"({int(partial_amount * 100)}% partial)"
-
-        if casting_time:
-            yield self.env.timeout(casting_time)
-
-        description = ""
-        if self.env.print:
-            description = f"({round(casting_time, 2)} cast)"
-            if cooldown:
-                description += f" ({cooldown} gcd)"
-
-        if not hit:
-            dmg = 0
-            self.print(f"{spell.value} {description} RESIST")
-        elif not crit:
-            self.print(f"{spell.value} {description} {partial_desc} {dmg}")
-
-        else:
-            mult = self._get_crit_multiplier(DamageType.Frost, TalentSchool.Frost)
-            dmg = int(dmg * mult)
-            self.print(f"{spell.value} {description} {partial_desc} **{dmg}**")
-
-        if self.tal.winters_chill:
+        if hit and self.tal.winters_chill:
             # roll for whether debuff hits
-            winters_chill_hit = random.randint(1, 100) <= self._roll_hit(self._get_hit_chance(spell))
+            winters_chill_hit = self._roll_hit(self._get_hit_chance(spell))
             if winters_chill_hit:
-                self.env.debuffs.winters_chill()
-
-        self.env.total_spell_dmg += dmg
-        self.env.meter.register(self.name, dmg)
-        if self.opts.fullt2 and spell == Spell.FROSTBOLT:
-            if random.randint(1, 100) <= 10:
-                self.opts._t2proc = 1
-                self.print("T2 proc")
-
-        self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
+                self.env.debuffs.add_winters_chill_stack()
 
         # handle gcd
         if cooldown:

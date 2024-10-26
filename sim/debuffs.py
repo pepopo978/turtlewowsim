@@ -59,7 +59,7 @@ class Debuffs:
         self.scorch_stacks = min(self.scorch_stacks + 1, 5)
         self.scorch_timer = 30
 
-    def winters_chill(self):
+    def add_winters_chill_stack(self):
         self.wc_stacks = min(self.wc_stacks + 1, 5)
         self.wc_timer = 30
 
