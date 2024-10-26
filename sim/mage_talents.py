@@ -4,6 +4,7 @@ from dataclasses import dataclass
 @dataclass(kw_only=True)
 class MageTalents:
     # Fire
+    ignite: bool = False
     imp_scorch: bool = False
     fire_power: bool = False
     critical_mass: bool = False
@@ -22,6 +23,7 @@ class MageTalents:
 
 
 FireMageTalents = MageTalents(
+    ignite=True,
     imp_scorch=True,
     fire_power=True,
     critical_mass=False,  # generally counted in crit already

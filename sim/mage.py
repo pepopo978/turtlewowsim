@@ -277,7 +277,8 @@ class Mage(Character):
             mult = self._get_crit_multiplier(DamageType.Fire, TalentSchool.Fire)
             dmg = int(dmg * mult)
             self.print(f"{spell.value} {description} {partial_desc} **{dmg}**")
-            self.env.ignite.refresh(self, dmg, spell)
+            if self.tal.ignite:
+                self.env.ignite.refresh(self, dmg, spell)
 
             # check for hot streak
             if self.hot_streak and (spell == Spell.FIREBALL or spell == Spell.FIREBLAST):
@@ -414,7 +415,6 @@ class Mage(Character):
             crit_modifier += 6
 
         if self.opts.pyro_on_t2_proc and self._t2proc >= 0:
-            yield self.env.timeout(0.05)  # small delay between spells
             yield from self._pyroblast()
         else:
             yield from self._fire_spell(spell=Spell.FIREBALL,

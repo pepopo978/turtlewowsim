@@ -12,5 +12,5 @@ for i in range(num_mages):
     mages.append(fm)
 
 sim = Simulation(characters=mages)
-sim.run(iterations=1000, duration=180)
+sim.run(iterations=2000, duration=180)
 sim.extended_report()

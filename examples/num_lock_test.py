@@ -16,5 +16,5 @@ for i in range(num_locks):
     locks.append(lock)
 
 sim = Simulation(characters=locks)
-sim.run(iterations=1000, duration=180)
-sim.detailed_report()
+sim.run(iterations=2000, duration=180)
+sim.extended_report()
