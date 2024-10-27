@@ -15,6 +15,7 @@ class MageTalents:
     fire_blast_gcd: float = 1.5
 
     # Frost
+    elemental_precision: int = 0 # todo implement
     piercing_ice: int = 0
     frostbite: int = 0
     ice_shards: int = 0
@@ -25,7 +26,16 @@ class MageTalents:
     frost_nova_cooldown: float = 25
 
     # Arcane
-    arcane_instability: bool = False
+    arcane_focus: int = 0  # todo implement
+    arcane_impact: int = 0
+    arcane_rupture: bool = False
+    temporal_convergence: int = 0
+    arcane_instability: int = 0
+    presence_of_mind: bool = False
+    accelerated_arcana: bool = False
+    arcane_potency: int = 0
+    resonance_cascade: int = 0
+    arcane_power: bool = False
 
 
 FireMageTalents = MageTalents(
@@ -48,4 +58,17 @@ IcicleMageTalents = MageTalents(
     flash_freeze=2,
     ice_barrier=True,
     frost_nova_cooldown=21 # 2 points in improved frost nova
+)
+
+ArcaneMageTalents = MageTalents(
+    arcane_focus=3,
+    arcane_impact=3,
+    arcane_rupture=True,
+    temporal_convergence=3,
+    arcane_instability=3,
+    presence_of_mind=True,
+    accelerated_arcana=True,
+    arcane_potency=2,
+    resonance_cascade=3,
+    arcane_power=True
 )

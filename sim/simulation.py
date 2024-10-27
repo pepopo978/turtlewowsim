@@ -232,9 +232,10 @@ class Simulation:
 
         if verbosity > 2:
             print(f"------ Per Spell Casts ------")
-            for spell_name, num_casts in self.results['per_spell_casts'][char].items():
-                label = f"{char} {spell_name} Casts"
-                print(f"{self._justify(label)}: {mean(num_casts)}")
+            for char in self.results['per_spell_casts']:
+                for spell_name, num_casts in self.results['per_spell_casts'][char].items():
+                    label = f"{char} {spell_name} Casts"
+                    print(f"{self._justify(label)}: {mean(num_casts)}")
 
             print(f"------ Advanced Stats ------")
             label = f"{char} DPS standard deviation"

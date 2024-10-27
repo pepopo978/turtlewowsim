@@ -1,48 +1,15 @@
 import random
 from functools import partial
-from typing import Optional
 
-from sim.character import Character, CooldownUsages
-from sim.cooldowns import Cooldown
+from sim.character import CooldownUsages
 from sim.env import Environment
 from sim.hot_streak import HotStreak
+from sim.mage_rotation_cooldowns import *
 from sim.mage_options import MageOptions
 from sim.mage_talents import MageTalents
 from sim.spell import Spell, SPELL_COEFFICIENTS
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
-
-
-class FireBlastCooldown(Cooldown):
-    PRINTS_ACTIVATION = False
-
-    def __init__(self, character: Character, cooldown: float):
-        super().__init__(character)
-        self._cd = cooldown
-
-    @property
-    def duration(self):
-        return 0
-
-    @property
-    def cooldown(self):
-        return self._cd
-
-
-class FrostNovaCooldown(Cooldown):
-    PRINTS_ACTIVATION = False
-
-    def __init__(self, character: Character, cooldown: float):
-        super().__init__(character)
-        self._cd = cooldown
-
-    @property
-    def duration(self):
-        return 0
-
-    @property
-    def cooldown(self):
-        return self._cd
 
 
 class Mage(Character):
@@ -56,17 +23,23 @@ class Mage(Character):
                  haste: float = 0,
                  lag: float = 0.07,  # lag added by server tick time
                  ):
-        super().__init__(name, sp, crit, hit, haste, lag)
-        self.hot_streak = None
+        super().__init__(name, sp, crit, hit, haste, lag, tal)
         self.tal = tal
         self.opts = opts
 
         self._t2proc: bool = False
         self._flash_freeze_proc: bool = False
 
+        self.hot_streak = None
+
+        if self.tal.accelerated_arcana:
+            self._damage_type_haste[DamageType.ARCANE] = 6
+
         self._ice_barrier_expiration = 0
         if opts.start_with_ice_barrier:
             self._ice_barrier_expiration = opts.starting_ice_barrier_duration
+
+        self._setup_cds()
 
     def reset(self):
         super().reset()
@@ -74,11 +47,18 @@ class Mage(Character):
         self._t2proc = False
         self._flash_freeze_proc = False
 
+    def _setup_cds(self):
+        self.fire_blast_cd = FireBlastCooldown(self, self.tal.fire_blast_cooldown)
+        self.frost_nova_cd = FrostNovaCooldown(self, self.tal.frost_nova_cooldown)
+        self.icicles_cd = IciclesCooldown(self)
+        self.arcane_rupture_cd = ArcaneRuptureCooldown(self, self.tal.accelerated_arcana)
+        self.arcane_surge_cd = ArcaneSurgeCooldown(self, self.tal.accelerated_arcana)
+        self.temporal_convergence_cd = TemporalConvergenceCooldown(self)
+
     def attach_env(self, env: Environment):
         super().attach_env(env)
 
-        self.fire_blast_cd = FireBlastCooldown(self, self.tal.fire_blast_cooldown)
-        self.frost_nova_cd = FrostNovaCooldown(self, self.tal.frost_nova_cooldown)
+        self._setup_cds()
 
         if self.tal.hot_streak:
             self.hot_streak = HotStreak(env, self)
@@ -86,7 +66,41 @@ class Mage(Character):
     def _ice_barrier_active(self):
         return self._ice_barrier_expiration >= self.env.now
 
+    def _arcane_surge_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(cds)
+
+            if self.arcane_surge_cd.usable:
+                yield from self._arcane_surge()
+            elif self.arcane_rupture_cd.usable:
+                # if pom available, use it on rupture
+                if self.opts.use_presence_of_mind_on_cd and self.cds.presence_of_mind.usable:
+                    self.cds.presence_of_mind.activate()
+                yield from self._arcane_rupture()
+            else:
+                yield from self._arcane_missiles_channel()
+
+    def _arcane_rupture_surge_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(cds)
+            if self.arcane_rupture_cd.usable:
+                # if pom available, use it on rupture
+                if self.opts.use_presence_of_mind_on_cd and self.cds.presence_of_mind.usable:
+                    self.cds.presence_of_mind.activate()
+                yield from self._arcane_rupture()
+            elif self.arcane_surge_cd.usable:
+                yield from self._arcane_surge()
+            else:
+                yield from self._arcane_missiles_channel()
+
     def _spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -94,6 +108,7 @@ class Mage(Character):
             yield from self._fireball()
 
     def _spam_pyroblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -101,18 +116,33 @@ class Mage(Character):
             yield from self._pyroblast()
 
     def _spam_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(cds)
             if self.tal.ice_barrier and not self._ice_barrier_active():
                 yield from self._ice_barrier()
-            if self.opts.use_frostnova_for_icicles and self.frost_nova_cd.usable:
+            else:
+                yield from self._frostbolt()
+
+    def _icicle_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(cds)
+            if self.tal.ice_barrier and not self._ice_barrier_active():
+                yield from self._ice_barrier()
+            elif self.opts.use_frostnova_for_icicles and self.frost_nova_cd.usable:
                 yield from self._frost_nova()
+            elif not self._flash_freeze_proc and self.opts.use_icicles_without_flash_freeze and self.icicles_cd.usable:
+                yield from self._icicles_channel()
             else:
                 yield from self._frostbolt()
 
     def _spam_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -120,6 +150,7 @@ class Mage(Character):
             yield from self._scorch()
 
     def _spam_scorch_unless_mqg(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -131,6 +162,7 @@ class Mage(Character):
 
     def _one_scorch_then_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         """1 scorch then 9 fireballs rotation"""
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -143,6 +175,7 @@ class Mage(Character):
     def _smart_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         """ Cast scorch if less than 5 imp scorch stacks or if 5 stack ignite
         and extend_ignite_with_scorch else cast fireball"""
+        self._use_cds(cds)
         yield from self._random_delay(delay)
         while True:
             self._use_cds(cds)
@@ -154,6 +187,7 @@ class Mage(Character):
 
     def _smart_scorch_and_fireblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         """Same as above except fireblast on cd"""
+        self._use_cds(cds)
         yield from self._random_delay(delay)
         while True:
             self._use_cds(cds)
@@ -165,6 +199,7 @@ class Mage(Character):
                 yield from self._fireball()
 
     def _one_scorch_one_pyro_then_fb(self, cds: CooldownUsages = CooldownUsages(), delay=1):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         self._use_cds(cds)
@@ -178,6 +213,7 @@ class Mage(Character):
         yield from self._one_scorch_then_fireballs(cds, delay=0)
 
     def _one_scorch_one_frostbolt_then_fb(self, cds: CooldownUsages = CooldownUsages(), delay=1):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         self._use_cds(cds)
@@ -190,20 +226,13 @@ class Mage(Character):
 
         yield from self._one_scorch_then_fireballs(cds, delay=0)
 
-    def _get_cast_time(self, base_cast_time: float):
+    def _get_cast_time(self, base_cast_time: float, damage_type: DamageType):
         # check for pom
-        if self.cds.presence_of_mind.is_active():
+        if base_cast_time > 0 and self.cds.presence_of_mind.is_active():
             self.cds.presence_of_mind.deactivate()
             return self.lag
 
-        trinket_haste = 1 + self._trinket_haste / 100
-        gear_and_consume_haste = 1 + self.haste / 100
-        haste_scaling_factor = trinket_haste * gear_and_consume_haste
-
-        if base_cast_time and haste_scaling_factor:
-            return base_cast_time / haste_scaling_factor + self.lag
-        else:
-            return base_cast_time + self.lag
+        return super()._get_cast_time(base_cast_time, damage_type)
 
     def _get_talent_school(self, spell: Spell):
         if spell in [Spell.CORRUPTION, Spell.CURSE_OF_AGONY, Spell.CURSE_OF_SHADOW]:
@@ -219,20 +248,22 @@ class Mage(Character):
 
     def _get_crit_multiplier(self, dmg_type: DamageType, talent_school: TalentSchool):
         mult = super()._get_crit_multiplier(dmg_type, talent_school)
-        if dmg_type == DamageType.Frost:
+        if dmg_type == DamageType.FROST:
             mult = 1.5 + self.tal.ice_shards * 0.1
+        if dmg_type == DamageType.ARCANE:
+            mult = 1.5 + self.tal.arcane_potency * 0.25
         return mult
 
     def modify_dmg(self, dmg: int, dmg_type: DamageType, is_periodic: bool):
         dmg = super().modify_dmg(dmg, dmg_type, is_periodic)
 
-        if dmg_type == DamageType.Fire and self.tal.fire_power:
+        if dmg_type == DamageType.FIRE and self.tal.fire_power:
             dmg *= 1.1
 
-        if self.tal.piercing_ice and dmg_type == DamageType.Frost:
+        if self.tal.piercing_ice and dmg_type == DamageType.FROST:
             dmg *= 1.06
 
-        if self.tal.ice_barrier and dmg_type == DamageType.Frost and self._ice_barrier_active():
+        if self.tal.ice_barrier and dmg_type == DamageType.FROST and self._ice_barrier_active():
             dmg *= 1.15
 
         return int(dmg)
@@ -247,10 +278,11 @@ class Mage(Character):
                base_cast_time: float,
                crit_modifier: float,
                cooldown: float,
-               on_gcd: bool):
+               on_gcd: bool,
+               calculate_cast_time: bool = True):
 
-        casting_time = self._get_cast_time(base_cast_time)
-        if self._t2proc:
+        casting_time = self._get_cast_time(base_cast_time, damage_type) if calculate_cast_time else base_cast_time
+        if self._t2proc and calculate_cast_time:
             casting_time = self.lag
             self._t2proc = False
             self.print("T2 proc used")
@@ -262,10 +294,27 @@ class Mage(Character):
         hit = self._roll_hit(self._get_hit_chance(spell))
         crit = False
         dmg = 0
+        arcane_instability_hit = False
+        arcane_rupture_applied = False
         if hit:
             crit = self._roll_crit(self.crit + crit_modifier)
             dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
             dmg = self.modify_dmg(dmg, damage_type, is_periodic=False)
+
+            if self.tal.arcane_instability and damage_type == DamageType.ARCANE:
+                hit_chance = 8
+                if self.tal.arcane_instability == 2:
+                    hit_chance = 16
+                elif self.tal.arcane_instability == 3:
+                    hit_chance = 25
+
+                arcane_instability_hit = self._roll_hit(hit_chance)
+                if arcane_instability_hit:
+                    dmg *= 1.25
+
+            if self.arcane_rupture_cd.is_active() and spell == Spell.ARCANE_MISSILE:
+                dmg *= 1.25
+                arcane_rupture_applied = True
 
         is_binary_spell = (
                 spell == Spell.FROSTBOLT or
@@ -278,6 +327,7 @@ class Mage(Character):
         if partial_amount < 1:
             dmg = int(dmg * partial_amount)
             partial_desc = f"({int(partial_amount * 100)}% partial)"
+            self.arcane_surge_cd.enable_due_to_partial_resist()
 
         if casting_time:
             yield self.env.timeout(casting_time)
@@ -287,7 +337,10 @@ class Mage(Character):
             description = f"({round(casting_time, 2)} cast)"
             if cooldown:
                 description += f" ({cooldown} gcd)"
-
+            if arcane_instability_hit:
+                description += " (AI)"
+            if arcane_rupture_applied:
+                description += " (AR)"
         if not hit:
             self.print(f"{spell.value} {description} RESIST")
         elif not crit:
@@ -300,7 +353,7 @@ class Mage(Character):
         if hit and self.opts.fullt2 and (
                 spell == Spell.FIREBALL or
                 spell == Spell.FROSTBOLT or
-                spell == Spell.ARCANE_MISSILES):
+                spell == Spell.ARCANE_MISSILE):
             if random.randint(1, 100) <= 10:
                 self._t2proc = True
                 self.print("T2 proc")
@@ -311,6 +364,107 @@ class Mage(Character):
         self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
 
         return hit, crit, dmg, cooldown
+
+    def _arcane_spell(self,
+                      spell: Spell,
+                      min_dmg: int,
+                      max_dmg: int,
+                      base_cast_time: float,
+                      crit_modifier: float,
+                      cooldown: float = 0.0,
+                      on_gcd: bool = True,
+                      calculate_cast_time: bool = True):
+
+        crit_modifier += self.tal.arcane_impact * 2
+
+        hit, crit, dmg, cooldown = yield from self._spell(spell=spell,
+                                                          damage_type=DamageType.ARCANE,
+                                                          talent_school=TalentSchool.Arcane,
+                                                          min_dmg=min_dmg,
+                                                          max_dmg=max_dmg,
+                                                          base_cast_time=base_cast_time,
+                                                          crit_modifier=crit_modifier,
+                                                          cooldown=cooldown,
+                                                          on_gcd=on_gcd,
+                                                          calculate_cast_time=calculate_cast_time)
+
+        if self.tal.resonance_cascade and hit:
+            num_duplicates = 0
+            while num_duplicates < 5:
+                if self._roll_hit(4 * self.tal.resonance_cascade):
+                    num_duplicates += 1
+                    dmg /= 2
+                    self.print(f"{spell.value} duplicated for {dmg}")
+                    self.env.total_spell_dmg += dmg
+                    self.env.meter.register(self.name, dmg)
+                else:
+                    break
+
+        if spell == Spell.ARCANE_MISSILE and self.tal.temporal_convergence:
+            if self.temporal_convergence_cd.usable:
+                temporal_convergence_hit = self._roll_hit(5 * self.tal.temporal_convergence)
+                if temporal_convergence_hit:
+                    self.temporal_convergence_cd.activate()
+                    # reset cd on rupture
+                    self.arcane_rupture_cd.reset_cooldown()
+
+        if spell == Spell.ARCANE_SURGE:
+            self.arcane_surge_cd.activate()
+        elif spell == Spell.ARCANE_RUPTURE:
+            self.arcane_rupture_cd.activate()
+
+        # handle gcd
+        if cooldown:
+            yield self.env.timeout(cooldown)
+
+    def _arcane_missile(self, casting_time: float = 1):
+        dmg = 230
+
+        yield from self._arcane_spell(spell=Spell.ARCANE_MISSILE,
+                                      min_dmg=dmg,
+                                      max_dmg=dmg,
+                                      base_cast_time=casting_time,
+                                      crit_modifier=0,
+                                      on_gcd=False,
+                                      calculate_cast_time=False)
+
+    def _arcane_missiles_channel(self, channel_time: float = 5):
+        num_missiles = 5
+
+        if self.tal.accelerated_arcana:
+            channel_time /= self.get_haste_factor_for_damage_type(DamageType.ARCANE)
+
+        time_between_missiles = channel_time / num_missiles - self.lag
+
+        for i in range(num_missiles):
+            if i == 0:
+                yield from self._arcane_missile(casting_time=time_between_missiles + self.lag)  # initial delay
+            else:
+                yield from self._arcane_missile(casting_time=time_between_missiles)
+
+    def _arcane_surge(self):
+        min_dmg = 517
+        max_dmg = 612
+        casting_time = 0
+        crit_modifier = 0
+
+        yield from self._arcane_spell(spell=Spell.ARCANE_SURGE,
+                                      min_dmg=min_dmg,
+                                      max_dmg=max_dmg,
+                                      base_cast_time=casting_time,
+                                      crit_modifier=crit_modifier)
+
+    def _arcane_rupture(self):
+        min_dmg = 703
+        max_dmg = 766
+        casting_time = 2.5
+        crit_modifier = 0
+
+        yield from self._arcane_spell(spell=Spell.ARCANE_RUPTURE,
+                                      min_dmg=min_dmg,
+                                      max_dmg=max_dmg,
+                                      base_cast_time=casting_time,
+                                      crit_modifier=crit_modifier)
 
     def _fire_spell(self,
                     spell: Spell,
@@ -350,7 +504,7 @@ class Mage(Character):
                         return
 
         hit, crit, dmg, cooldown = yield from self._spell(spell=spell,
-                                                          damage_type=DamageType.Fire,
+                                                          damage_type=DamageType.FIRE,
                                                           talent_school=TalentSchool.Fire,
                                                           min_dmg=min_dmg,
                                                           max_dmg=max_dmg,
@@ -384,59 +538,6 @@ class Mage(Character):
 
         if spell == Spell.FIREBLAST:
             self.fire_blast_cd.activate()
-
-        # handle gcd
-        if cooldown:
-            yield self.env.timeout(cooldown)
-
-    def _frost_spell(self,
-                     spell: Spell,
-                     min_dmg: int,
-                     max_dmg: int,
-                     base_cast_time: float,
-                     crit_modifier: float,
-                     cooldown: float = 0.0,
-                     on_gcd: bool = True):
-
-        # check for flash freeze
-        if self._flash_freeze_proc:
-            self._flash_freeze_proc = False
-            yield from self._icicles_channel(channel_time=1.0)
-            return
-
-        crit_modifier += self.env.debuffs.wc_stacks * 2  # winters chill added crit (2% per stack)
-
-        hit, crit, dmg, cooldown = yield from self._spell(spell=spell,
-                                                          damage_type=DamageType.Frost,
-                                                          talent_school=TalentSchool.Frost,
-                                                          min_dmg=min_dmg,
-                                                          max_dmg=max_dmg,
-                                                          base_cast_time=base_cast_time,
-                                                          crit_modifier=crit_modifier,
-                                                          cooldown=cooldown,
-                                                          on_gcd=on_gcd)
-
-        if hit:
-            if self.tal.winters_chill:
-                # roll for whether debuff hits
-                winters_chill_hit = self._roll_hit(self._get_hit_chance(spell))
-                if winters_chill_hit:
-                    self.env.debuffs.add_winters_chill_stack()
-
-            if self.tal.flash_freeze:
-                flash_freeze_hit = False
-                if spell == Spell.FROSTBOLT or spell == Spell.CONE_OF_COLD:
-                    flash_freeze_hit = (self._roll_hit(5 * self.tal.frostbite) and
-                                        self._roll_hit(50 * self.tal.flash_freeze))
-                elif spell == Spell.FROST_NOVA:
-                    flash_freeze_hit = self._roll_hit(50 * self.tal.flash_freeze)
-
-                if flash_freeze_hit:
-                    self._flash_freeze_proc = 1
-                    self.print("Flash Freeze proc")
-
-        if spell == Spell.FROST_NOVA:
-            self.frost_nova_cd.activate()
 
         # handle gcd
         if cooldown:
@@ -503,6 +604,59 @@ class Mage(Character):
                                     base_cast_time=casting_time,
                                     crit_modifier=crit_modifier)
 
+    def _frost_spell(self,
+                     spell: Spell,
+                     min_dmg: int,
+                     max_dmg: int,
+                     base_cast_time: float,
+                     crit_modifier: float,
+                     cooldown: float = 0.0,
+                     on_gcd: bool = True):
+
+        # check for flash freeze
+        if self._flash_freeze_proc:
+            self._flash_freeze_proc = False
+            yield from self._icicles_channel(channel_time=1.0)
+            return
+
+        crit_modifier += self.env.debuffs.wc_stacks * 2  # winters chill added crit (2% per stack)
+
+        hit, crit, dmg, cooldown = yield from self._spell(spell=spell,
+                                                          damage_type=DamageType.FROST,
+                                                          talent_school=TalentSchool.Frost,
+                                                          min_dmg=min_dmg,
+                                                          max_dmg=max_dmg,
+                                                          base_cast_time=base_cast_time,
+                                                          crit_modifier=crit_modifier,
+                                                          cooldown=cooldown,
+                                                          on_gcd=on_gcd)
+
+        if hit:
+            if self.tal.winters_chill:
+                # roll for whether debuff hits
+                winters_chill_hit = self._roll_hit(self._get_hit_chance(spell))
+                if winters_chill_hit:
+                    self.env.debuffs.add_winters_chill_stack()
+
+            if self.tal.flash_freeze:
+                flash_freeze_hit = False
+                if spell == Spell.FROSTBOLT or spell == Spell.CONE_OF_COLD:
+                    flash_freeze_hit = (self._roll_hit(5 * self.tal.frostbite) and
+                                        self._roll_hit(50 * self.tal.flash_freeze))
+                elif spell == Spell.FROST_NOVA:
+                    flash_freeze_hit = self._roll_hit(50 * self.tal.flash_freeze)
+
+                if flash_freeze_hit:
+                    self._flash_freeze_proc = 1
+                    self.print("Flash Freeze proc")
+
+        if spell == Spell.FROST_NOVA:
+            self.frost_nova_cd.activate()
+
+        # handle gcd
+        if cooldown:
+            yield self.env.timeout(cooldown)
+
     def _frostbolt(self):
         min_dmg = 515
         max_dmg = 556
@@ -549,6 +703,8 @@ class Mage(Character):
                                      on_gcd=False)
 
     def _icicles_channel(self, channel_time: float = 5):
+        self.icicles_cd.deactivate()
+
         num_icicles = 5
         time_between_icicles = channel_time / num_icicles - self.lag
 
@@ -557,6 +713,12 @@ class Mage(Character):
                 yield from self._icicle(casting_time=time_between_icicles + self.lag)  # initial delay
             else:
                 yield from self._icicle(casting_time=time_between_icicles)
+
+    def arcane_surge_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="arcane_surge_rupture_missiles")(cds=cds, delay=delay)
+
+    def arcane_rupture_surge_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="arcane_rupture_surge_missiles")(cds=cds, delay=delay)
 
     def spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function
@@ -588,3 +750,6 @@ class Mage(Character):
 
     def spam_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="spam_frostbolts")(cds=cds, delay=delay)
+
+    def icicle_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="icicle_frostbolts")(cds=cds, delay=delay)

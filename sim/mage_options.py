@@ -13,7 +13,11 @@ class MageOptions:
     pyro_on_9_hot_streak: bool = True # cast pyroblast on 9 stacks of hot streak
 
     # Frost
+    use_icicles_without_flash_freeze: bool = False  # use icicles without flash freeze
     use_frostnova_for_icicles: bool = False  # use frost nova to proc flash freeze
     keep_ice_barrier_up: bool = False  # keep ice barrier up
     start_with_ice_barrier: bool = False  # start with ice barrier without having to cast it
     starting_ice_barrier_duration: int = 55  # duration of ice barrier at start, assumes you cast 5s before pull
+
+    # Arcane
+    use_presence_of_mind_on_cd: bool = True

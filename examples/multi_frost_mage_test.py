@@ -1,14 +1,14 @@
 from _example_imports import *
 
 mages = []
-num_mages = 1
+num_mages = 3
 
 for i in range(num_mages):
     fm = Mage(name=f'mage{i}', sp=1095, crit=40.43, hit=16,
               tal=IcicleMageTalents,
               opts=MageOptions(use_frostnova_for_icicles=True,
                                start_with_ice_barrier=True))
-    fm.spam_frostbolts()
+    fm.icicle_frostbolts()
     mages.append(fm)
 
 sim = Simulation(characters=mages)

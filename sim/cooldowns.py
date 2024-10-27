@@ -1,4 +1,5 @@
 from sim.character import Character
+from sim.spell_school import DamageType
 
 
 class Cooldown:
@@ -43,6 +44,19 @@ class Cooldown:
             if self.PRINTS_ACTIVATION:
                 self.character.print(f"{self.name} activated")
 
+            cooldown = self.cooldown
+            if self.STARTS_CD_ON_ACTIVATION and cooldown:
+                self._on_cooldown = True
+
+                def callback(self, cooldown):
+                    yield self.env.timeout(cooldown)
+                    if self.PRINTS_ACTIVATION:
+                        self.character.print(f"{self.name} cooldown ended after {cooldown} seconds")
+
+                    self._on_cooldown = False
+
+                self.character.env.process(callback(self, cooldown))
+
             if self.duration:
                 def callback(self):
                     yield self.character.env.timeout(self.duration)
@@ -57,57 +71,21 @@ class Cooldown:
         if self.PRINTS_ACTIVATION:
             self.character.print(f"{self.name} deactivated")
 
-        if self.cooldown:
+        cooldown = self.cooldown
+        if not self.STARTS_CD_ON_ACTIVATION and cooldown:
             self._on_cooldown = True
 
-            def callback(self):
-                if self.STARTS_CD_ON_ACTIVATION:
-                    yield self.env.timeout(self.cooldown - self.duration)
-                else:
-                    yield self.env.timeout(self.cooldown)
+            def callback(self, cooldown):
+                yield self.env.timeout(cooldown)
+                if self.PRINTS_ACTIVATION:
+                    self.character.print(f"{self.name} cooldown ended after {cooldown} seconds")
 
                 self._on_cooldown = False
 
-            self.character.env.process(callback(self))
+            self.character.env.process(callback(self, cooldown))
 
 
-class PresenceOfMind(Cooldown):
-    STARTS_CD_ON_ACTIVATION = False
-
-    @property
-    def duration(self):
-        return 9999
-
-    @property
-    def cooldown(self):
-        return 180
-
-
-class ArcanePower(Cooldown):
-    DMG_MOD = 0.3
-
-    @property
-    def duration(self):
-        return 15
-
-    @property
-    def cooldown(self):
-        return 180
-
-    @property
-    def usable(self):
-        return not self._active and not self.on_cooldown and not self.character.cds.power_infusion.is_active()
-
-    def activate(self):
-        super().activate()
-        self.character.add_dmg_modifier(self.DMG_MOD)
-
-    def deactivate(self):
-        super().deactivate()
-        self.character.remove_dmg_modifier(self.DMG_MOD)
-
-
-class PowerInfusion(ArcanePower):
+class PowerInfusion(Cooldown):
     DURATION = 15
     DMG_MOD = 0.2
 
@@ -123,37 +101,13 @@ class PowerInfusion(ArcanePower):
     def usable(self):
         return not self._active and not self.on_cooldown and not self.character.cds.arcane_power.is_active()
 
-
-class Combustion(Cooldown):
-    STARTS_CD_ON_ACTIVATION = False
-
-    def __init__(self, character: Character):
-        super().__init__(character)
-        self._charges = 0
-        self._crit_bonus = 0
-
-    @property
-    def cooldown(self):
-        return 180
-
-    @property
-    def crit_bonus(self):
-        return self._crit_bonus
-
-    def use_charge(self):
-        if self._charges:
-            self._charges -= 1
-            if self._charges == 0:
-                self.deactivate()
-
-    def cast_fire_spell(self):
-        if self._charges:
-            self._crit_bonus += 10
-
     def activate(self):
         super().activate()
-        self._charges = 3
-        self._crit_bonus = 10
+        self.character.add_dmg_modifier(self.DMG_MOD)
+
+    def deactivate(self):
+        super().deactivate()
+        self.character.remove_dmg_modifier(self.DMG_MOD)
 
 
 class MQG(Cooldown):
@@ -230,7 +184,6 @@ class TOEP(Cooldown):
         self.character.remove_sp_bonus(self.DMG_BONUS)
 
 
-
 class REOS(Cooldown):
     # Restrained Essence of Sapphiron
     DMG_BONUS = 130
@@ -256,13 +209,97 @@ class REOS(Cooldown):
         self.character.remove_sp_bonus(self.DMG_BONUS)
 
 
+class Combustion(Cooldown):
+    STARTS_CD_ON_ACTIVATION = False
+
+    def __init__(self, character: Character):
+        super().__init__(character)
+        self._charges = 0
+        self._crit_bonus = 0
+
+    @property
+    def cooldown(self):
+        return 180
+
+    @property
+    def crit_bonus(self):
+        return self._crit_bonus
+
+    def use_charge(self):
+        if self._charges:
+            self._charges -= 1
+            if self._charges == 0:
+                self.deactivate()
+
+    def cast_fire_spell(self):
+        if self._charges:
+            self._crit_bonus += 10
+
+    def activate(self):
+        super().activate()
+        self._charges = 3
+        self._crit_bonus = 10
+
+
+class PresenceOfMind(Cooldown):
+    STARTS_CD_ON_ACTIVATION = False
+
+    def __init__(self, character: Character, apply_cd_haste: bool):
+        super().__init__(character)
+        self._base_cd = 180
+        self._apply_cd_haste = apply_cd_haste
+
+    @property
+    def cooldown(self):
+        return self._base_cd / self.character.get_haste_factor_for_damage_type(
+            DamageType.ARCANE) if self._apply_cd_haste else self._base_cd
+
+    @property
+    def duration(self):
+        return 9999
+
+
+class ArcanePower(Cooldown):
+    def __init__(self, character: Character, apply_cd_haste: bool):
+        super().__init__(character)
+        self._base_cd = 180
+        self._apply_cd_haste = apply_cd_haste
+
+    @property
+    def cooldown(self):
+        return self._base_cd / self.character.get_haste_factor_for_damage_type(
+            DamageType.ARCANE) if self._apply_cd_haste else self._base_cd
+
+    @property
+    def duration(self):
+        return 20
+
+    @property
+    def usable(self):
+        return not self._active and not self.on_cooldown and not self.character.cds.power_infusion.is_active()
+
+    def activate(self):
+        super().activate()
+        self.character.add_cooldown_haste(35)
+
+    def deactivate(self):
+        super().deactivate()
+        self.character.remove_cooldown_haste(35)
+
 
 class Cooldowns:
     def __init__(self, character):
-        self.combustion = Combustion(character)
-        self.arcane_power = ArcanePower(character)
         self.power_infusion = PowerInfusion(character)
-        self.presence_of_mind = PresenceOfMind(character)
+
+        # mage cds
+        has_accelerated_arcana = False
+        if hasattr(character.tal, "accelerated_arcana"):
+            has_accelerated_arcana = character.tal.accelerated_arcana
+
+        self.combustion = Combustion(character)
+        self.arcane_power = ArcanePower(character, has_accelerated_arcana)
+        self.presence_of_mind = PresenceOfMind(character, has_accelerated_arcana)
+
         self.toep = TOEP(character)
         self.reos = REOS(character)
         self.mqg = MQG(character)

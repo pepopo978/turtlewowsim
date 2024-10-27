@@ -36,18 +36,18 @@ class Debuffs:
         return self.permanent_nightfall
 
     def modify_dmg(self, character: Character, dmg: int, dmg_type: DamageType, is_periodic: bool):
-        if self.env.debuffs.has_cos and dmg_type in [DamageType.Shadow, DamageType.Arcane]:
+        if self.env.debuffs.has_cos and dmg_type in [DamageType.SHADOW, DamageType.ARCANE]:
             dmg *= 1.1
-        elif self.env.debuffs.has_coe and dmg_type in [DamageType.Fire, DamageType.Frost]:
+        elif self.env.debuffs.has_coe and dmg_type in [DamageType.FIRE, DamageType.FROST]:
             dmg *= 1.1
 
-        if dmg_type == DamageType.Fire and self.scorch_stacks:
+        if dmg_type == DamageType.FIRE and self.scorch_stacks:
             dmg *= 1 + self.scorch_stacks * 0.03
 
         if self.env.debuffs.has_nightfall:
             dmg *= 1.15
 
-        if dmg_type == DamageType.Shadow:
+        if dmg_type == DamageType.SHADOW:
             if is_periodic:
                 dmg = self.env.improved_shadow_bolt.apply_to_dot(warlock=character, dmg=dmg)
             else:
@@ -110,8 +110,8 @@ class Debuffs:
         while True:
             yield self.env.timeout(1)
             self.scorch_timer = max(self.scorch_timer - 1, 0)
-            if not self.scorch_timer:
+            if self.scorch_timer <= 0:
                 self.scorch_stacks = 0
-            self.wc_timer = max(self.wc_stacks - 1, 0)
-            if not self.wc_timer:
+            self.wc_timer = max(self.wc_timer - 1, 0)
+            if self.wc_timer <= 0:
                 self.wc_stacks = 0
