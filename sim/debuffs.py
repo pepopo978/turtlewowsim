@@ -60,6 +60,9 @@ class Debuffs:
         self.scorch_timer = 30
 
     def add_winters_chill_stack(self):
+        if self.wc_stacks < 5:
+            self.env.p(f"{self.env.time()} - Winters Chill stack {self.wc_stacks + 1} added")
+
         self.wc_stacks = min(self.wc_stacks + 1, 5)
         self.wc_timer = 30
 

@@ -1,3 +1,4 @@
+from builtins import int
 from dataclasses import dataclass
 
 
@@ -14,9 +15,14 @@ class MageTalents:
     fire_blast_gcd: float = 1.5
 
     # Frost
-    winters_chill: bool = False
-    piercing_ice: bool = False
+    piercing_ice: int = 0
+    frostbite: int = 0
     ice_shards: int = 0
+    shatter: int = 0
+    winters_chill: int = 0
+    flash_freeze: int = 0
+    ice_barrier: bool = False
+    frost_nova_cooldown: float = 25
 
     # Arcane
     arcane_instability: bool = False
@@ -33,14 +39,13 @@ FireMageTalents = MageTalents(
     fire_blast_gcd=1
 )
 
-ApFrostMageTalents = MageTalents(
-    arcane_instability=True,
-    piercing_ice=True,
-    ice_shards=5
-)
-
-WcFrostMageTalents = MageTalents(
-    winters_chill=True,
-    piercing_ice=True,
-    ice_shards=5
+IcicleMageTalents = MageTalents(
+    piercing_ice=3,
+    frostbite=3,
+    ice_shards=5,
+    shatter=0,
+    winters_chill=5,
+    flash_freeze=2,
+    ice_barrier=True,
+    frost_nova_cooldown=21 # 2 points in improved frost nova
 )
