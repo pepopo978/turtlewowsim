@@ -52,7 +52,6 @@ class Character:
         self._dmg_modifier = 1
         self._trinket_haste = 0
         self._sp_bonus = 0
-        self._t2proc = -1
 
         self.num_casts = {}
 
@@ -67,7 +66,6 @@ class Character:
         self._dmg_modifier = 1
         self._trinket_haste = 0
         self._sp_bonus = 0
-        self._t2proc = -1
 
         self.num_casts = {}
 

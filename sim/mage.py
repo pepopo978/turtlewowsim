@@ -29,6 +29,22 @@ class FireBlastCooldown(Cooldown):
         return self._cd
 
 
+class FrostNovaCooldown(Cooldown):
+    PRINTS_ACTIVATION = False
+
+    def __init__(self, character: Character, cooldown: float):
+        super().__init__(character)
+        self._cd = cooldown
+
+    @property
+    def duration(self):
+        return 0
+
+    @property
+    def cooldown(self):
+        return self._cd
+
+
 class Mage(Character):
     def __init__(self,
                  tal: MageTalents,
@@ -45,13 +61,30 @@ class Mage(Character):
         self.tal = tal
         self.opts = opts
 
+        self._t2proc: bool = False
+        self._flash_freeze_proc: bool = False
+
+        self._ice_barrier_expiration = 0
+        if opts.start_with_ice_barrier:
+            self._ice_barrier_expiration = opts.starting_ice_barrier_duration
+
+    def reset(self):
+        super().reset()
+
+        self._t2proc = False
+        self._flash_freeze_proc = False
+
     def attach_env(self, env: Environment):
         super().attach_env(env)
 
         self.fire_blast_cd = FireBlastCooldown(self, self.tal.fire_blast_cooldown)
+        self.frost_nova_cd = FrostNovaCooldown(self, self.tal.frost_nova_cooldown)
 
         if self.tal.hot_streak:
             self.hot_streak = HotStreak(env, self)
+
+    def _ice_barrier_active(self):
+        return self._ice_barrier_expiration >= self.env.now
 
     def _spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         yield from self._random_delay(delay)
@@ -72,7 +105,12 @@ class Mage(Character):
 
         while True:
             self._use_cds(cds)
-            yield from self._frostbolt()
+            if self.tal.ice_barrier and not self._ice_barrier_active():
+                yield from self._ice_barrier()
+            if self.opts.use_frostnova_for_icicles and self.frost_nova_cd.usable:
+                yield from self._frost_nova()
+            else:
+                yield from self._frostbolt()
 
     def _spam_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         yield from self._random_delay(delay)
@@ -163,7 +201,7 @@ class Mage(Character):
         haste_scaling_factor = trinket_haste * gear_and_consume_haste
 
         if base_cast_time and haste_scaling_factor:
-            return max(base_cast_time / haste_scaling_factor, self.env.GCD) + self.lag
+            return base_cast_time / haste_scaling_factor + self.lag
         else:
             return base_cast_time + self.lag
 
@@ -188,14 +226,14 @@ class Mage(Character):
     def modify_dmg(self, dmg: int, dmg_type: DamageType, is_periodic: bool):
         dmg = super().modify_dmg(dmg, dmg_type, is_periodic)
 
-        if self.tal.arcane_instability:
-            dmg *= 1.03
-
         if dmg_type == DamageType.Fire and self.tal.fire_power:
             dmg *= 1.1
 
         if self.tal.piercing_ice and dmg_type == DamageType.Frost:
             dmg *= 1.06
+
+        if self.tal.ice_barrier and dmg_type == DamageType.Frost and self._ice_barrier_active():
+            dmg *= 1.15
 
         return int(dmg)
 
@@ -208,17 +246,17 @@ class Mage(Character):
                max_dmg: int,
                base_cast_time: float,
                crit_modifier: float,
-               cooldown: float = 0.0):
+               cooldown: float,
+               on_gcd: bool):
+
         casting_time = self._get_cast_time(base_cast_time)
-        if self._t2proc >= 0:
+        if self._t2proc:
             casting_time = self.lag
-            self._t2proc = -1
+            self._t2proc = False
             self.print("T2 proc used")
-        elif self._t2proc == 1:
-            self._t2proc = 0  # delay using t2 until next spell
 
         # account for gcd
-        if casting_time < self.env.GCD and cooldown == 0:
+        if on_gcd and casting_time < self.env.GCD and cooldown == 0:
             cooldown = self.env.GCD - casting_time + self.lag
 
         hit = self._roll_hit(self._get_hit_chance(spell))
@@ -229,7 +267,11 @@ class Mage(Character):
             dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
             dmg = self.modify_dmg(dmg, damage_type, is_periodic=False)
 
-        is_binary_spell = spell == Spell.FROSTBOLT
+        is_binary_spell = (
+                spell == Spell.FROSTBOLT or
+                spell == Spell.ICICLE or
+                spell == Spell.FROST_NOVA or
+                spell == Spell.CONE_OF_COLD)
 
         partial_amount = self.roll_partial(is_dot=False, is_binary=is_binary_spell)
         partial_desc = ""
@@ -255,6 +297,14 @@ class Mage(Character):
             dmg = int(dmg * mult)
             self.print(f"{spell.value} {description} {partial_desc} **{dmg}**")
 
+        if hit and self.opts.fullt2 and (
+                spell == Spell.FIREBALL or
+                spell == Spell.FROSTBOLT or
+                spell == Spell.ARCANE_MISSILES):
+            if random.randint(1, 100) <= 10:
+                self._t2proc = True
+                self.print("T2 proc")
+
         self.env.total_spell_dmg += dmg
         self.env.meter.register(self.name, dmg)
 
@@ -268,7 +318,8 @@ class Mage(Character):
                     max_dmg: int,
                     base_cast_time: float,
                     crit_modifier: float,
-                    cooldown: float = 0.0):
+                    cooldown: float = 0.0,
+                    on_gcd: bool = True):
         # check for ignite conditions
         has_5_stack_scorch = self.env.debuffs.scorch_stacks == 5
         has_5_stack_ignite = self.env.ignite and self.env.ignite.stacks == 5
@@ -305,7 +356,8 @@ class Mage(Character):
                                                           max_dmg=max_dmg,
                                                           base_cast_time=base_cast_time,
                                                           crit_modifier=crit_modifier,
-                                                          cooldown=cooldown)
+                                                          cooldown=cooldown,
+                                                          on_gcd=on_gcd)
 
         if hit:
             self.cds.combustion.cast_fire_spell()  # only happens on hit
@@ -333,11 +385,6 @@ class Mage(Character):
         if spell == Spell.FIREBLAST:
             self.fire_blast_cd.activate()
 
-        if self.opts.fullt2 and spell == Spell.FIREBALL:
-            if random.randint(1, 100) <= 10:
-                self._t2proc = 1
-                self.print("T2 proc")
-
         # handle gcd
         if cooldown:
             yield self.env.timeout(cooldown)
@@ -348,24 +395,48 @@ class Mage(Character):
                      max_dmg: int,
                      base_cast_time: float,
                      crit_modifier: float,
-                     cooldown: float = 0.0):
+                     cooldown: float = 0.0,
+                     on_gcd: bool = True):
+
+        # check for flash freeze
+        if self._flash_freeze_proc:
+            self._flash_freeze_proc = False
+            yield from self._icicles_channel(channel_time=1.0)
+            return
 
         crit_modifier += self.env.debuffs.wc_stacks * 2  # winters chill added crit (2% per stack)
 
-        hit, crit, dmg, cooldown = self._spell(spell=spell,
-                                               damage_type=DamageType.Frost,
-                                               talent_school=TalentSchool.Frost,
-                                               min_dmg=min_dmg,
-                                               max_dmg=max_dmg,
-                                               base_cast_time=base_cast_time,
-                                               crit_modifier=crit_modifier,
-                                               cooldown=cooldown)
+        hit, crit, dmg, cooldown = yield from self._spell(spell=spell,
+                                                          damage_type=DamageType.Frost,
+                                                          talent_school=TalentSchool.Frost,
+                                                          min_dmg=min_dmg,
+                                                          max_dmg=max_dmg,
+                                                          base_cast_time=base_cast_time,
+                                                          crit_modifier=crit_modifier,
+                                                          cooldown=cooldown,
+                                                          on_gcd=on_gcd)
 
-        if hit and self.tal.winters_chill:
-            # roll for whether debuff hits
-            winters_chill_hit = self._roll_hit(self._get_hit_chance(spell))
-            if winters_chill_hit:
-                self.env.debuffs.add_winters_chill_stack()
+        if hit:
+            if self.tal.winters_chill:
+                # roll for whether debuff hits
+                winters_chill_hit = self._roll_hit(self._get_hit_chance(spell))
+                if winters_chill_hit:
+                    self.env.debuffs.add_winters_chill_stack()
+
+            if self.tal.flash_freeze:
+                flash_freeze_hit = False
+                if spell == Spell.FROSTBOLT or spell == Spell.CONE_OF_COLD:
+                    flash_freeze_hit = (self._roll_hit(5 * self.tal.frostbite) and
+                                        self._roll_hit(50 * self.tal.flash_freeze))
+                elif spell == Spell.FROST_NOVA:
+                    flash_freeze_hit = self._roll_hit(50 * self.tal.flash_freeze)
+
+                if flash_freeze_hit:
+                    self._flash_freeze_proc = 1
+                    self.print("Flash Freeze proc")
+
+        if spell == Spell.FROST_NOVA:
+            self.frost_nova_cd.activate()
 
         # handle gcd
         if cooldown:
@@ -376,8 +447,6 @@ class Mage(Character):
         max_dmg = 280
         casting_time = 1.5
         crit_modifier = 0
-        if self.tal.arcane_instability:
-            crit_modifier += 3
 
         crit_modifier += self.tal.incinerate_crit  # incinerate added crit (2 or 4%)
 
@@ -392,12 +461,10 @@ class Mage(Character):
         max_dmg = 760
         casting_time = 3
         crit_modifier = 0
-        if self.tal.arcane_instability:
-            crit_modifier += 3
         if self.tal.critical_mass:
             crit_modifier += 6
 
-        if self.opts.pyro_on_t2_proc and self._t2proc >= 0:
+        if self.opts.pyro_on_t2_proc and self._t2proc:
             yield from self._pyroblast()
         else:
             yield from self._fire_spell(spell=Spell.FIREBALL,
@@ -411,8 +478,6 @@ class Mage(Character):
         max_dmg = 510
         casting_time = 0
         crit_modifier = 0
-        if self.tal.arcane_instability:
-            crit_modifier += 3
         if self.tal.critical_mass:
             crit_modifier += 6
 
@@ -429,8 +494,6 @@ class Mage(Character):
         min_dmg = 716
         max_dmg = 890
         crit_modifier = 0
-        if self.tal.arcane_instability:
-            crit_modifier += 3
         if self.tal.critical_mass:
             crit_modifier += 6
 
@@ -445,14 +508,55 @@ class Mage(Character):
         max_dmg = 556
         casting_time = 2.5
         crit_modifier = 0
-        if self.tal.arcane_instability:
-            crit_modifier += 3
 
         yield from self._frost_spell(spell=Spell.FROSTBOLT,
                                      min_dmg=min_dmg,
                                      max_dmg=max_dmg,
                                      base_cast_time=casting_time,
                                      crit_modifier=crit_modifier)
+
+    def _frost_nova(self):
+        # use rank 2 to get full spell coefficient
+        min_dmg = 33
+        max_dmg = 38
+        casting_time = 0
+        crit_modifier = 0
+
+        yield from self._frost_spell(spell=Spell.FROST_NOVA,
+                                     min_dmg=min_dmg,
+                                     max_dmg=max_dmg,
+                                     base_cast_time=casting_time,
+                                     crit_modifier=crit_modifier)
+
+    def _ice_barrier(self):
+        self._ice_barrier_expiration = self.env.now + 60
+
+        if self.env.print:
+            description = f"({round(self.lag, 2)} cast)"
+            description += f" ({self.env.GCD} gcd)"
+            self.print(f"Ice Barrier {description}")
+        yield self.env.timeout(self.env.GCD + self.lag)
+
+    def _icicle(self, casting_time: float = 1):
+        min_dmg = 272
+        max_dmg = 272
+
+        yield from self._frost_spell(spell=Spell.ICICLE,
+                                     min_dmg=min_dmg,
+                                     max_dmg=max_dmg,
+                                     base_cast_time=casting_time,
+                                     crit_modifier=0,
+                                     on_gcd=False)
+
+    def _icicles_channel(self, channel_time: float = 5):
+        num_icicles = 5
+        time_between_icicles = channel_time / num_icicles - self.lag
+
+        for i in range(num_icicles):
+            if i == 0:
+                yield from self._icicle(casting_time=time_between_icicles + self.lag)  # initial delay
+            else:
+                yield from self._icicle(casting_time=time_between_icicles)
 
     def spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function

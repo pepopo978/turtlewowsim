@@ -25,6 +25,7 @@ class Simulation:
         self.permanent_cos = permanent_cos
         self.permanent_nightfall = permanent_nightfall
 
+    # current unused attempted multi process runs
     def run_iteration(self, i, duration):
         env = Environment(print=False,
                           print_dots=False,
@@ -39,9 +40,10 @@ class Simulation:
         env.add_characters(self.characters)
         env.run(until=duration)
 
-        results = {
+        result = {
             'dps': {},
             'casts': {},
+            'per_spell_casts': {},
             'total_spell_dmg': env.total_spell_dmg,
             'total_dot_dmg': env.total_dot_dmg,
             'total_ignite_dmg': env.total_ignite_dmg,
@@ -71,16 +73,18 @@ class Simulation:
 
         # Collect DPS and casts data
         for character, mdps in env.meter.dps().items():
-            results['dps'][character] = mdps
+            result['dps'][character] = mdps
         for character in self.characters:
-            results['casts'][character.name] = sum(character.num_casts.values())
+            result['casts'][character.name] = sum(character.num_casts.values())
+            result['per_spell_casts'][character.name] = character.num_casts
 
-        return i, results
+        return i, result
 
     def run(self, iterations, duration):
         self.results = {
             'dps': defaultdict(list),
             'casts': defaultdict(list),
+            'per_spell_casts': defaultdict(list),
 
             'total_spell_dmg': [None] * iterations,
             'total_dot_dmg': [None] * iterations,
@@ -131,6 +135,13 @@ class Simulation:
             for character in self.characters:
                 # add up all values in the num_casts dict
                 self.results['casts'][character.name].append(sum(character.num_casts.values()))
+                for spell_enum, num_casts in character.num_casts.items():
+                    spell_name = spell_enum.value
+                    if character.name not in self.results['per_spell_casts']:
+                        self.results['per_spell_casts'][character.name] = {}
+                    if spell_name not in self.results['per_spell_casts'][character.name]:
+                        self.results['per_spell_casts'][character.name][spell_name] = []
+                    self.results['per_spell_casts'][character.name][spell_name].append(num_casts)
 
             self.results['total_spell_dmg'][i] = env.total_spell_dmg
             self.results['total_dot_dmg'][i] = env.total_dot_dmg
@@ -177,23 +188,6 @@ class Simulation:
                 print(
                     f"{self._justify(label)}: {mean(self.results['dps'][char])} in {mean(self.results['casts'][char])} casts")
 
-                if verbosity > 2:
-                    label = f"{char} DPS standard deviation"
-                    print(f"{self._justify(label)}: {np.std(self.results['dps'][char])}")
-                    label = f"{char} DPS min"
-                    print(f"{self._justify(label)}: {np.min(self.results['dps'][char])}")
-                    label = f"{char} DPS 25th percentile"
-                    print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 25)}")
-                    label = f"{char} DPS 50th percentile"
-                    print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 50)}")
-                    label = f"{char} DPS 75th percentile"
-                    print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 75)}")
-                    label = f"{char} DPS max"
-                    print(f"{self._justify(label)}: {np.max(self.results['dps'][char])}")
-
-                # label = f"{char} DPS Variance"
-                # print(f"{self._justify(label)}: {np.var(self.results['dps'][char])}")
-
         print(f"{self._justify('Total spell dmg')}: {mean(self.results['total_spell_dmg'])}")
         print(f"{self._justify('Total dot dmg')}: {mean(self.results['total_dot_dmg'])}")
         if self.results['had_any_ignite']:
@@ -235,6 +229,29 @@ class Simulation:
                 print(f"{self._justify('ISB uptime')}: {mean(self.results['ISB uptime'])}%")
                 print(f"{self._justify('Total added dot dmg')}: {mean(self.results['Total added dot dmg'])}")
                 print(f"{self._justify('Total added spell dmg')}: {mean(self.results['Total added spell dmg'])}")
+
+        if verbosity > 2:
+            print(f"------ Per Spell Casts ------")
+            for spell_name, num_casts in self.results['per_spell_casts'][char].items():
+                label = f"{char} {spell_name} Casts"
+                print(f"{self._justify(label)}: {mean(num_casts)}")
+
+            print(f"------ Advanced Stats ------")
+            label = f"{char} DPS standard deviation"
+            print(f"{self._justify(label)}: {round(np.std(self.results['dps'][char]), 2)}")
+            label = f"{char} DPS min"
+            print(f"{self._justify(label)}: {np.min(self.results['dps'][char])}")
+            label = f"{char} DPS 25th percentile"
+            print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 25)}")
+            label = f"{char} DPS 50th percentile"
+            print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 50)}")
+            label = f"{char} DPS 75th percentile"
+            print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 75)}")
+            label = f"{char} DPS max"
+            print(f"{self._justify(label)}: {np.max(self.results['dps'][char])}")
+
+            # label = f"{char} DPS Variance"
+            # print(f"{self._justify(label)}: {np.var(self.results['dps'][char])}")
 
     def extended_report(self):
         self.report(verbosity=2)
