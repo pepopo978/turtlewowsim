@@ -6,9 +6,11 @@ num_mages = 1
 for i in range(num_mages):
     fm = Mage(name=f'mage{i}', sp=1009, crit=33.17, hit=16,
               tal=IcicleMageTalents,
-              opts=MageOptions(use_frostnova_for_icicles=True,
-                               start_with_ice_barrier=True))
-    fm.spam_frostbolts()
+              opts=MageOptions(
+                  use_icicles_without_flash_freeze=True,
+                  use_frostnova_for_icicles=True,
+                  start_with_ice_barrier=True))
+    fm.icicle_frostbolts()
     mages.append(fm)
 
 env = Environment()

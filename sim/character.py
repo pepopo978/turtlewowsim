@@ -1,7 +1,7 @@
 import functools
 import random
 from dataclasses import fields, dataclass
-from typing import Optional
+from typing import Optional, Union, List
 
 from sim.env import Environment
 from sim.spell_school import DamageType
@@ -11,20 +11,20 @@ from sim.talent_school import TalentSchool
 @dataclass(kw_only=True)
 class CooldownUsages:
     # Mage
-    combustion: Optional[float] = None
-    arcane_power: Optional[float] = None
-    presence_of_mind: Optional[float] = None
+    combustion: Optional[Union[float, List[float]]] = None
+    arcane_power: Optional[Union[float, List[float]]] = None
+    presence_of_mind: Optional[Union[float, List[float]]] = None
 
     # Buffs
-    power_infusion: Optional[float] = None
-    berserking30: Optional[float] = None
-    berserking20: Optional[float] = None
-    berserking10: Optional[float] = None
+    power_infusion: Optional[Union[float, List[float]]] = None
+    berserking30: Optional[Union[float, List[float]]] = None
+    berserking20: Optional[Union[float, List[float]]] = None
+    berserking10: Optional[Union[float, List[float]]] = None
 
     # Trinkets
-    toep: Optional[float] = None
-    mqg: Optional[float] = None
-    reos: Optional[float] = None
+    toep: Optional[Union[float, List[float]]] = None
+    mqg: Optional[Union[float, List[float]]] = None
+    reos: Optional[Union[float, List[float]]] = None
 
 
 class Character:
@@ -35,6 +35,7 @@ class Character:
                  hit: float,
                  haste: float,
                  lag: float,
+                 tal: object
                  ):
 
         self.name = name
@@ -45,12 +46,25 @@ class Character:
         self.lag = lag
         self.env = None
 
+        self.tal = tal
+
+        self._damage_type_haste = {
+            DamageType.PHYSICAL: 0,
+            DamageType.FIRE: 0,
+            DamageType.FROST: 0,
+            DamageType.ARCANE: 0,
+            DamageType.NATURE: 0,
+            DamageType.SHADOW: 0,
+            DamageType.HOLY: 0
+        }
+
         # avoid circular import
         from sim.cooldowns import Cooldowns
         self.cds = Cooldowns(self)
 
         self._dmg_modifier = 1
         self._trinket_haste = 0
+        self._cooldown_haste = 0
         self._sp_bonus = 0
 
         self.num_casts = {}
@@ -65,9 +79,23 @@ class Character:
 
         self._dmg_modifier = 1
         self._trinket_haste = 0
+        self._cooldown_haste = 0
         self._sp_bonus = 0
 
         self.num_casts = {}
+
+    def get_haste_factor_for_damage_type(self, dmg_type: DamageType):
+        haste_factor = 1 + self.haste / 100
+        trinket_haste_factor = 1 + self._trinket_haste / 100
+        cooldown_haste_factor = 1 + self._cooldown_haste / 100
+        damage_type_haste_factor = 1 + self._damage_type_haste[dmg_type] / 100
+
+        return haste_factor * trinket_haste_factor * cooldown_haste_factor * damage_type_haste_factor
+
+    def _get_cast_time(self, base_cast_time: float, damage_type: DamageType):
+        haste_scaling_factor = self.get_haste_factor_for_damage_type(damage_type)
+
+        return base_cast_time / haste_scaling_factor + self.lag
 
     def _rotation_callback(self, mage, name, *args, **kwargs):
         rotation = getattr(mage, '_' + name)
@@ -84,10 +112,18 @@ class Character:
 
     def _use_cds(self, cooldown_usages: CooldownUsages = CooldownUsages()):
         for field in fields(cooldown_usages):
-            use_time = getattr(cooldown_usages, field.name)
             cooldown_obj = getattr(self.cds, field.name)
-            if use_time and cooldown_obj.usable and self.env.now >= use_time:
-                cooldown_obj.activate()
+            use_times = getattr(cooldown_usages, field.name, None)
+            if isinstance(use_times, list):
+                for index, use_time in enumerate(use_times):
+                    if use_time is not None and cooldown_obj.usable and self.env.now >= use_time:
+                        use_times[index] = None
+                        cooldown_obj.activate()
+            else:
+                use_time = use_times
+                if use_time is not None and cooldown_obj.usable and self.env.now >= use_time:
+                    setattr(cooldown_usages, field.name, None)  # remove use_time so it doesn't get used again
+                    cooldown_obj.activate()
 
     def _roll_hit(self, hit_chance: float):
         return random.randint(1, 100) <= hit_chance
@@ -131,7 +167,6 @@ class Character:
             elif roll <= 1:
                 return .25
 
-
     def _get_crit_multiplier(self, dmg_type: DamageType, talent_school: TalentSchool):
         return 1.5
 
@@ -150,6 +185,12 @@ class Character:
 
     def remove_trinket_haste(self, haste):
         self._trinket_haste -= haste
+
+    def add_cooldown_haste(self, haste):
+        self._cooldown_haste += haste
+
+    def remove_cooldown_haste(self, haste):
+        self._cooldown_haste -= haste
 
     def add_sp_bonus(self, sp):
         self._sp_bonus += sp

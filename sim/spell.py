@@ -13,7 +13,10 @@ class Spell(Enum):
     SHADOWBOLT = "Shadowbolt"
 
     # Mage
-    ARCANE_MISSILES = "Arcane Missiles"
+    ARCANE_MISSILE = "Arcane Missile"
+    ARCANE_MISSILES_CHANNEL = "Arcane Missiles Channel"
+    ARCANE_SURGE = "Arcane Surge"
+    ARCANE_RUPTURE = "Arcane Rupture"
     FIREBALL = "Fireball"
     PYROBLAST = "Pyroblast"
     SCORCH = "Scorch"
@@ -31,7 +34,9 @@ SPELL_COEFFICIENTS = {
     Spell.SHADOWBOLT: 0.8571,
 
     # Mage
-    Spell.ARCANE_MISSILES: 0.814,
+    Spell.ARCANE_MISSILE: 0.328,
+    Spell.ARCANE_SURGE: 0.65,
+    Spell.ARCANE_RUPTURE: 1.0,
     Spell.FIREBALL: 1.0,
     Spell.PYROBLAST: 1.0,
     Spell.SCORCH: 0.4285,

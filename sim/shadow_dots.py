@@ -7,7 +7,7 @@ from sim.warlock import Spell, Warlock
 
 class CorruptionDot(Dot):
     def __init__(self, owner, env):
-        super().__init__(owner, env, DamageType.Shadow)
+        super().__init__(owner, env, DamageType.SHADOW)
 
         self.coefficient = 0.1666
         self.time_between_ticks = 3
@@ -27,7 +27,7 @@ class CorruptionDot(Dot):
 
 class CurseOfAgonyDot(Dot):
     def __init__(self, owner, env):
-        super().__init__(owner, env, DamageType.Shadow)
+        super().__init__(owner, env, DamageType.SHADOW)
 
         self.coefficient = 0.0833
         self.time_between_ticks = 2

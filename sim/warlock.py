@@ -43,6 +43,7 @@ class ConflagrateCooldown(Cooldown):
     def cooldown(self):
         return 10
 
+
 class Warlock(Character):
     def __init__(self,
                  tal: WarlockTalents,
@@ -54,25 +55,15 @@ class Warlock(Character):
                  haste: float = 0,
                  lag: float = 0.07,  # lag added by server tick time
                  ):
-        super().__init__(name, sp, crit, hit, haste, lag)
+        super().__init__(name, sp, crit, hit, haste, lag, tal)
         self.tal = tal
         self.opts = opts
 
         # Warlock
         self.nightfall = False
 
-    def _get_cast_time(self, base_cast_time):
-        base_cast_time += self.lag
-        trinket_haste = 1 + self._trinket_haste / 100
-        gear_and_consume_haste = 1 + self.haste / 100
-        haste_scaling_factor = trinket_haste * gear_and_consume_haste
-
-        if base_cast_time and haste_scaling_factor:
-            return max(base_cast_time / haste_scaling_factor, self.env.GCD)
-        else:
-            return base_cast_time
-
     def _spam_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -80,6 +71,7 @@ class Warlock(Character):
             yield from self._shadowbolt()
 
     def _corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -89,6 +81,7 @@ class Warlock(Character):
             yield from self._shadowbolt()
 
     def _corruption_agony_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -99,8 +92,8 @@ class Warlock(Character):
                 yield from self._curse_of_agony()
             yield from self._shadowbolt()
 
-
     def _corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -112,6 +105,7 @@ class Warlock(Character):
             yield from self._shadowbolt()
 
     def _corruption_agony_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -125,6 +119,7 @@ class Warlock(Character):
             yield from self._shadowbolt()
 
     def _cos_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -136,6 +131,7 @@ class Warlock(Character):
             yield from self._shadowbolt()
 
     def _cos_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
@@ -170,16 +166,16 @@ class Warlock(Character):
             mult = 2
         return mult
 
-    def modify_dmg(self, dmg: int, dmg_type: DamageType, is_periodic:bool):
+    def modify_dmg(self, dmg: int, dmg_type: DamageType, is_periodic: bool):
         dmg = super().modify_dmg(dmg, dmg_type, is_periodic)
 
-        if dmg_type == DamageType.Shadow:
+        if dmg_type == DamageType.SHADOW:
             if self.tal.demonic_sacrifice:
                 dmg *= 1.15
             if self.tal.shadow_mastery:
                 dmg *= 1.1
 
-        if dmg_type == DamageType.Fire:
+        if dmg_type == DamageType.FIRE:
             if self.tal.emberstorm:
                 dmg *= 1 + self.tal.emberstorm * 0.02
 
@@ -192,7 +188,7 @@ class Warlock(Character):
                       base_cast_time: float,
                       crit_modifier: float = 0,
                       cooldown: float = 0.0):
-        casting_time = self._get_cast_time(base_cast_time)
+        casting_time = self._get_cast_time(base_cast_time, DamageType.SHADOW)
 
         # account for gcd
         if casting_time < self.env.GCD and cooldown == 0:
@@ -203,7 +199,7 @@ class Warlock(Character):
         hit = self._roll_hit(self._get_hit_chance(spell))
         crit = self._roll_crit(self.crit + crit_modifier)
         dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
-        dmg = self.modify_dmg(dmg, DamageType.Shadow, is_periodic=False)
+        dmg = self.modify_dmg(dmg, DamageType.SHADOW, is_periodic=False)
 
         yield self.env.timeout(casting_time)
 
@@ -219,7 +215,7 @@ class Warlock(Character):
         elif not crit:
             self.print(f"{isb_msg} {spell.value} {description} {dmg}")
         else:
-            crit_mult = self._get_crit_multiplier(DamageType.Shadow, self._get_talent_school(spell))
+            crit_mult = self._get_crit_multiplier(DamageType.SHADOW, self._get_talent_school(spell))
             dmg = int(dmg * crit_mult)
             self.print(f"{isb_msg} {spell.value} {description} **{dmg}**")
             # refresh isb
@@ -242,7 +238,7 @@ class Warlock(Character):
                     crit_modifier: float = 0,
                     cooldown: float = 0.0):
 
-        casting_time = self._get_cast_time(base_cast_time)
+        casting_time = self._get_cast_time(base_cast_time, DamageType.FIRE)
 
         # account for gcd
         if casting_time < self.env.GCD and cooldown == 0:
@@ -251,7 +247,7 @@ class Warlock(Character):
         hit = self._roll_hit(self._get_hit_chance(spell))
         crit = self._roll_crit(self.crit + crit_modifier)
         dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
-        dmg = self.modify_dmg(dmg, DamageType.Fire, is_periodic=False)
+        dmg = self.modify_dmg(dmg, DamageType.FIRE, is_periodic=False)
 
         partial_amount = self.roll_partial(is_dot=False, is_binary=False)
 
@@ -275,7 +271,7 @@ class Warlock(Character):
         elif not crit:
             self.print(f"{spell.value} {description} {partial_desc} {dmg}")
         else:
-            crit_mult = self._get_crit_multiplier(DamageType.Shadow, self._get_talent_school(spell))
+            crit_mult = self._get_crit_multiplier(DamageType.SHADOW, self._get_talent_school(spell))
             dmg = int(dmg * crit_mult)
             self.print(f"{spell.value} {description} {partial_desc} **{dmg}**")
 
@@ -296,7 +292,7 @@ class Warlock(Character):
                     base_cast_time: float,
                     cooldown: float = 0.0):
 
-        casting_time = self._get_cast_time(base_cast_time)
+        casting_time = self._get_cast_time(base_cast_time, DamageType.SHADOW)
 
         # account for gcd
         if casting_time < self.env.GCD and cooldown == 0:
