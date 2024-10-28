@@ -1,41 +1,24 @@
 import functools
 import random
 from dataclasses import fields, dataclass
-from typing import Optional, Union, List
 
+from sim.cooldown_usages import CooldownUsages
 from sim.env import Environment
+from sim.equipped_items import EquippedItems
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
 
 
-@dataclass(kw_only=True)
-class CooldownUsages:
-    # Mage
-    combustion: Optional[Union[float, List[float]]] = None
-    arcane_power: Optional[Union[float, List[float]]] = None
-    presence_of_mind: Optional[Union[float, List[float]]] = None
-
-    # Buffs
-    power_infusion: Optional[Union[float, List[float]]] = None
-    berserking30: Optional[Union[float, List[float]]] = None
-    berserking20: Optional[Union[float, List[float]]] = None
-    berserking10: Optional[Union[float, List[float]]] = None
-
-    # Trinkets
-    toep: Optional[Union[float, List[float]]] = None
-    mqg: Optional[Union[float, List[float]]] = None
-    reos: Optional[Union[float, List[float]]] = None
-
-
 class Character:
     def __init__(self,
+                 tal: dataclass,
                  name: str,
                  sp: int,
                  crit: float,
                  hit: float,
                  haste: float,
                  lag: float,
-                 tal: object
+                 equipped_items: EquippedItems = None,
                  ):
 
         self.name = name
@@ -62,6 +45,9 @@ class Character:
         from sim.cooldowns import Cooldowns
         self.cds = Cooldowns(self)
 
+        self.equipped_items = equipped_items
+        self.item_proc_handler = None
+
         self._dmg_modifier = 1
         self._trinket_haste = 0
         self._cooldown_haste = 0
@@ -71,6 +57,10 @@ class Character:
 
     def attach_env(self, env: Environment):
         self.env = env
+        if self.equipped_items:
+            # avoid circular import
+            from sim.item_proc_handler import ItemProcHandler
+            self.item_proc_handler = ItemProcHandler(self, self.env, self.equipped_items)
 
     def reset(self):
         # avoid circular import
@@ -131,11 +121,15 @@ class Character:
     def _roll_crit(self, crit_chance: float):
         return random.randint(1, 100) <= crit_chance
 
-    def _roll_spell_dmg(self, min_dmg: int, max_dmg: int, spell_coeff: float):
+    def roll_spell_dmg(self, min_dmg: int, max_dmg: int, spell_coeff: float):
         dmg = random.randint(min_dmg, max_dmg)
         dmg += (self.sp + self._sp_bonus) * spell_coeff
 
         return dmg
+
+    def _check_for_procs(self):
+        if self.item_proc_handler:
+            self.item_proc_handler.check_for_procs(self.env.now)
 
     def roll_partial(self, is_dot: bool, is_binary: bool):
         if is_binary:

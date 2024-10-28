@@ -5,6 +5,7 @@ from typing import Optional
 from sim.character import Character, CooldownUsages
 from sim.cooldowns import Cooldown
 from sim.env import Environment
+from sim.equipped_items import EquippedItems
 from sim.spell import Spell, SPELL_COEFFICIENTS
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
@@ -54,8 +55,9 @@ class Warlock(Character):
                  hit: float = 0,
                  haste: float = 0,
                  lag: float = 0.07,  # lag added by server tick time
+                 equipped_items: EquippedItems = None,
                  ):
-        super().__init__(name, sp, crit, hit, haste, lag, tal)
+        super().__init__(tal, name, sp, crit, hit, haste, lag, equipped_items)
         self.tal = tal
         self.opts = opts
 
@@ -198,7 +200,7 @@ class Warlock(Character):
 
         hit = self._roll_hit(self._get_hit_chance(spell))
         crit = self._roll_crit(self.crit + crit_modifier)
-        dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
+        dmg = self.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0))
         dmg = self.modify_dmg(dmg, DamageType.SHADOW, is_periodic=False)
 
         yield self.env.timeout(casting_time)
@@ -246,7 +248,7 @@ class Warlock(Character):
 
         hit = self._roll_hit(self._get_hit_chance(spell))
         crit = self._roll_crit(self.crit + crit_modifier)
-        dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
+        dmg = self.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0))
         dmg = self.modify_dmg(dmg, DamageType.FIRE, is_periodic=False)
 
         partial_amount = self.roll_partial(is_dot=False, is_binary=False)
