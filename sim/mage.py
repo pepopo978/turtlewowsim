@@ -644,10 +644,14 @@ class Mage(Character):
             if self.tal.flash_freeze:
                 flash_freeze_hit = False
                 if spell == Spell.FROSTBOLT or spell == Spell.CONE_OF_COLD:
-                    flash_freeze_hit = (self._roll_hit(5 * self.tal.frostbite) and
-                                        self._roll_hit(50 * self.tal.flash_freeze))
+
+                    flash_freeze_hit = self._roll_hit(5 * self.tal.frostbite)
+                    if self.tal.flash_freeze < 2:
+                        flash_freeze_hit = flash_freeze_hit and self._roll_hit(50 * self.tal.flash_freeze)
                 elif spell == Spell.FROST_NOVA:
-                    flash_freeze_hit = self._roll_hit(50 * self.tal.flash_freeze)
+                    flash_freeze_hit = True
+                    if self.tal.flash_freeze < 2:
+                        flash_freeze_hit = flash_freeze_hit and self._roll_hit(50 * self.tal.flash_freeze)
 
                 if flash_freeze_hit:
                     self._flash_freeze_proc = 1
