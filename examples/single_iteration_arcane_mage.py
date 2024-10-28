@@ -11,10 +11,10 @@ for i in range(num_mages):
                   ornate_bloodstone_dagger=True,
                   wrath_of_cenarius=True,
               ))
-    fm.arcane_surge_rupture_missiles(cds=CooldownUsages(mqg=0))
+    fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
     mages.append(fm)
 
 env = Environment()
 env.add_characters(mages)
-env.run(until=60)
+env.run(until=300)
 env.meter.report()

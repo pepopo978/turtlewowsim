@@ -81,6 +81,10 @@ class ArcaneSurgeCooldown(Cooldown):
     def usable(self):
         return not self._active and not self._on_cooldown and self._had_partial_resist
 
+    def activate(self):
+        super().activate()
+        self._had_partial_resist = False
+
 
 class ArcaneRuptureCooldown(Cooldown):
     PRINTS_ACTIVATION = False
