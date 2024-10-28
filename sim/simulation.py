@@ -182,11 +182,21 @@ class Simulation:
 
     def report(self, verbosity=1):
         if verbosity > 1:
+
+            messages_to_dps = {}
             # per character stats
             for char in self.results['dps']:
+                mean_dps = mean(self.results['dps'][char])
+                mean_casts = mean(self.results['casts'][char])
                 label = f"{char} DPS Mean"
-                print(
-                    f"{self._justify(label)}: {mean(self.results['dps'][char])} in {mean(self.results['casts'][char])} casts")
+                msg = f"{self._justify(label)}: {mean_dps} in {mean_casts} casts"
+                messages_to_dps[msg] = mean_dps
+
+            sorted_by_dps = dict(sorted(messages_to_dps.items(), key=lambda item: item[1], reverse=True))
+
+            # sort dps_to_dps_messages by dps
+            for msg, dps in sorted_by_dps.items():
+                print(msg)
 
         print(f"{self._justify('Total spell dmg')}: {mean(self.results['total_spell_dmg'])}")
         print(f"{self._justify('Total dot dmg')}: {mean(self.results['total_dot_dmg'])}")
