@@ -22,10 +22,10 @@ for i in range(num_mages):
                       wrath_of_cenarius=True,
                   ))
 
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=[0, 180]))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=0))
     # fm.arcane_rupture_surge_missiles(cds=CooldownUsages(arcane_power=0))
     mages.append(fm)
 
 sim = Simulation(characters=mages)
-sim.run(iterations=1000, duration=250)
+sim.run(iterations=1000, duration=100, print=False)
 sim.detailed_report()
