@@ -43,7 +43,8 @@ class Character:
         }
 
         # avoid circular import
-        self.cds = None
+        from sim.cooldowns import Cooldowns
+        self.cds = Cooldowns(self)
 
         self.equipped_items = equipped_items
         self.item_proc_handler = None
