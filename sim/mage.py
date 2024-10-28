@@ -41,8 +41,6 @@ class Mage(Character):
         if opts.start_with_ice_barrier:
             self._ice_barrier_expiration = opts.starting_ice_barrier_duration
 
-        self._setup_cds()
-
     def reset(self):
         super().reset()
 

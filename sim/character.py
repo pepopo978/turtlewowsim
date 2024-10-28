@@ -1,3 +1,4 @@
+import dataclasses
 import functools
 import random
 from dataclasses import fields, dataclass
@@ -42,8 +43,7 @@ class Character:
         }
 
         # avoid circular import
-        from sim.cooldowns import Cooldowns
-        self.cds = Cooldowns(self)
+        self.cds = None
 
         self.equipped_items = equipped_items
         self.item_proc_handler = None
@@ -54,6 +54,8 @@ class Character:
         self._sp_bonus = 0
 
         self.num_casts = {}
+
+        self.cooldown_usages = None
 
     def attach_env(self, env: Environment):
         self.env = env
@@ -73,6 +75,8 @@ class Character:
         self._sp_bonus = 0
 
         self.num_casts = {}
+        self.cooldown_usages = None
+
 
     def get_haste_factor_for_damage_type(self, dmg_type: DamageType):
         haste_factor = 1 + self.haste / 100
@@ -101,9 +105,12 @@ class Character:
             yield self.env.timeout(delay)
 
     def _use_cds(self, cooldown_usages: CooldownUsages = CooldownUsages()):
-        for field in fields(cooldown_usages):
+        if not self.cooldown_usages:
+            self.cooldown_usages = dataclasses.replace(cooldown_usages) # copy passed object so we can modify it
+
+        for field in fields(self.cooldown_usages):
             cooldown_obj = getattr(self.cds, field.name)
-            use_times = getattr(cooldown_usages, field.name, None)
+            use_times = getattr(self.cooldown_usages, field.name, None)
             if isinstance(use_times, list):
                 for index, use_time in enumerate(use_times):
                     if use_time is not None and cooldown_obj.usable and self.env.now >= use_time:
@@ -112,7 +119,7 @@ class Character:
             else:
                 use_time = use_times
                 if use_time is not None and cooldown_obj.usable and self.env.now >= use_time:
-                    setattr(cooldown_usages, field.name, None)  # remove use_time so it doesn't get used again
+                    setattr(self.cooldown_usages, field.name, None)  # remove use_time so it doesn't get used again
                     cooldown_obj.activate()
 
     def _roll_hit(self, hit_chance: float):
