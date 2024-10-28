@@ -1,3 +1,4 @@
+import copy
 import dataclasses
 import functools
 import random
@@ -55,8 +56,7 @@ class Character:
         self._sp_bonus = 0
 
         self.num_casts = {}
-
-        self.cooldown_usages = None
+        self.used_cds = {}
 
     def attach_env(self, env: Environment):
         self.env = env
@@ -76,8 +76,7 @@ class Character:
         self._sp_bonus = 0
 
         self.num_casts = {}
-        self.cooldown_usages = None
-
+        self.used_cds = {}
 
     def get_haste_factor_for_damage_type(self, dmg_type: DamageType):
         haste_factor = 1 + self.haste / 100
@@ -106,22 +105,32 @@ class Character:
             yield self.env.timeout(delay)
 
     def _use_cds(self, cooldown_usages: CooldownUsages = CooldownUsages()):
-        if not self.cooldown_usages:
-            self.cooldown_usages = dataclasses.replace(cooldown_usages) # copy passed object so we can modify it
-
-        for field in fields(self.cooldown_usages):
+        for field in fields(cooldown_usages):
             cooldown_obj = getattr(self.cds, field.name)
-            use_times = getattr(self.cooldown_usages, field.name, None)
+            use_times = getattr(cooldown_usages, field.name, None)
             if isinstance(use_times, list):
                 for index, use_time in enumerate(use_times):
                     if use_time is not None and cooldown_obj.usable and self.env.now >= use_time:
-                        use_times[index] = None
-                        cooldown_obj.activate()
+                        if field.name not in self.used_cds:
+                            self.used_cds[field.name] = {
+                                use_time: True
+                            }
+                            cooldown_obj.activate()
+                        elif use_time not in self.used_cds[field.name]:
+                            self.used_cds[field.name][use_time] = True
+                            cooldown_obj.activate()
+
             else:
                 use_time = use_times
                 if use_time is not None and cooldown_obj.usable and self.env.now >= use_time:
-                    setattr(self.cooldown_usages, field.name, None)  # remove use_time so it doesn't get used again
-                    cooldown_obj.activate()
+                    if field.name not in self.used_cds:
+                        self.used_cds[field.name] = {
+                            use_time: True
+                        }
+                        cooldown_obj.activate()
+                    elif use_time not in self.used_cds[field.name]:
+                        self.used_cds[field.name][use_time] = True
+                        cooldown_obj.activate()
 
     def _roll_hit(self, hit_chance: float):
         return random.randint(1, 100) <= hit_chance
