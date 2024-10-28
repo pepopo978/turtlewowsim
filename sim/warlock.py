@@ -162,22 +162,22 @@ class Warlock(Character):
 
         return min(83 + self.hit, 99)
 
-    def _get_crit_multiplier(self, dmg_type: DamageType, talent_school: TalentSchool):
-        mult = super()._get_crit_multiplier(dmg_type, talent_school)
+    def _get_crit_multiplier(self, damage_type: DamageType, talent_school: TalentSchool):
+        mult = super()._get_crit_multiplier(talent_school, damage_type)
         if talent_school == TalentSchool.Destruction and self.tal.ruin:
             mult = 2
         return mult
 
-    def modify_dmg(self, dmg: int, dmg_type: DamageType, is_periodic: bool):
-        dmg = super().modify_dmg(dmg, dmg_type, is_periodic)
+    def modify_dmg(self, dmg: int, damage_type: DamageType, is_periodic: bool):
+        dmg = super().modify_dmg(dmg, damage_type, is_periodic)
 
-        if dmg_type == DamageType.SHADOW:
+        if damage_type == DamageType.SHADOW:
             if self.tal.demonic_sacrifice:
                 dmg *= 1.15
             if self.tal.shadow_mastery:
                 dmg *= 1.1
 
-        if dmg_type == DamageType.FIRE:
+        if damage_type == DamageType.FIRE:
             if self.tal.emberstorm:
                 dmg *= 1 + self.tal.emberstorm * 0.02
 
@@ -198,9 +198,9 @@ class Warlock(Character):
 
         isb_msg = "(ISB)" if self.env.improved_shadow_bolt.is_active else ""
 
-        hit = self._roll_hit(self._get_hit_chance(spell))
-        crit = self._roll_crit(self.crit + crit_modifier)
-        dmg = self.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0))
+        hit = self._roll_hit(self._get_hit_chance(spell), DamageType.SHADOW)
+        crit = self._roll_crit(self.crit + crit_modifier, DamageType.SHADOW)
+        dmg = self.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0), DamageType.SHADOW)
         dmg = self.modify_dmg(dmg, DamageType.SHADOW, is_periodic=False)
 
         yield self.env.timeout(casting_time)
@@ -246,9 +246,9 @@ class Warlock(Character):
         if casting_time < self.env.GCD and cooldown == 0:
             cooldown = self.env.GCD - casting_time + self.lag
 
-        hit = self._roll_hit(self._get_hit_chance(spell))
-        crit = self._roll_crit(self.crit + crit_modifier)
-        dmg = self.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0))
+        hit = self._roll_hit(self._get_hit_chance(spell), DamageType.FIRE)
+        crit = self._roll_crit(self.crit + crit_modifier, DamageType.FIRE)
+        dmg = self.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0), DamageType.FIRE)
         dmg = self.modify_dmg(dmg, DamageType.FIRE, is_periodic=False)
 
         partial_amount = self.roll_partial(is_dot=False, is_binary=False)

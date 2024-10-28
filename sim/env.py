@@ -7,8 +7,8 @@ class Environment(simpy.Environment):
     def __init__(self,
                  print=True,
                  print_dots=False,
-                 permanent_coe=False,
-                 permanent_cos=False,
+                 permanent_coe=True,
+                 permanent_cos=True,
                  permanent_nightfall=False,
                  *args,
                  **kwargs):

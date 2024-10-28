@@ -4,10 +4,10 @@ from sim.spell_school import DamageType
 
 
 class Dot:
-    def __init__(self, owner: Character, env: Environment, dmg_type: DamageType):
+    def __init__(self, owner: Character, env: Environment, damage_type: DamageType):
         self.owner = owner
         self.env = env
-        self.dmg_type = dmg_type
+        self.damage_type = damage_type
 
         self.sp = self.owner.eff_sp # snapshot sp
         self.coefficient = 0
@@ -19,7 +19,7 @@ class Dot:
 
     def _get_effective_tick_dmg(self):
         dmg = self.base_tick_dmg + self.sp * self.coefficient
-        return self.owner.modify_dmg(dmg, self.dmg_type, is_periodic=True)
+        return self.owner.modify_dmg(dmg, self.damage_type, is_periodic=True)
 
     # This method is overridden in the child class
     def _do_dmg(self):

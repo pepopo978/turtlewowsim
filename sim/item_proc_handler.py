@@ -30,7 +30,7 @@ class ItemProcHandler:
             proc.check_for_proc(current_time)
 
     def _tigger_proc_dmg(self, spell, min_dmg, max_dmg, damage_type):
-        dmg = self.character.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0))
+        dmg = self.character.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0), damage_type)
         dmg = self.character.modify_dmg(dmg, damage_type, is_periodic=False)
 
         partial_amount = self.character.roll_partial(is_dot=False, is_binary=False)

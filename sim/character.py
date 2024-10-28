@@ -33,7 +33,47 @@ class Character:
 
         self.tal = tal
 
-        self._damage_type_haste = {
+        self.damage_type_sp = {
+            DamageType.PHYSICAL: 0,
+            DamageType.FIRE: 0,
+            DamageType.FROST: 0,
+            DamageType.ARCANE: 0,
+            DamageType.NATURE: 0,
+            DamageType.SHADOW: 0,
+            DamageType.HOLY: 0
+        }
+
+        self.damage_type_haste = {
+            DamageType.PHYSICAL: 0,
+            DamageType.FIRE: 0,
+            DamageType.FROST: 0,
+            DamageType.ARCANE: 0,
+            DamageType.NATURE: 0,
+            DamageType.SHADOW: 0,
+            DamageType.HOLY: 0
+        }
+
+        self.damage_type_hit = {
+            DamageType.PHYSICAL: 0,
+            DamageType.FIRE: 0,
+            DamageType.FROST: 0,
+            DamageType.ARCANE: 0,
+            DamageType.NATURE: 0,
+            DamageType.SHADOW: 0,
+            DamageType.HOLY: 0
+        }
+
+        self.damage_type_crit = {
+            DamageType.PHYSICAL: 0,
+            DamageType.FIRE: 0,
+            DamageType.FROST: 0,
+            DamageType.ARCANE: 0,
+            DamageType.NATURE: 0,
+            DamageType.SHADOW: 0,
+            DamageType.HOLY: 0
+        }
+
+        self.damage_type_crit_mult = {
             DamageType.PHYSICAL: 0,
             DamageType.FIRE: 0,
             DamageType.FROST: 0,
@@ -78,11 +118,11 @@ class Character:
         self.num_casts = {}
         self.used_cds = {}
 
-    def get_haste_factor_for_damage_type(self, dmg_type: DamageType):
+    def get_haste_factor_for_damage_type(self, damage_type: DamageType):
         haste_factor = 1 + self.haste / 100
         trinket_haste_factor = 1 + self._trinket_haste / 100
         cooldown_haste_factor = 1 + self._cooldown_haste / 100
-        damage_type_haste_factor = 1 + self._damage_type_haste[dmg_type] / 100
+        damage_type_haste_factor = 1 + self.damage_type_haste[damage_type] / 100
 
         return haste_factor * trinket_haste_factor * cooldown_haste_factor * damage_type_haste_factor
 
@@ -132,17 +172,20 @@ class Character:
                         self.used_cds[field.name][use_time] = True
                         cooldown_obj.activate()
 
-    def _roll_hit(self, hit_chance: float):
-        return random.randint(1, 100) <= hit_chance
+    def _roll_hit(self, hit_chance: float, damage_type: DamageType):
+        return random.randint(1, 100) <= hit_chance + self.damage_type_hit[damage_type]
 
-    def _roll_crit(self, crit_chance: float):
-        return random.randint(1, 100) <= crit_chance
+    def _roll_crit(self, crit_chance: float, damage_type: DamageType):
+        return random.randint(1, 100) <= crit_chance + self.damage_type_crit[damage_type]
 
-    def roll_spell_dmg(self, min_dmg: int, max_dmg: int, spell_coeff: float):
+    def roll_spell_dmg(self, min_dmg: int, max_dmg: int, spell_coeff: float, damage_type: DamageType):
         dmg = random.randint(min_dmg, max_dmg)
-        dmg += (self.sp + self._sp_bonus) * spell_coeff
+        dmg += (self.sp + self._sp_bonus + self.damage_type_sp[damage_type]) * spell_coeff
 
         return dmg
+
+    def _get_crit_multiplier(self, talent_school: TalentSchool, damage_type: DamageType):
+        return 1.5 + self.damage_type_crit_mult[damage_type]
 
     def _check_for_procs(self):
         if self.item_proc_handler:
@@ -178,14 +221,11 @@ class Character:
             elif roll <= 1:
                 return .25
 
-    def _get_crit_multiplier(self, dmg_type: DamageType, talent_school: TalentSchool):
-        return 1.5
-
-    def modify_dmg(self, dmg: int, dmg_type: DamageType, is_periodic: bool):
+    def modify_dmg(self, dmg: int, damage_type: DamageType, is_periodic: bool):
         if self._dmg_modifier != 1:
             dmg *= self._dmg_modifier
         # apply env debuffs
-        return self.env.debuffs.modify_dmg(self, dmg, dmg_type, is_periodic)
+        return self.env.debuffs.modify_dmg(self, dmg, damage_type, is_periodic)
 
     def print(self, msg):
         if self.env.print:

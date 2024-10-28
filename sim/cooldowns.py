@@ -335,6 +335,27 @@ class WrathOfCenariusBuff(Cooldown):
         self.character.remove_sp_bonus(self.DMG_BONUS)
 
 
+class CharmOfMagic(Cooldown):
+    #  Use: Increases the critical hit chance of your Arcane spells by 5%, and increases the critical hit damage of your Arcane spells by 50% for 20 sec.
+    @property
+    def cooldown(self):
+        return 180
+
+    @property
+    def duration(self):
+        return 20
+
+    def activate(self):
+        super().activate()
+        self.character.damage_type_crit[DamageType.ARCANE] += 5
+        self.character.damage_type_crit_mult[DamageType.ARCANE] += 0.25
+
+    def deactivate(self):
+        super().deactivate()
+        self.character.damage_type_crit[DamageType.ARCANE] -= 5
+        self.character.damage_type_crit_mult[DamageType.ARCANE] -= 0.25
+
+
 class Cooldowns:
     def __init__(self, character):
         self.power_infusion = PowerInfusion(character)
@@ -348,6 +369,7 @@ class Cooldowns:
         self.arcane_power = ArcanePower(character, has_accelerated_arcana)
         self.presence_of_mind = PresenceOfMind(character, has_accelerated_arcana)
 
+        self.charm_of_magic = CharmOfMagic(character)
         self.toep = TOEP(character)
         self.reos = REOS(character)
         self.mqg = MQG(character)
