@@ -21,3 +21,4 @@ class MageOptions:
 
     # Arcane
     use_presence_of_mind_on_cd: bool = True
+    extra_second_arcane_missile: bool = True # some gear increases the duration of arcane missiles by 1 second
