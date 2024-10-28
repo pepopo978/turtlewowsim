@@ -105,6 +105,14 @@ class Mage(Character):
             else:
                 yield from self._arcane_missiles_channel()
 
+    def _arcane_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(cds)
+            yield from self._arcane_missiles_channel()
+
     def _spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
         yield from self._random_delay(delay)
@@ -432,6 +440,10 @@ class Mage(Character):
     def _arcane_missiles_channel(self, channel_time: float = 5):
         num_missiles = 5
 
+        if self.opts.extra_second_arcane_missile:
+            num_missiles += 1
+            channel_time += 1
+
         if self.tal.accelerated_arcana:
             channel_time /= self.get_haste_factor_for_damage_type(DamageType.ARCANE)
 
@@ -725,6 +737,9 @@ class Mage(Character):
 
     def arcane_rupture_surge_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="arcane_rupture_surge_missiles")(cds=cds, delay=delay)
+
+    def arcane_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="arcane_missiles")(cds=cds, delay=delay)
 
     def spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function
