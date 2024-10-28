@@ -5,16 +5,16 @@ num_mages = 3
 
 for i in range(num_mages):
     if i == 0:
-        fm = Mage(name=f'procs', sp=1000, crit=40, hit=15,
+        fm = Mage(name=f'test', sp=1000, crit=40, hit=16,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
-                      ornate_bloodstone_dagger=True,
+                      ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles()
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
     else:
-        fm = Mage(name=f'reg{i}', sp=1000, crit=40, hit=15,
+        fm = Mage(name=f'reg{i}', sp=1000, crit=40, hit=16,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
@@ -22,10 +22,9 @@ for i in range(num_mages):
                       wrath_of_cenarius=True,
                   ))
 
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=0))
-    # fm.arcane_rupture_surge_missiles(cds=CooldownUsages(arcane_power=0))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
     mages.append(fm)
 
 sim = Simulation(characters=mages)
-sim.run(iterations=1000, duration=100, print=False)
+sim.run(iterations=2000, duration=120, print=False)
 sim.detailed_report()
