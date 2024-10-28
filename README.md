@@ -177,19 +177,19 @@ You can also display histograms for each character with `histogram_report_indivi
 
 ## Talents and Debuffs
 
-You can customize each character by passing additional arguments. The full constructor looks like this:
+You can customize each character by passing additional arguments. The full constructor looks like this for mage:
 ```
-    class Character:
+    class Mage(Character):
     def __init__(self,
                  tal: MageTalents,
-                 env: Optional[Environment] = None,
+                 opts: MageOptions = MageOptions(),
                  name: str = '',
                  sp: int = 0,
                  crit: float = 0,
                  hit: float = 0,
                  haste: float = 0,
-                 lag: float = 0.1,  # default lag between spells that seems to occur on turtle
-                 opts: MageOptions = MageOptions(),
+                 lag: float = 0.07,  # lag added by server tick time
+                 equipped_items: EquippedItems = None,
                  ):
 ```                 
 
@@ -258,6 +258,27 @@ no consumables are assumed otherwise, you need to factor those in your total sp/
 You can also enable permanent nightfall proc using 
 ```
 sim = Simulation(permanent_nightfall=True)
+```
+
+## Items with procs
+
+Currently implemented are 
+```
+class EquippedItems:
+    blade_of_eternal_darkness: bool = None
+    ornate_bloodstone_dagger: bool = None
+    wrath_of_cenarius: bool = None
+```
+
+pass them to your character like so:
+```
+    fm = Mage(name=f'haste', sp=1000, crit=40, hit=15, haste=0,
+              tal=ArcaneMageTalents,
+              opts=MageOptions(),
+              equipped_items=EquippedItems(
+                  ornate_bloodstone_dagger=True,
+                  wrath_of_cenarius=True,
+              ))
 ```
 
 ## Rotations

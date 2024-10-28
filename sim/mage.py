@@ -3,11 +3,12 @@ from functools import partial
 
 from sim.character import CooldownUsages
 from sim.env import Environment
+from sim.equipped_items import EquippedItems
 from sim.hot_streak import HotStreak
 from sim.mage_rotation_cooldowns import *
 from sim.mage_options import MageOptions
 from sim.mage_talents import MageTalents
-from sim.spell import Spell, SPELL_COEFFICIENTS
+from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
 
@@ -22,8 +23,9 @@ class Mage(Character):
                  hit: float = 0,
                  haste: float = 0,
                  lag: float = 0.07,  # lag added by server tick time
+                 equipped_items: EquippedItems = None,
                  ):
-        super().__init__(name, sp, crit, hit, haste, lag, tal)
+        super().__init__(tal, name, sp, crit, hit, haste, lag, equipped_items)
         self.tal = tal
         self.opts = opts
 
@@ -298,7 +300,7 @@ class Mage(Character):
         arcane_rupture_applied = False
         if hit:
             crit = self._roll_crit(self.crit + crit_modifier)
-            dmg = self._roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS[spell])
+            dmg = self.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0))
             dmg = self.modify_dmg(dmg, damage_type, is_periodic=False)
 
             if self.tal.arcane_instability and damage_type == DamageType.ARCANE:
@@ -349,6 +351,9 @@ class Mage(Character):
             mult = self._get_crit_multiplier(damage_type, talent_school)
             dmg = int(dmg * mult)
             self.print(f"{spell.value} {description} {partial_desc} **{dmg}**")
+
+        if hit and SPELL_TRIGGERS_ON_HIT.get(spell, False):
+            self._check_for_procs()
 
         if hit and self.opts.fullt2 and (
                 spell == Spell.FIREBALL or
