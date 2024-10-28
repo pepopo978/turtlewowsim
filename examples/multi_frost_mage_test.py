@@ -11,7 +11,7 @@ for i in range(num_mages):
                                    start_with_ice_barrier=True),
                   equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
-                      wrath_of_cenarius=True,
+                      wrath_of_cenarius=False,
                   ))
     else:
         fm = Mage(name=f'mage{i}', sp=1095, crit=40.43, hit=16,

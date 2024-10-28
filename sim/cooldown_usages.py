@@ -16,6 +16,7 @@ class CooldownUsages:
     berserking10: Optional[Union[float, List[float]]] = None
 
     # Trinkets
+    charm_of_magic: Optional[Union[float, List[float]]] = None
     toep: Optional[Union[float, List[float]]] = None
     mqg: Optional[Union[float, List[float]]] = None
     reos: Optional[Union[float, List[float]]] = None
