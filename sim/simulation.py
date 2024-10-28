@@ -80,7 +80,7 @@ class Simulation:
 
         return i, result
 
-    def run(self, iterations, duration):
+    def run(self, iterations, duration, print=False, print_dots=False):
         self.results = {
             'dps': defaultdict(list),
             'casts': defaultdict(list),
@@ -116,8 +116,8 @@ class Simulation:
         }
 
         for i in trange(iterations, ascii=True):
-            env = Environment(print=False,
-                              print_dots=False,
+            env = Environment(print=print,
+                              print_dots=print_dots,
                               permanent_coe=self.permanent_coe,
                               permanent_cos=self.permanent_cos,
                               permanent_nightfall=self.permanent_nightfall)

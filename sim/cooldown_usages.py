@@ -1,11 +1,5 @@
-import functools
-import random
-from dataclasses import fields, dataclass
+from dataclasses import dataclass
 from typing import Optional, Union, List
-
-from sim.env import Environment
-from sim.spell_school import DamageType
-from sim.talent_school import TalentSchool
 
 
 @dataclass(kw_only=True)
