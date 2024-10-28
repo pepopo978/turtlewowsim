@@ -5,11 +5,11 @@ num_mages = 2
 
 for i in range(num_mages):
     if i == 0:
-        fm = Mage(name=f'test', sp=1000, crit=40, hit=16,
+        fm = Mage(name=f'test', sp=905, crit=39, hit=15,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
-                      ornate_bloodstone_dagger=True,
+                      blade_of_eternal_darkness=True,
                       wrath_of_cenarius=True,
                   ))
         fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
@@ -18,7 +18,7 @@ for i in range(num_mages):
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
-                      ornate_bloodstone_dagger=True,
+                      ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
 
