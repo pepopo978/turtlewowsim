@@ -83,12 +83,6 @@ class Ignite:
         self.ignite_id += 1  # increment ignite id
         self.num_drops += 1
 
-    def time_remaining(self):
-        time_left = (self.last_crit_time + IGNITE_WINDOW) - self.env.now
-        if time_left < 0:
-            return 0
-        return time_left
-
     def check_for_drop(self):
         # only check last crit time if ignite is active and down to 0 ticks
         if self.active and self.ticks_left == 0:
@@ -138,6 +132,13 @@ class Ignite:
         self.env.meter.register(self.owner.name, tick_dmg)
         self.env.total_ignite_dmg += tick_dmg
         self.ticks.append(tick_dmg)
+
+    @property
+    def time_remaining(self):
+        time_left = (self.last_crit_time + IGNITE_WINDOW) - self.env.now
+        if time_left < 0:
+            return 0
+        return time_left
 
     @property
     def uptime_gte_1_stack(self):
