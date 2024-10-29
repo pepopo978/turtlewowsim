@@ -12,7 +12,7 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=True,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=0, mqg=0))
     else:
         fm = Mage(name=f'reg{i}', sp=1000, crit=40, hit=16,
                   tal=ArcaneMageTalents,
@@ -26,5 +26,5 @@ for i in range(num_mages):
     mages.append(fm)
 
 sim = Simulation(characters=mages)
-sim.run(iterations=2000, duration=60, print=False)
+sim.run(iterations=2000, duration=60, print_casts=False)
 sim.detailed_report()

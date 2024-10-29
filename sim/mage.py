@@ -327,6 +327,8 @@ class Mage(Character):
             if self.arcane_rupture_cd.is_active() and spell == Spell.ARCANE_MISSILE:
                 dmg *= 1.25
                 arcane_rupture_applied = True
+        else:
+            self.num_resists += 1
 
         is_binary_spell = (
                 spell == Spell.FROSTBOLT or

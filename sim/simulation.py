@@ -25,66 +25,13 @@ class Simulation:
         self.permanent_cos = permanent_cos
         self.permanent_nightfall = permanent_nightfall
 
-    # current unused attempted multi process runs
-    def run_iteration(self, i, duration):
-        env = Environment(print=False,
-                          print_dots=False,
-                          permanent_coe=self.permanent_coe,
-                          permanent_cos=self.permanent_cos,
-                          permanent_nightfall=self.permanent_nightfall)
-
-        # reset each char to clear last run
-        for character in self.characters:
-            character.reset()
-
-        env.add_characters(self.characters)
-        env.run(until=duration)
-
-        result = {
-            'dps': {},
-            'casts': {},
-            'per_spell_casts': {},
-            'total_spell_dmg': env.total_spell_dmg,
-            'total_dot_dmg': env.total_dot_dmg,
-            'total_ignite_dmg': env.total_ignite_dmg,
-            'total_dmg': env.get_total_dmg(),
-            'avg_dps': env.meter.raid_dmg(),
-            'max_single_dps': max(env.meter.dps().values()),
-            '>=1 stack uptime': env.ignite.uptime_gte_1_stack,
-            '>=2 stack uptime': env.ignite.uptime_gte_2_stacks,
-            '>=3 stack uptime': env.ignite.uptime_gte_3_stacks,
-            '>=4 stack uptime': env.ignite.uptime_gte_4_stacks,
-            '5 stack uptime': env.ignite.uptime_5_stacks,
-            '1 stack ticks': env.ignite.num_1_stack_ticks,
-            '2 stack ticks': env.ignite.num_2_stack_ticks,
-            '3 stack ticks': env.ignite.num_3_stack_ticks,
-            '4 stack ticks': env.ignite.num_4_stack_ticks,
-            '5 stack ticks': env.ignite.num_5_stack_ticks,
-            'num_ticks': env.ignite.num_ticks,
-            'avg_tick': env.ignite.avg_tick,
-            'max_tick': env.ignite.max_tick,
-            'num_drops': env.ignite.num_drops,
-            'ISB uptime': env.improved_shadow_bolt.uptime_percent,
-            'Total added dot dmg': env.improved_shadow_bolt.total_added_dot_dmg,
-            'Total added spell dmg': env.improved_shadow_bolt.total_added_spell_dmg,
-            'had_any_ignite': env.ignite.had_any_ignites,
-            'had_any_isbs': env.improved_shadow_bolt.had_any_isbs,
-        }
-
-        # Collect DPS and casts data
-        for character, mdps in env.meter.dps().items():
-            result['dps'][character] = mdps
-        for character in self.characters:
-            result['casts'][character.name] = sum(character.num_casts.values())
-            result['per_spell_casts'][character.name] = character.num_casts
-
-        return i, result
-
-    def run(self, iterations, duration, print=False, print_dots=False):
+    def run(self, iterations, duration, print_casts=False, print_dots=False):
         self.results = {
             'dps': defaultdict(list),
             'casts': defaultdict(list),
             'per_spell_casts': defaultdict(list),
+            'partial_resists': defaultdict(list),
+            'resists': defaultdict(list),
 
             'total_spell_dmg': [None] * iterations,
             'total_dot_dmg': [None] * iterations,
@@ -116,7 +63,7 @@ class Simulation:
         }
 
         for i in trange(iterations, ascii=True):
-            env = Environment(print=print,
+            env = Environment(print_casts=print_casts,
                               print_dots=print_dots,
                               permanent_coe=self.permanent_coe,
                               permanent_cos=self.permanent_cos,
@@ -133,6 +80,14 @@ class Simulation:
                 self.results['dps'][character].append(mdps)
 
             for character in self.characters:
+                if character.name not in self.results['partial_resists']:
+                    self.results['partial_resists'][character.name] = []
+                self.results['partial_resists'][character.name].append(character.num_partials)
+
+                if character.name not in self.results['resists']:
+                    self.results['resists'][character.name] = []
+                self.results['resists'][character.name].append(character.num_resists)
+
                 # add up all values in the num_casts dict
                 self.results['casts'][character.name].append(sum(character.num_casts.values()))
                 for spell_enum, num_casts in character.num_casts.items():
@@ -246,6 +201,15 @@ class Simulation:
                 for spell_name, num_casts in self.results['per_spell_casts'][char].items():
                     label = f"{char} {spell_name} Casts"
                     print(f"{self._justify(label)}: {mean(num_casts)}")
+
+            print(f"------ Resists ------")
+            for char in self.results['partial_resists']:
+                label = f"{char} Partial Resists"
+                print(f"{self._justify(label)}: {mean(self.results['partial_resists'][char])}")
+
+            for char in self.results['resists']:
+                label = f"{char} Resists"
+                print(f"{self._justify(label)}: {mean(self.results['resists'][char])}")
 
             print(f"------ Advanced Stats ------")
             label = f"{char} DPS standard deviation"

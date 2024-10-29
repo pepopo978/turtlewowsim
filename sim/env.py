@@ -5,7 +5,7 @@ import simpy
 
 class Environment(simpy.Environment):
     def __init__(self,
-                 print=True,
+                 print_casts=True,
                  print_dots=False,
                  permanent_coe=True,
                  permanent_cos=True,
@@ -17,7 +17,7 @@ class Environment(simpy.Environment):
         from sim.utils import DamageMeter
 
         self.characters = []
-        self.print = print
+        self.print = print_casts
         self.print_dots = print_dots
         self.debuffs = Debuffs(self, permanent_coe=permanent_coe, permanent_cos=permanent_cos,
                                permanent_nightfall=permanent_nightfall)
