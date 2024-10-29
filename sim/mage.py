@@ -372,7 +372,7 @@ class Mage(Character):
 
         self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
 
-        return hit, crit, dmg, cooldown
+        return hit, crit, dmg, cooldown, partial_amount
 
     def _arcane_spell(self,
                       spell: Spell,
@@ -386,16 +386,16 @@ class Mage(Character):
 
         crit_modifier += self.tal.arcane_impact * 2
 
-        hit, crit, dmg, cooldown = yield from self._spell(spell=spell,
-                                                          damage_type=DamageType.ARCANE,
-                                                          talent_school=TalentSchool.Arcane,
-                                                          min_dmg=min_dmg,
-                                                          max_dmg=max_dmg,
-                                                          base_cast_time=base_cast_time,
-                                                          crit_modifier=crit_modifier,
-                                                          cooldown=cooldown,
-                                                          on_gcd=on_gcd,
-                                                          calculate_cast_time=calculate_cast_time)
+        hit, crit, dmg, cooldown, partial_amount = yield from self._spell(spell=spell,
+                                                                          damage_type=DamageType.ARCANE,
+                                                                          talent_school=TalentSchool.Arcane,
+                                                                          min_dmg=min_dmg,
+                                                                          max_dmg=max_dmg,
+                                                                          base_cast_time=base_cast_time,
+                                                                          crit_modifier=crit_modifier,
+                                                                          cooldown=cooldown,
+                                                                          on_gcd=on_gcd,
+                                                                          calculate_cast_time=calculate_cast_time)
 
         if self.tal.resonance_cascade and hit:
             num_duplicates = 0
@@ -490,7 +490,12 @@ class Mage(Character):
         # check for ignite conditions
         has_5_stack_scorch = self.env.debuffs.scorch_stacks == 5
         has_5_stack_ignite = self.env.ignite and self.env.ignite.stacks == 5
-        has_scorch_ignite = has_5_stack_ignite and self.env.ignite.is_suboptimal()
+        has_bad_ignite = has_5_stack_ignite and self.env.ignite.is_suboptimal()
+
+        # check for scorch ignite drop
+        if self.opts.drop_suboptimal_ignites and has_bad_ignite:
+            yield from self._frostbolt()  # have to use frostbolt with 6s ignite window
+            return
 
         # check for hot streak pyroblast
         if self.hot_streak and self.hot_streak.get_stacks() == 9 and self.opts.pyro_on_9_hot_streak:
@@ -499,32 +504,32 @@ class Mage(Character):
             yield from self._pyroblast(casting_time=1.5)
             return
 
-        # check for scorch ignite drop
-        if self.opts.drop_suboptimal_ignites and has_scorch_ignite and spell != Spell.PYROBLAST:
-            yield from self._frostbolt()  # have to use frostbolt with 6s ignite window
-            return
-
         # check for ignite extension
-        if has_5_stack_scorch and has_5_stack_ignite:
+        if (has_5_stack_scorch and
+                has_5_stack_ignite and
+                (self.opts.extend_ignite_with_fire_blast or self.opts.extend_ignite_with_scorch)):
             # check that spell is not already fireblast or scorch
             if spell not in (Spell.FIREBLAST, Spell.SCORCH):
-                if self.env.ignite.time_remaining <= self.opts.remaining_seconds_for_ignite_extend:
+                ignite_time_remaining = self.env.ignite.time_remaining
+                if ignite_time_remaining <= self.opts.remaining_seconds_for_ignite_extend:
                     if self.opts.extend_ignite_with_fire_blast and self.fire_blast_cd.usable:
                         yield from self._fire_blast()
                         return
-                    if self.opts.extend_ignite_with_scorch:
+
+                    scorch_cast_time = self._get_cast_time(1.5, DamageType.FIRE) + self.lag
+                    if self.opts.extend_ignite_with_scorch and ignite_time_remaining > scorch_cast_time:
                         yield from self._scorch()
                         return
 
-        hit, crit, dmg, cooldown = yield from self._spell(spell=spell,
-                                                          damage_type=DamageType.FIRE,
-                                                          talent_school=TalentSchool.Fire,
-                                                          min_dmg=min_dmg,
-                                                          max_dmg=max_dmg,
-                                                          base_cast_time=base_cast_time,
-                                                          crit_modifier=crit_modifier,
-                                                          cooldown=cooldown,
-                                                          on_gcd=on_gcd)
+        hit, crit, dmg, cooldown, partial_amount = yield from self._spell(spell=spell,
+                                                                          damage_type=DamageType.FIRE,
+                                                                          talent_school=TalentSchool.Fire,
+                                                                          min_dmg=min_dmg,
+                                                                          max_dmg=max_dmg,
+                                                                          base_cast_time=base_cast_time,
+                                                                          crit_modifier=crit_modifier,
+                                                                          cooldown=cooldown,
+                                                                          on_gcd=on_gcd)
 
         if hit:
             self.cds.combustion.cast_fire_spell()  # only happens on hit
@@ -541,7 +546,7 @@ class Mage(Character):
 
         if crit:
             if self.tal.ignite:
-                self.env.ignite.refresh(self, dmg, spell)
+                self.env.ignite.refresh(self, dmg, spell, partial_amount < 1)
 
             # check for hot streak
             if self.hot_streak and (spell == Spell.FIREBALL or spell == Spell.FIREBLAST):
@@ -634,15 +639,15 @@ class Mage(Character):
 
         crit_modifier += self.env.debuffs.wc_stacks * 2  # winters chill added crit (2% per stack)
 
-        hit, crit, dmg, cooldown = yield from self._spell(spell=spell,
-                                                          damage_type=DamageType.FROST,
-                                                          talent_school=TalentSchool.Frost,
-                                                          min_dmg=min_dmg,
-                                                          max_dmg=max_dmg,
-                                                          base_cast_time=base_cast_time,
-                                                          crit_modifier=crit_modifier,
-                                                          cooldown=cooldown,
-                                                          on_gcd=on_gcd)
+        hit, crit, dmg, cooldown, partial_amount = yield from self._spell(spell=spell,
+                                                                          damage_type=DamageType.FROST,
+                                                                          talent_school=TalentSchool.Frost,
+                                                                          min_dmg=min_dmg,
+                                                                          max_dmg=max_dmg,
+                                                                          base_cast_time=base_cast_time,
+                                                                          crit_modifier=crit_modifier,
+                                                                          cooldown=cooldown,
+                                                                          on_gcd=on_gcd)
 
         if hit:
             if self.tal.winters_chill:

@@ -30,12 +30,13 @@ class Ignite:
         self.crit_this_window = False
         self.contains_scorch = False
         self.contains_fire_blast = False
+        self.contains_partial = False
         self.ignite_id = 0
 
         self.had_any_ignites = False
 
     def is_suboptimal(self):
-        return self.contains_scorch or self.contains_fire_blast
+        return self.contains_scorch or self.contains_fire_blast or self.contains_partial
 
     def record_uptimes(self):
         if self.active:
@@ -44,7 +45,7 @@ class Ignite:
 
         self.last_monitor_time = self.env.now
 
-    def refresh(self, mage: Mage, dmg: int, spell: Spell):
+    def refresh(self, mage: Mage, dmg: int, spell: Spell, partial: bool):
         self.check_for_drop()
         self.last_crit_time = self.env.now
 
@@ -54,6 +55,9 @@ class Ignite:
             if self.stacks <= 4:
                 self.cum_dmg += dmg
                 self.stacks += 1
+                if partial:
+                    self.contains_partial = True
+
                 if spell == Spell.SCORCH:
                     self.contains_scorch = True
                 elif spell == Spell.FIREBLAST:
