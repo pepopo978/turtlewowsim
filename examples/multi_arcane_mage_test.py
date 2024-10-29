@@ -1,7 +1,7 @@
 from _example_imports import *
 
 mages = []
-num_mages = 2
+num_mages = 1
 
 for i in range(num_mages):
     if i == 0:
@@ -9,7 +9,7 @@ for i in range(num_mages):
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
-                      blade_of_eternal_darkness=True,
+                      ornate_bloodstone_dagger=True,
                       wrath_of_cenarius=True,
                   ))
         fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
@@ -26,5 +26,5 @@ for i in range(num_mages):
     mages.append(fm)
 
 sim = Simulation(characters=mages)
-sim.run(iterations=2000, duration=120, print=False)
+sim.run(iterations=2000, duration=60, print=False)
 sim.detailed_report()

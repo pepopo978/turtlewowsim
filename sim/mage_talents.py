@@ -5,11 +5,11 @@ from dataclasses import dataclass
 @dataclass(kw_only=True)
 class MageTalents:
     # Fire
-    ignite: bool = False
-    imp_scorch: bool = False
-    fire_power: bool = False
-    critical_mass: bool = False
-    hot_streak: bool = False
+    ignite: int = 0
+    imp_scorch: int = 0
+    fire_power: int = 0
+    critical_mass: int = 0
+    hot_streak: int = 0
     incinerate_crit: int = 0
     fire_blast_cooldown: float = 8
     fire_blast_gcd: float = 1.5
@@ -39,11 +39,11 @@ class MageTalents:
 
 
 FireMageTalents = MageTalents(
-    ignite=True,
-    imp_scorch=True,
-    fire_power=True,
-    critical_mass=False,  # generally counted in crit already
-    hot_streak=True,
+    ignite=5,
+    imp_scorch=3,
+    fire_power=5,
+    critical_mass=0,  # generally counted in crit already, 2% per point
+    hot_streak=3,
     incinerate_crit=4,
     fire_blast_cooldown=6.5,
     fire_blast_gcd=1

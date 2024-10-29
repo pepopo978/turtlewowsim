@@ -19,7 +19,7 @@ class Ignite:
 
         self.active = False
         self.num_drops = 0
-        self.cum_dmg = 0
+        self.tick_dmg = 0
         self.last_crit_time = 0
         self.ticks_left = 0
         self.stacks = 0
@@ -45,7 +45,7 @@ class Ignite:
 
         self.last_monitor_time = self.env.now
 
-    def refresh(self, mage: Mage, dmg: int, spell: Spell, partial: bool):
+    def refresh(self, mage: Mage, dmg: int, spell: Spell, partial: bool, ignite_talent_points: int):
         self.check_for_drop()
         self.last_crit_time = self.env.now
 
@@ -53,7 +53,7 @@ class Ignite:
 
         if self.active:
             if self.stacks <= 4:
-                self.cum_dmg += dmg
+                self.tick_dmg += dmg * (.04 * ignite_talent_points)
                 self.stacks += 1
                 if partial:
                     self.contains_partial = True
@@ -66,7 +66,7 @@ class Ignite:
             self.ticks_left = 2
         else:  # new ignite
             self.active = True
-            self.cum_dmg = dmg
+            self.tick_dmg = dmg * (.04 * ignite_talent_points)
             self.stacks = 1
             self.owner = mage
             self.ticks_left = 2
@@ -78,7 +78,7 @@ class Ignite:
         self.owner.print(f"Ignite dropped")
         self.active = False
         self.owner = None
-        self.cum_dmg = 0
+        self.tick_dmg = 0
         self.stacks = 0
         self.ticks_left = 0
         self.last_crit_time = 0
@@ -113,7 +113,7 @@ class Ignite:
 
     def _do_dmg(self):
         self.record_uptimes()
-        tick_dmg = self.cum_dmg * 0.2
+        tick_dmg = self.tick_dmg
 
         if self.env.debuffs.has_coe:
             tick_dmg *= 1.1  # ignite double dips on CoE
