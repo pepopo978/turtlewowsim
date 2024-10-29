@@ -508,7 +508,7 @@ class Mage(Character):
         if has_5_stack_scorch and has_5_stack_ignite:
             # check that spell is not already fireblast or scorch
             if spell not in (Spell.FIREBLAST, Spell.SCORCH):
-                if self.env.ignite.ticks_left <= self.opts.remaining_ticks_for_ignite_extend:
+                if self.env.ignite.remaining_time <= self.opts.remaining_seconds_for_ignite_extend:
                     if self.opts.extend_ignite_with_fire_blast and self.fire_blast_cd.usable:
                         yield from self._fire_blast()
                         return
