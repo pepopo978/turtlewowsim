@@ -25,5 +25,5 @@ frost.icicle_frostbolts()
 mages.append(frost)
 
 sim = Simulation(characters=mages)
-sim.run(iterations=2000, duration=90, print=False)
+sim.run(iterations=2000, duration=90, print_casts=False)
 sim.detailed_report()

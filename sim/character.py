@@ -97,6 +97,8 @@ class Character:
 
         self.num_casts = {}
         self.used_cds = {}
+        self.num_partials = 0
+        self.num_resists = 0
 
     def attach_env(self, env: Environment):
         self.env = env
@@ -114,6 +116,8 @@ class Character:
         self._trinket_haste = 0
         self._cooldown_haste = 0
         self._sp_bonus = 0
+        self.num_partials = 0
+        self.num_resists = 0
 
         self.num_casts = {}
         self.used_cds = {}
@@ -207,8 +211,10 @@ class Character:
             if roll <= .9853:
                 return 1
             elif roll <= .9963:
+                self.num_partials += 1
                 return .75
             elif roll <= 1:
+                self.num_partials += 1
                 return .5
         else:
             # No partial: 82.666 %
@@ -218,10 +224,13 @@ class Character:
             if roll <= .82666:
                 return 1
             elif roll <= .95666:
+                self.num_partials += 1
                 return .75
             elif roll <= .99832:
+                self.num_partials += 1
                 return .5
             elif roll <= 1:
+                self.num_partials += 1
                 return .25
 
     def modify_dmg(self, dmg: int, damage_type: DamageType, is_periodic: bool):
