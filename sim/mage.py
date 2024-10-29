@@ -330,7 +330,6 @@ class Mage(Character):
 
         is_binary_spell = (
                 spell == Spell.FROSTBOLT or
-                spell == Spell.ICICLE or
                 spell == Spell.FROST_NOVA or
                 spell == Spell.CONE_OF_COLD)
 
