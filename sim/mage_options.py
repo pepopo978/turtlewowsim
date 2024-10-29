@@ -6,7 +6,7 @@ class MageOptions:
 
     # Fire
     drop_suboptimal_ignites: bool = False  # cast pyroblast if scorch/fireblast in ignite to drop ignite
-    remaining_seconds_for_ignite_extend: int = 3  # min remaining seconds to extend ignite
+    remaining_seconds_for_ignite_extend: int = 3  # if this many seconds or less remaining on ignite, extend it
     extend_ignite_with_fire_blast: bool = False  # extend ignite with fire blast (prio over scorch)
     extend_ignite_with_scorch: bool = False  # extend ignite with scorch
     pyro_on_t2_proc: bool = True
