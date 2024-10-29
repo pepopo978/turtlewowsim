@@ -196,21 +196,38 @@ You can customize each character by passing additional arguments. The full const
 There are premade talent configurations for each spec:
 ```
 FireMageTalents = MageTalents(
-    imp_scorch=True,
-    fire_power=True,
-    critial_mass=False,
-    fire_blast_cooldown=8
-
+    ignite=5,
+    imp_scorch=3,
+    fire_power=5,
+    critical_mass=0,  # generally counted in crit already, 2% per point
+    hot_streak=3,
+    incinerate_crit=4,
+    fire_blast_cooldown=6.5,
+    fire_blast_gcd=1
 )
 
-ApFrostMageTalents = MageTalents(
-    arcane_instability=True,
-    piercing_ice=True
+IcicleMageTalents = MageTalents(
+    piercing_ice=3,
+    frostbite=3,
+    ice_shards=5,
+    shatter=0,
+    winters_chill=5,
+    flash_freeze=2,
+    ice_barrier=True,
+    frost_nova_cooldown=21 # 2 points in improved frost nova
 )
 
-WcFrostMageTalents = MageTalents(
-    winters_chill=True,
-    piercing_ice=True
+ArcaneMageTalents = MageTalents(
+    arcane_focus=3,
+    arcane_impact=3,
+    arcane_rupture=True,
+    temporal_convergence=3,
+    arcane_instability=3,
+    presence_of_mind=True,
+    accelerated_arcana=True,
+    arcane_potency=2,
+    resonance_cascade=3,
+    arcane_power=True
 )
     
 SMRuin = WarlockTalents(

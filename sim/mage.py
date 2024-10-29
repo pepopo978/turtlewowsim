@@ -37,6 +37,9 @@ class Mage(Character):
         if self.tal.accelerated_arcana:
             self.damage_type_haste[DamageType.ARCANE] = 6
 
+        if self.tal.critical_mass:
+            self.damage_type_crit[DamageType.FIRE] += 6
+
         if self.tal.ice_shards > 0:
             self.damage_type_crit_mult[DamageType.FROST] += self.tal.ice_shards * 0.1
 
@@ -264,7 +267,10 @@ class Mage(Character):
         dmg = super().modify_dmg(dmg, damage_type, is_periodic)
 
         if damage_type == DamageType.FIRE and self.tal.fire_power:
-            dmg *= 1.1
+            if self.tal.fire_power == 5:
+                dmg *= 1.1
+            else:
+                dmg *= 1 + 0.02 * self.tal.fire_power
 
         if self.tal.piercing_ice and damage_type == DamageType.FROST:
             dmg *= 1.06
@@ -539,18 +545,26 @@ class Mage(Character):
             elif spell == Spell.PYROBLAST:
                 self.env.debuffs.add_pyroblast_dot(self)
             elif spell == Spell.SCORCH and self.tal.imp_scorch:
+                imp_scorch_chance = 1
+                if self.tal.imp_scorch < 3:
+                    imp_scorch_chance = 0.33 * self.tal.imp_scorch
                 # roll for whether debuff hits
-                fire_vuln_hit = self._roll_hit(self._get_hit_chance(spell), DamageType.FIRE)
+                fire_vuln_hit = self._roll_hit(self._get_hit_chance(spell) * imp_scorch_chance, DamageType.FIRE)
                 if fire_vuln_hit:
                     self.env.debuffs.scorch()
 
         if crit:
             if self.tal.ignite:
-                self.env.ignite.refresh(self, dmg, spell, partial_amount < 1)
+                self.env.ignite.refresh(self, dmg, spell, partial_amount < 1, self.tal.ignite)
 
             # check for hot streak
             if self.hot_streak and (spell == Spell.FIREBALL or spell == Spell.FIREBLAST):
-                self.hot_streak.add_stack()
+                hot_streak_hit = True
+                if self.tal.hot_streak < 3:
+                    hot_streak_hit = random.randint(1, 100) <= self.tal.hot_streak * 33
+
+                if hot_streak_hit:
+                    self.hot_streak.add_stack()
 
             self.cds.combustion.use_charge()  # only used on crit
 
@@ -580,8 +594,6 @@ class Mage(Character):
         max_dmg = 760
         casting_time = 3
         crit_modifier = 0
-        if self.tal.critical_mass:
-            crit_modifier += 6
 
         if self.opts.pyro_on_t2_proc and self._t2proc:
             yield from self._pyroblast()
@@ -597,8 +609,6 @@ class Mage(Character):
         max_dmg = 510
         casting_time = 0
         crit_modifier = 0
-        if self.tal.critical_mass:
-            crit_modifier += 6
 
         crit_modifier += self.tal.incinerate_crit  # incinerate added crit (2 or 4%)
 
@@ -613,8 +623,6 @@ class Mage(Character):
         min_dmg = 716
         max_dmg = 890
         crit_modifier = 0
-        if self.tal.critical_mass:
-            crit_modifier += 6
 
         yield from self._fire_spell(spell=Spell.PYROBLAST,
                                     min_dmg=min_dmg,
