@@ -79,7 +79,7 @@ class Mage(Character):
         while True:
             self._use_cds(cds)
 
-            if self.arcane_surge_cd.usable:
+            if self.arcane_surge_cd.usable and not self.has_trinket_or_cooldown_haste():
                 yield from self._arcane_surge()
             elif self.arcane_rupture_cd.usable:
                 # if pom available, use it on rupture
@@ -100,7 +100,7 @@ class Mage(Character):
                 if self.opts.use_presence_of_mind_on_cd and self.cds.presence_of_mind.usable:
                     self.cds.presence_of_mind.activate()
                 yield from self._arcane_rupture()
-            elif self.arcane_surge_cd.usable:
+            elif self.arcane_surge_cd.usable and not self.has_trinket_or_cooldown_haste():
                 yield from self._arcane_surge()
             else:
                 yield from self._arcane_missiles_channel()

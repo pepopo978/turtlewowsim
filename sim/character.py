@@ -118,6 +118,9 @@ class Character:
         self.num_casts = {}
         self.used_cds = {}
 
+    def has_trinket_or_cooldown_haste(self):
+        return self._trinket_haste != 0 or self._cooldown_haste != 0
+
     def get_haste_factor_for_damage_type(self, damage_type: DamageType):
         haste_factor = 1 + self.haste / 100
         trinket_haste_factor = 1 + self._trinket_haste / 100
