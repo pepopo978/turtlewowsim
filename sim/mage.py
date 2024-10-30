@@ -663,7 +663,12 @@ class Mage(Character):
                 # roll for whether debuff hits
                 winters_chill_hit = self._roll_hit(self._get_hit_chance(spell), DamageType.FROST)
                 if winters_chill_hit:
-                    self.env.debuffs.add_winters_chill_stack()
+                    if self.tal.winters_chill < 5:
+                        # roll for % chance from talent
+                        winters_chill_hit = random.randint(1, 100) <= self.tal.winters_chill * 20
+
+                    if winters_chill_hit:
+                        self.env.debuffs.add_winters_chill_stack()
 
             if self.tal.flash_freeze:
                 flash_freeze_hit = False
