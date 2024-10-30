@@ -13,6 +13,7 @@ class MageOptions:
     pyro_on_9_hot_streak: bool = True # cast pyroblast on 9 stacks of hot streak
 
     # Frost
+    frostbolt_rank: int = 11  # only ranks 11, 4, 3 are supported.  defaults to 11 for unknown ranks
     use_icicles_without_flash_freeze: bool = False  # use icicles without flash freeze
     use_frostnova_for_icicles: bool = False  # use frost nova to proc flash freeze
     keep_ice_barrier_up: bool = False  # keep ice barrier up

@@ -22,6 +22,8 @@ class Spell(Enum):
     SCORCH = "Scorch"
     FIREBLAST = "Fire Blast"
     FROSTBOLT = "Frostbolt"
+    FROSTBOLTRK3 = "Frostbolt Rank 3"
+    FROSTBOLTRK4 = "Frostbolt Rank 4"
     FROST_NOVA = "Frost Nova"
     CONE_OF_COLD = "Cone of Cold"
     ICICLES_CHANNEL = "Icicles Channel"
@@ -47,6 +49,8 @@ SPELL_COEFFICIENTS = {
     Spell.SCORCH: 0.4285,
     Spell.FIREBLAST: 0.4285,
     Spell.FROSTBOLT: 0.814,
+    Spell.FROSTBOLTRK3: 0.4627,  # 2.2 / 3.5 * 0.95 * 0.775 spell lvl 14 has additional reduction
+    Spell.FROSTBOLTRK4: 0.7057,  # 2.6 / 3.5 * 0.95 spell lvl 20
     Spell.FROST_NOVA: 0.1357,
     Spell.CONE_OF_COLD: 0.1357,
     Spell.ICICLE: 0.4,
@@ -67,13 +71,13 @@ SPELL_TRIGGERS_ON_HIT = {
     Spell.CURSE_OF_SHADOW: False,
 
     # Mage
-    Spell.ARCANE_MISSILE:True,
+    Spell.ARCANE_MISSILE: True,
     Spell.ARCANE_SURGE: True,
-    Spell.ARCANE_RUPTURE:True,
-    Spell.FIREBALL:True,
+    Spell.ARCANE_RUPTURE: True,
+    Spell.FIREBALL: True,
     Spell.PYROBLAST: True,
-    Spell.SCORCH:True,
-    Spell.FIREBLAST:True,
+    Spell.SCORCH: True,
+    Spell.FIREBLAST: True,
     Spell.FROSTBOLT: True,
     Spell.FROST_NOVA: True,
     Spell.CONE_OF_COLD: True,

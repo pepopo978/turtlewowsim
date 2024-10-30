@@ -332,6 +332,8 @@ class Mage(Character):
 
         is_binary_spell = (
                 spell == Spell.FROSTBOLT or
+                spell == Spell.FROSTBOLTRK4 or
+                spell == Spell.FROSTBOLTRK3 or
                 spell == Spell.FROST_NOVA or
                 spell == Spell.CONE_OF_COLD)
 
@@ -369,6 +371,8 @@ class Mage(Character):
         if hit and self.opts.fullt2 and (
                 spell == Spell.FIREBALL or
                 spell == Spell.FROSTBOLT or
+                spell == Spell.FROSTBOLTRK4 or
+                spell == Spell.FROSTBOLTRK3 or
                 spell == Spell.ARCANE_MISSILE):
             if random.randint(1, 100) <= 10:
                 self._t2proc = True
@@ -672,7 +676,10 @@ class Mage(Character):
 
             if self.tal.flash_freeze:
                 flash_freeze_hit = False
-                if spell == Spell.FROSTBOLT or spell == Spell.CONE_OF_COLD:
+                if (spell == Spell.FROSTBOLT or
+                        spell == Spell.FROSTBOLTRK4 or
+                        spell == Spell.FROSTBOLTRK3 or
+                        spell == Spell.CONE_OF_COLD):
                     flash_freeze_hit = self._roll_hit(5 * self.tal.frostbite, DamageType.FROST)
                     if self.tal.flash_freeze < 2:
                         flash_freeze_hit = flash_freeze_hit and self._roll_hit(50 * self.tal.flash_freeze,
@@ -699,8 +706,21 @@ class Mage(Character):
         max_dmg = 556
         casting_time = 2.5
         crit_modifier = 0
+        spell = Spell.FROSTBOLT
 
-        yield from self._frost_spell(spell=Spell.FROSTBOLT,
+        # check for downrank option
+        if self.opts.frostbolt_rank == 4:
+            min_dmg = 74
+            max_dmg = 83
+            casting_time = 2.1
+            spell = Spell.FROSTBOLTRK4
+        elif self.opts.frostbolt_rank == 3:
+            min_dmg = 51
+            max_dmg = 58
+            casting_time = 1.7
+            spell = Spell.FROSTBOLTRK3
+
+        yield from self._frost_spell(spell=spell,
                                      min_dmg=min_dmg,
                                      max_dmg=max_dmg,
                                      base_cast_time=casting_time,
