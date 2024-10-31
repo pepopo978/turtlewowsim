@@ -93,6 +93,7 @@ class Character:
         self._dmg_modifier = 1
         self._trinket_haste = 0
         self._cooldown_haste = 0
+        self._consume_haste = 0
         self._sp_bonus = 0
 
         self.num_casts = {}
@@ -115,6 +116,7 @@ class Character:
         self._dmg_modifier = 1
         self._trinket_haste = 0
         self._cooldown_haste = 0
+        self._consume_haste = 0
         self._sp_bonus = 0
         self.num_partials = 0
         self.num_resists = 0
@@ -129,9 +131,10 @@ class Character:
         haste_factor = 1 + self.haste / 100
         trinket_haste_factor = 1 + self._trinket_haste / 100
         cooldown_haste_factor = 1 + self._cooldown_haste / 100
+        consume_haste_factor = 1 + self._consume_haste / 100
         damage_type_haste_factor = 1 + self.damage_type_haste[damage_type] / 100
 
-        return haste_factor * trinket_haste_factor * cooldown_haste_factor * damage_type_haste_factor
+        return haste_factor * trinket_haste_factor * cooldown_haste_factor * consume_haste_factor * damage_type_haste_factor
 
     def _get_cast_time(self, base_cast_time: float, damage_type: DamageType):
         haste_scaling_factor = self.get_haste_factor_for_damage_type(damage_type)
@@ -254,6 +257,12 @@ class Character:
 
     def remove_cooldown_haste(self, haste):
         self._cooldown_haste -= haste
+
+    def add_consume_haste(self, haste):
+        self._consume_haste += haste
+
+    def remove_consume_haste(self, haste):
+        self._consume_haste -= haste
 
     def add_sp_bonus(self, sp):
         self._sp_bonus += sp

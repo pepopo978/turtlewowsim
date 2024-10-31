@@ -287,6 +287,24 @@ class ArcanePower(Cooldown):
         self.character.remove_cooldown_haste(35)
 
 
+class PotionOfQuickness(Cooldown):
+    @property
+    def cooldown(self):
+        return 120
+
+    @property
+    def duration(self):
+        return 30
+
+    def activate(self):
+        super().activate()
+        self.character.add_consume_haste(5)
+
+    def deactivate(self):
+        super().deactivate()
+        self.character.remove_consume_haste(5)
+
+
 class WrathOfCenariusBuff(Cooldown):
     DMG_BONUS = 132
     PRINTS_ACTIVATION = True
@@ -368,6 +386,8 @@ class Cooldowns:
         self.combustion = Combustion(character)
         self.arcane_power = ArcanePower(character, has_accelerated_arcana)
         self.presence_of_mind = PresenceOfMind(character, has_accelerated_arcana)
+
+        self.potion_of_quickness = PotionOfQuickness(character)
 
         self.charm_of_magic = CharmOfMagic(character)
         self.toep = TOEP(character)
