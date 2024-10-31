@@ -301,7 +301,9 @@ class Mage(Character):
 
         # account for gcd
         if on_gcd and casting_time < self.env.GCD and cooldown == 0:
-            cooldown = self.env.GCD - casting_time + self.lag
+            cooldown = self.env.GCD - casting_time
+            if casting_time == 0:
+                cooldown += self.lag
 
         hit = self._roll_hit(self._get_hit_chance(spell), damage_type)
         crit = False
@@ -458,7 +460,7 @@ class Mage(Character):
         if self.tal.accelerated_arcana:
             channel_time /= self.get_haste_factor_for_damage_type(DamageType.ARCANE)
 
-        time_between_missiles = channel_time / num_missiles - self.lag
+        time_between_missiles = channel_time / num_missiles
 
         for i in range(num_missiles):
             if i == 0:
@@ -642,7 +644,8 @@ class Mage(Character):
                      base_cast_time: float,
                      crit_modifier: float,
                      cooldown: float = 0.0,
-                     on_gcd: bool = True):
+                     on_gcd: bool = True,
+                     calculate_cast_time: bool = True):
 
         # check for flash freeze
         if self._flash_freeze_proc:
@@ -660,7 +663,8 @@ class Mage(Character):
                                                                           base_cast_time=base_cast_time,
                                                                           crit_modifier=crit_modifier,
                                                                           cooldown=cooldown,
-                                                                          on_gcd=on_gcd)
+                                                                          on_gcd=on_gcd,
+                                                                          calculate_cast_time=calculate_cast_time)
 
         if hit:
             if self.tal.winters_chill:
@@ -757,7 +761,8 @@ class Mage(Character):
                                      max_dmg=max_dmg,
                                      base_cast_time=casting_time,
                                      crit_modifier=0,
-                                     on_gcd=False)
+                                     on_gcd=False,
+                                     calculate_cast_time=False)
 
     def _icicles_channel(self, channel_time: float = 5):
         self.icicles_cd.deactivate()

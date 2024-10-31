@@ -9,6 +9,9 @@ class CooldownUsages:
     arcane_power: Optional[Union[float, List[float]]] = None
     presence_of_mind: Optional[Union[float, List[float]]] = None
 
+    # Consumables
+    potion_of_quickness: Optional[Union[float, List[float]]] = None
+
     # Buffs
     power_infusion: Optional[Union[float, List[float]]] = None
     berserking30: Optional[Union[float, List[float]]] = None
