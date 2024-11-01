@@ -301,7 +301,7 @@ class Mage(Character):
 
         # account for gcd
         if on_gcd and casting_time < self.env.GCD and cooldown == 0:
-            cooldown = self.env.GCD - casting_time
+            cooldown = self.env.GCD - casting_time if casting_time > self.lag else self.env.GCD
             if casting_time == 0:
                 cooldown += self.lag
 
