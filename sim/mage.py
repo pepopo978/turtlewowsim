@@ -75,6 +75,21 @@ class Mage(Character):
     def _ice_barrier_active(self):
         return self._ice_barrier_expiration >= self.env.now
 
+    def _arcane_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(cds)
+
+            if self.arcane_rupture_cd.usable:
+                # if pom available, use it on rupture
+                if self.opts.use_presence_of_mind_on_cd and self.cds.presence_of_mind.usable:
+                    self.cds.presence_of_mind.activate()
+                yield from self._arcane_rupture()
+            else:
+                yield from self._arcane_missiles_channel()
+
     def _arcane_surge_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
         yield from self._random_delay(delay)
@@ -212,6 +227,21 @@ class Mage(Character):
                 yield from self._scorch()
             elif self.fire_blast_cd.usable:
                 yield from self._fire_blast()
+            else:
+                yield from self._fireball()
+
+    def _smart_scorch_and_fireblast_and_surge(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        """Same as above except fireblast on cd"""
+        self._use_cds(cds)
+        yield from self._random_delay(delay)
+        while True:
+            self._use_cds(cds)
+            if self.env.debuffs.scorch_stacks < 5 or self.env.debuffs.scorch_timer <= 4.5:
+                yield from self._scorch()
+            elif self.fire_blast_cd.usable:
+                yield from self._fire_blast()
+            elif self.arcane_surge_cd.usable and not self.has_trinket_or_cooldown_haste():
+                yield from self._arcane_surge()
             else:
                 yield from self._fireball()
 
@@ -768,13 +798,16 @@ class Mage(Character):
         self.icicles_cd.deactivate()
 
         num_icicles = 5
-        time_between_icicles = channel_time / num_icicles - self.lag
+        time_between_icicles = channel_time / num_icicles
 
         for i in range(num_icicles):
             if i == 0:
                 yield from self._icicle(casting_time=time_between_icicles + self.lag)  # initial delay
             else:
                 yield from self._icicle(casting_time=time_between_icicles)
+
+    def arcane_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="arcane_rupture_missiles")(cds=cds, delay=delay)
 
     def arcane_surge_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="arcane_surge_rupture_missiles")(cds=cds, delay=delay)
@@ -800,6 +833,9 @@ class Mage(Character):
 
     def smart_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="smart_scorch")(cds=cds, delay=delay)
+
+    def smart_scorch_and_fireblast_and_surge(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="smart_scorch_and_fireblast_and_surge")(cds=cds, delay=delay)
 
     def smart_scorch_and_fireblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="smart_scorch_and_fireblast")(cds=cds, delay=delay)
