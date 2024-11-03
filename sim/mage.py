@@ -498,6 +498,9 @@ class Mage(Character):
             else:
                 yield from self._arcane_missile(casting_time=time_between_missiles)
 
+        if channel_time < self.env.GCD:
+            self.print(f"Post arcane missiles {round(self.env.GCD - channel_time, 2)} gcd")
+
     def _arcane_surge(self):
         min_dmg = 517
         max_dmg = 612
@@ -805,6 +808,10 @@ class Mage(Character):
                 yield from self._icicle(casting_time=time_between_icicles + self.lag)  # initial delay
             else:
                 yield from self._icicle(casting_time=time_between_icicles)
+
+        if channel_time < self.env.GCD:
+            self.print(f"Post icicles {round(self.env.GCD - channel_time, 2)} gcd")
+            yield self.env.timeout(self.env.GCD - channel_time)
 
     def arcane_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="arcane_rupture_missiles")(cds=cds, delay=delay)
