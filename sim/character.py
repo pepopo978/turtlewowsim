@@ -91,9 +91,9 @@ class Character:
         self.item_proc_handler = None
 
         self._dmg_modifier = 1
-        self._trinket_haste = 0
-        self._cooldown_haste = 0
-        self._consume_haste = 0
+        self._trinket_haste = {}
+        self._cooldown_haste = {}
+        self._consume_haste = {}
         self._sp_bonus = 0
 
         self.num_casts = {}
@@ -114,9 +114,9 @@ class Character:
         self.cds = Cooldowns(self)
 
         self._dmg_modifier = 1
-        self._trinket_haste = 0
-        self._cooldown_haste = 0
-        self._consume_haste = 0
+        self._trinket_haste = {}
+        self._cooldown_haste = {}
+        self._consume_haste = {}
         self._sp_bonus = 0
         self.num_partials = 0
         self.num_resists = 0
@@ -125,13 +125,23 @@ class Character:
         self.used_cds = {}
 
     def has_trinket_or_cooldown_haste(self):
-        return self._trinket_haste != 0 or self._cooldown_haste != 0
+        return len(self._trinket_haste) > 0 or len(self._cooldown_haste) > 0
 
     def get_haste_factor_for_damage_type(self, damage_type: DamageType):
         haste_factor = 1 + self.haste / 100
-        trinket_haste_factor = 1 + self._trinket_haste / 100
-        cooldown_haste_factor = 1 + self._cooldown_haste / 100
-        consume_haste_factor = 1 + self._consume_haste / 100
+
+        trinket_haste_factor = 1
+        for haste in self._trinket_haste.values():
+            trinket_haste_factor *= 1 + haste / 100
+
+        cooldown_haste_factor = 1
+        for haste in self._cooldown_haste.values():
+            cooldown_haste_factor *= 1 + haste / 100
+
+        consume_haste_factor = 1
+        for haste in self._consume_haste.values():
+            consume_haste_factor *= 1 + haste / 100
+
         damage_type_haste_factor = 1 + self.damage_type_haste[damage_type] / 100
 
         return haste_factor * trinket_haste_factor * cooldown_haste_factor * consume_haste_factor * damage_type_haste_factor
@@ -181,6 +191,9 @@ class Character:
                     elif use_time not in self.used_cds[field.name]:
                         self.used_cds[field.name][use_time] = True
                         cooldown_obj.activate()
+
+    def _roll_proc(self, proc_chance: float):
+        return random.randint(1, 100) <= proc_chance
 
     def _roll_hit(self, hit_chance: float, damage_type: DamageType):
         return random.randint(1, 100) <= hit_chance + self.damage_type_hit[damage_type]
@@ -246,23 +259,23 @@ class Character:
         if self.env.print:
             self.env.p(f"{self.env.time()} - ({self.name}) {msg}")
 
-    def add_trinket_haste(self, haste):
-        self._trinket_haste += haste
+    def add_trinket_haste(self, haste_key, haste_value):
+        self._trinket_haste[haste_key] = haste_value
 
-    def remove_trinket_haste(self, haste):
-        self._trinket_haste -= haste
+    def remove_trinket_haste(self, haste_key):
+        del self._trinket_haste[haste_key]
 
-    def add_cooldown_haste(self, haste):
-        self._cooldown_haste += haste
+    def add_cooldown_haste(self, haste_key, haste_value):
+        self._cooldown_haste[haste_key] = haste_value
 
-    def remove_cooldown_haste(self, haste):
-        self._cooldown_haste -= haste
+    def remove_cooldown_haste(self, haste_key):
+        del self._cooldown_haste[haste_key]
 
-    def add_consume_haste(self, haste):
-        self._consume_haste += haste
+    def add_consume_haste(self, haste_key, haste_value):
+        self._consume_haste[haste_key] = haste_value
 
-    def remove_consume_haste(self, haste):
-        self._consume_haste -= haste
+    def remove_consume_haste(self, haste_key):
+        del self._consume_haste[haste_key]
 
     def add_sp_bonus(self, sp):
         self._sp_bonus += sp

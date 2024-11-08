@@ -13,12 +13,12 @@ arcane.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
 mages.append(arcane)
 
 fire = Mage(name=f'fire', sp=1057, crit=46.43, hit=16, tal=FireMageTalents, opts=MageOptions())
-fire.smart_scorch_and_fireblast(cds=CooldownUsages(combustion=10, mqg=10))
+fire.smart_scorch(cds=CooldownUsages(combustion=10, mqg=10))
 mages.append(fire)
 
 frost = Mage(name=f'frost', sp=1095, crit=40.43, hit=16,
              tal=IcicleMageTalents,
-             opts=MageOptions(use_frostnova_for_icicles=True,
+             opts=MageOptions(use_frostnova_for_icicles=False,
                               start_with_ice_barrier=True),
              )
 frost.icicle_frostbolts(cds=CooldownUsages(mqg=5))
