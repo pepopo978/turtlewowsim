@@ -126,11 +126,11 @@ class MQG(Cooldown):
 
     def activate(self):
         super().activate()
-        self.character.add_trinket_haste(33)
+        self.character.add_trinket_haste(self.name, 33)
 
     def deactivate(self):
         super().deactivate()
-        self.character.remove_trinket_haste(33)
+        self.character.remove_trinket_haste(self.name)
 
 
 class Berserking(Cooldown):
@@ -152,11 +152,11 @@ class Berserking(Cooldown):
 
     def activate(self):
         super().activate()
-        self.character.add_trinket_haste(self.haste)
+        self.character.add_trinket_haste(self.name, self.haste)
 
     def deactivate(self):
         super().deactivate()
-        self.character.remove_trinket_haste(self.haste)
+        self.character.remove_trinket_haste(self.name)
 
 
 class TOEP(Cooldown):
@@ -280,11 +280,11 @@ class ArcanePower(Cooldown):
 
     def activate(self):
         super().activate()
-        self.character.add_cooldown_haste(35)
+        self.character.add_cooldown_haste(self.name, 35)
 
     def deactivate(self):
         super().deactivate()
-        self.character.remove_cooldown_haste(35)
+        self.character.remove_cooldown_haste(self.name)
 
 
 class PotionOfQuickness(Cooldown):
@@ -298,11 +298,11 @@ class PotionOfQuickness(Cooldown):
 
     def activate(self):
         super().activate()
-        self.character.add_consume_haste(5)
+        self.character.add_consume_haste(self.name, 5)
 
     def deactivate(self):
         super().deactivate()
-        self.character.remove_consume_haste(5)
+        self.character.remove_consume_haste(self.name)
 
 
 class WrathOfCenariusBuff(Cooldown):
@@ -351,6 +351,53 @@ class WrathOfCenariusBuff(Cooldown):
     def deactivate(self):
         super().deactivate()
         self.character.remove_sp_bonus(self.DMG_BONUS)
+
+
+class EndlessGulchBuff(Cooldown):
+    PRINTS_ACTIVATION = True
+
+    def __init__(self, character: Character):
+        super().__init__(character)
+        self._buff_end_time = -1
+
+    @property
+    def duration(self):
+        return 15
+
+    @property
+    def usable(self):
+        return not self._active and not self.on_cooldown
+
+    # need special handling for when cooldown ends due to possibility of refresh
+    def activate(self):
+        if self.usable:
+            self.character.add_trinket_haste(self.name, 20)
+
+            self._buff_end_time = self.character.env.now + self.duration
+
+            self._active = True
+            if self.PRINTS_ACTIVATION:
+                self.character.print(f"{self.name} activated")
+
+            def callback(self):
+                while True:
+                    remaining_time = self._buff_end_time - self.character.env.now
+                    yield self.character.env.timeout(remaining_time)
+
+                    if self.character.env.now >= self._buff_end_time:
+                        self.deactivate()
+                        break
+
+            self.character.env.process(callback(self))
+        else:
+            # refresh buff end time
+            if self.PRINTS_ACTIVATION:
+                self.character.print(f"{self.name} refreshed")
+            self._buff_end_time = self.character.env.now + self.duration
+
+    def deactivate(self):
+        super().deactivate()
+        self.character.remove_trinket_haste(self.name)
 
 
 class CharmOfMagic(Cooldown):

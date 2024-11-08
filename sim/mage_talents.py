@@ -61,7 +61,7 @@ IcicleMageTalents = MageTalents(
 )
 
 ArcaneMageTalents = MageTalents(
-    arcane_focus=3,
+    arcane_focus=3, # not looked at currently
     arcane_impact=3,
     arcane_rupture=True,
     temporal_convergence=3,

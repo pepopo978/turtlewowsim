@@ -352,7 +352,7 @@ class Mage(Character):
                 elif self.tal.arcane_instability == 3:
                     hit_chance = 25
 
-                arcane_instability_hit = self._roll_hit(hit_chance, damage_type)
+                arcane_instability_hit = self._roll_proc(hit_chance)
                 if arcane_instability_hit:
                     dmg *= 1.25
 
@@ -383,7 +383,7 @@ class Mage(Character):
         if self.env.print:
             description = f"({round(casting_time, 2)} cast)"
             if cooldown:
-                description += f" ({cooldown} gcd)"
+                description += f" ({round(cooldown, 2)} gcd)"
             if arcane_instability_hit:
                 description += " (AI)"
             if arcane_rupture_applied:
@@ -443,7 +443,7 @@ class Mage(Character):
         if self.tal.resonance_cascade and hit:
             num_duplicates = 0
             while num_duplicates < 5:
-                if self._roll_hit(4 * self.tal.resonance_cascade, DamageType.ARCANE):
+                if self._roll_proc(4 * self.tal.resonance_cascade):
                     num_duplicates += 1
                     dmg /= 2
                     self.print(f"{spell.value} duplicated for {dmg}")
@@ -454,7 +454,7 @@ class Mage(Character):
 
         if spell == Spell.ARCANE_MISSILE and self.tal.temporal_convergence:
             if self.temporal_convergence_cd.usable:
-                temporal_convergence_hit = self._roll_hit(5 * self.tal.temporal_convergence, DamageType.ARCANE)
+                temporal_convergence_hit = self._roll_proc(5 * self.tal.temporal_convergence)
                 if temporal_convergence_hit:
                     self.temporal_convergence_cd.activate()
                     # reset cd on rupture
@@ -585,13 +585,14 @@ class Mage(Character):
             elif spell == Spell.PYROBLAST:
                 self.env.debuffs.add_pyroblast_dot(self)
             elif spell == Spell.SCORCH and self.tal.imp_scorch:
-                imp_scorch_chance = 1
+                imp_scorch_chance = 100
                 if self.tal.imp_scorch < 3:
-                    imp_scorch_chance = 0.33 * self.tal.imp_scorch
+                    imp_scorch_chance = 33 * self.tal.imp_scorch
                 # roll for whether debuff hits
-                fire_vuln_hit = self._roll_hit(self._get_hit_chance(spell) * imp_scorch_chance, DamageType.FIRE)
+                fire_vuln_hit = self._roll_hit(self._get_hit_chance(spell), DamageType.FIRE)
                 if fire_vuln_hit:
-                    self.env.debuffs.scorch()
+                    if imp_scorch_chance == 100 or self._roll_proc(imp_scorch_chance):
+                        self.env.debuffs.scorch()
 
         if crit:
             if self.tal.ignite:
@@ -704,11 +705,8 @@ class Mage(Character):
                 # roll for whether debuff hits
                 winters_chill_hit = self._roll_hit(self._get_hit_chance(spell), DamageType.FROST)
                 if winters_chill_hit:
-                    if self.tal.winters_chill < 5:
-                        # roll for % chance from talent
-                        winters_chill_hit = random.randint(1, 100) <= self.tal.winters_chill * 20
-
-                    if winters_chill_hit:
+                    winters_chill_proc = self.tal.winters_chill * 20
+                    if winters_chill_proc == 100 or self._roll_proc(winters_chill_proc):
                         self.env.debuffs.add_winters_chill_stack()
 
             if self.tal.flash_freeze:
@@ -718,14 +716,12 @@ class Mage(Character):
                         spell == Spell.FROSTBOLTRK3 or
                         spell == Spell.CONE_OF_COLD):
                     flash_freeze_hit = self._roll_hit(5 * self.tal.frostbite, DamageType.FROST)
-                    if self.tal.flash_freeze < 2:
-                        flash_freeze_hit = flash_freeze_hit and self._roll_hit(50 * self.tal.flash_freeze,
-                                                                               DamageType.FROST)
+                    if flash_freeze_hit and self.tal.flash_freeze < 2:
+                        flash_freeze_hit = self._roll_proc(50 * self.tal.flash_freeze)
                 elif spell == Spell.FROST_NOVA:
                     flash_freeze_hit = True
-                    if self.tal.flash_freeze < 2:
-                        flash_freeze_hit = flash_freeze_hit and self._roll_hit(50 * self.tal.flash_freeze,
-                                                                               DamageType.FROST)
+                    if flash_freeze_hit and self.tal.flash_freeze < 2:
+                        flash_freeze_hit = self._roll_proc(50 * self.tal.flash_freeze)
 
                 if flash_freeze_hit:
                     self._flash_freeze_proc = 1

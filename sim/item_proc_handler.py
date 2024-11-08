@@ -1,5 +1,5 @@
 from sim.character import Character
-from sim.cooldowns import WrathOfCenariusBuff
+from sim.cooldowns import WrathOfCenariusBuff, EndlessGulchBuff
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.item_procs import *
@@ -15,6 +15,9 @@ class ItemProcHandler:
         self.procs = []
 
         self.wrath_of_cenarius_buff = None
+        self.endless_gulch_buff = None
+
+        self.wisdom_of_the_makaru_stacks = 0
 
         if equipped_items:
             if equipped_items.blade_of_eternal_darkness:
@@ -24,6 +27,9 @@ class ItemProcHandler:
             if equipped_items.wrath_of_cenarius:
                 self.wrath_of_cenarius_buff = WrathOfCenariusBuff(character)
                 self.procs.append(WrathOfCenarius(character, self._wrath_of_cenarius_proc))
+            if equipped_items.endless_gulch:
+                self.endless_gulch_buff = EndlessGulchBuff(character)
+                self.procs.append(EndlessGulch(character, self._endless_gulch_proc))
 
     def check_for_procs(self, current_time):
         for proc in self.procs:
@@ -58,3 +64,11 @@ class ItemProcHandler:
     def _wrath_of_cenarius_proc(self):
         if self.wrath_of_cenarius_buff:
             self.wrath_of_cenarius_buff.activate()
+
+    def _endless_gulch_proc(self):
+        self.wisdom_of_the_makaru_stacks += 1
+        self.character.print(f"Wisdom of the Makaru proc {self.wisdom_of_the_makaru_stacks}")
+        if self.wisdom_of_the_makaru_stacks >= 10:
+            self.wisdom_of_the_makaru_stacks = 0
+            if self.endless_gulch_buff:
+                self.endless_gulch_buff.activate()

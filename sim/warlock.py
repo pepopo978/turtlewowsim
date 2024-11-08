@@ -209,7 +209,7 @@ class Warlock(Character):
         if self.env.print:
             description = f"({round(casting_time, 2)} cast)"
             if cooldown:
-                description += f" ({cooldown} gcd)"
+                description += f" ({round(cooldown, 2)} gcd)"
 
         if not hit:
             dmg = 0
@@ -265,7 +265,7 @@ class Warlock(Character):
         if self.env.print:
             description = f"({round(casting_time, 2)} cast)"
             if cooldown:
-                description += f" ({cooldown} gcd)"
+                description += f" ({round(cooldown, 2)} gcd)"
 
         if not hit:
             dmg = 0
@@ -310,7 +310,7 @@ class Warlock(Character):
         if self.env.print:
             description = f"({round(casting_time, 2)} cast)"
             if cooldown:
-                description += f" ({cooldown} gcd)"
+                description += f" ({round(cooldown, 2)} gcd)"
 
         if not hit:
             self.print(f"{spell.value} {description} RESIST")
