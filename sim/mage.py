@@ -29,7 +29,9 @@ class Mage(Character):
         self.tal = tal
         self.opts = opts
 
-        self._t2proc: bool = False
+        self._t2_8set_proc: bool = False
+        self._t3_arcane_8set_proc: bool = False
+
         self._flash_freeze_proc: bool = False
 
         self.hot_streak = None
@@ -53,8 +55,9 @@ class Mage(Character):
     def reset(self):
         super().reset()
 
-        self._t2proc = False
+        self._t2_8set_proc = False
         self._flash_freeze_proc = False
+        self._t3_arcane_8set_proc = False
 
     def _setup_cds(self):
         self.fire_blast_cd = FireBlastCooldown(self, self.tal.fire_blast_cooldown)
@@ -166,9 +169,12 @@ class Mage(Character):
             self._use_cds(cds)
             if self.tal.ice_barrier and not self._ice_barrier_active():
                 yield from self._ice_barrier()
+            elif self._flash_freeze_proc:
+                self._flash_freeze_proc = False
+                yield from self._icicles_channel(channel_time=1.0)
             elif self.opts.use_frostnova_for_icicles and self.frost_nova_cd.usable:
                 yield from self._frost_nova()
-            elif not self._flash_freeze_proc and self.opts.use_icicles_without_flash_freeze and self.icicles_cd.usable:
+            elif self.opts.use_icicles_without_flash_freeze and self.icicles_cd.usable:
                 yield from self._icicles_channel()
             else:
                 yield from self._frostbolt()
@@ -290,6 +296,9 @@ class Mage(Character):
             raise ValueError(f"Unknown spell {spell}")
 
     def _get_hit_chance(self, spell: Spell, is_binary=False):
+        if self.opts.icicle_hit_bug and spell == Spell.ICICLE:
+            return min(77 + self.hit, 99)
+
         # elemental precision assumed to be included in hit already
         return min(83 + self.hit, 99)
 
@@ -308,6 +317,10 @@ class Mage(Character):
         if self.tal.ice_barrier and damage_type == DamageType.FROST and self._ice_barrier_active():
             dmg *= 1.15
 
+        if self._t3_arcane_8set_proc and not is_periodic:
+            self.print("_t3_arcane_8set_proc")
+            dmg *= 1.1
+
         return int(dmg)
 
     # caller must handle any gcd cooldown
@@ -324,9 +337,9 @@ class Mage(Character):
                calculate_cast_time: bool = True):
 
         casting_time = self._get_cast_time(base_cast_time, damage_type) if calculate_cast_time else base_cast_time
-        if self._t2proc and calculate_cast_time:
+        if self._t2_8set_proc and calculate_cast_time:
             casting_time = self.lag
-            self._t2proc = False
+            self._t2_8set_proc = False
             self.print("T2 proc used")
 
         # account for gcd
@@ -362,6 +375,10 @@ class Mage(Character):
         else:
             self.num_resists += 1
 
+        if self._t3_arcane_8set_proc and spell != Spell.ARCANE_MISSILE and spell != Spell.ICICLE:
+            # reset proc
+            self._t3_arcane_8set_proc = False
+
         is_binary_spell = (
                 spell == Spell.FROSTBOLT or
                 spell == Spell.FROSTBOLTRK4 or
@@ -375,6 +392,9 @@ class Mage(Character):
             dmg = int(dmg * partial_amount)
             partial_desc = f"({int(partial_amount * 100)}% partial)"
             self.arcane_surge_cd.enable_due_to_partial_resist()
+
+            if self.opts.t3_8_set:
+                self._t3_arcane_8set_proc = True
 
         if casting_time:
             yield self.env.timeout(casting_time)
@@ -407,7 +427,7 @@ class Mage(Character):
                 spell == Spell.FROSTBOLTRK3 or
                 spell == Spell.ARCANE_MISSILE):
             if random.randint(1, 100) <= 10:
-                self._t2proc = True
+                self._t2_8set_proc = True
                 self.print("T2 proc")
 
         self.env.total_spell_dmg += dmg
@@ -497,6 +517,10 @@ class Mage(Character):
                 yield from self._arcane_missile(casting_time=time_between_missiles + self.lag)  # initial delay
             else:
                 yield from self._arcane_missile(casting_time=time_between_missiles)
+
+        # reset proc at end of channel
+        if self._t3_arcane_8set_proc:
+            self._t3_arcane_8set_proc = False
 
         if channel_time < self.env.GCD:
             self.print(f"Post arcane missiles {round(self.env.GCD - channel_time, 2)} gcd")
@@ -636,7 +660,7 @@ class Mage(Character):
         casting_time = 3
         crit_modifier = 0
 
-        if self.opts.pyro_on_t2_proc and self._t2proc:
+        if self.opts.pyro_on_t2_proc and self._t2_8set_proc:
             yield from self._pyroblast()
         else:
             yield from self._fire_spell(spell=Spell.FIREBALL,
@@ -680,13 +704,6 @@ class Mage(Character):
                      cooldown: float = 0.0,
                      on_gcd: bool = True,
                      calculate_cast_time: bool = True):
-
-        # check for flash freeze
-        if self._flash_freeze_proc:
-            self._flash_freeze_proc = False
-            yield from self._icicles_channel(channel_time=1.0)
-            return
-
         crit_modifier += self.env.debuffs.wc_stacks * 2  # winters chill added crit (2% per stack)
 
         hit, crit, dmg, cooldown, partial_amount = yield from self._spell(spell=spell,
@@ -724,7 +741,7 @@ class Mage(Character):
                         flash_freeze_hit = self._roll_proc(50 * self.tal.flash_freeze)
 
                 if flash_freeze_hit:
-                    self._flash_freeze_proc = 1
+                    self._flash_freeze_proc = True
                     self.print("Flash Freeze proc")
 
         if spell == Spell.FROST_NOVA:
@@ -804,6 +821,10 @@ class Mage(Character):
                 yield from self._icicle(casting_time=time_between_icicles + self.lag)  # initial delay
             else:
                 yield from self._icicle(casting_time=time_between_icicles)
+
+        # reset proc at end of channel
+        if self._t3_arcane_8set_proc:
+            self._t3_arcane_8set_proc = False
 
         if channel_time < self.env.GCD:
             self.print(f"Post icicles {round(self.env.GCD - channel_time, 2)} gcd")

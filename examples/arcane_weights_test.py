@@ -3,53 +3,58 @@ from _example_imports import *
 mages = []
 num_mages = 5
 
+control_sp = 1000
+control_crit = 40
+control_hit = 15
+control_haste = 0
+
 for i in range(num_mages):
     fm = None
     if i == 0:
-        fm = Mage(name=f'control', sp=1000, crit=40, hit=15, haste=0,
+        fm = Mage(name=f'control', sp=control_sp, crit=control_crit, hit=control_hit, haste=control_haste,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_missiles(cds=CooldownUsages())
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
     elif i == 1:
-        fm = Mage(name=f'1 hit', sp=1000, crit=40, hit=16,haste=0,
+        fm = Mage(name=f'1 hit',  sp=control_sp, crit=control_crit, hit=control_hit, haste=control_haste,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_missiles(cds=CooldownUsages())
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
     elif i == 2:
-        fm = Mage(name=f'1 crit', sp=1000, crit=41, hit=15,haste=0,
+        fm = Mage(name=f'1 crit',  sp=control_sp, crit=control_crit, hit=control_hit, haste=control_haste,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_missiles(cds=CooldownUsages())
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
     elif i == 3:
-        fm = Mage(name=f'1 haste', sp=1000, crit=40, hit=15, haste=1,
+        fm = Mage(name=f'1 haste',  sp=control_sp, crit=control_crit, hit=control_hit, haste=control_haste+1,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_missiles(cds=CooldownUsages())
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
     elif i == 4:
-        fm = Mage(name=f'20sp', sp=1020, crit=40, hit=15,haste=0,
+        fm = Mage(name=f'20sp',  sp=control_sp + 20, crit=control_crit, hit=control_hit, haste=control_haste,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_missiles(cds=CooldownUsages())
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
 
     if fm:
         mages.append(fm)
