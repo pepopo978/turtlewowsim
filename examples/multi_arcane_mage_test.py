@@ -12,7 +12,7 @@ for i in range(num_mages):
                       wrath_of_cenarius=False,
                       endless_gulch=False,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
     else:
         fm = Mage(name=f'reg', sp=1000, crit=40, hit=16, haste=0,
                   tal=ArcaneMageTalents,
@@ -23,7 +23,7 @@ for i in range(num_mages):
                       endless_gulch=False,
                   ))
 
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
     mages.append(fm)
 
 sim = Simulation(characters=mages)

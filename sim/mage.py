@@ -30,7 +30,7 @@ class Mage(Character):
         self.opts = opts
 
         self._t2_8set_proc: bool = False
-        self._t3_arcane_8set_proc: bool = False
+        self._t3_arcane_8set_proc_time: bool = False
 
         self._flash_freeze_proc: bool = False
 
@@ -57,7 +57,7 @@ class Mage(Character):
 
         self._t2_8set_proc = False
         self._flash_freeze_proc = False
-        self._t3_arcane_8set_proc = False
+        self._t3_arcane_8set_proc_time = False
 
     def _setup_cds(self):
         self.fire_blast_cd = FireBlastCooldown(self, self.tal.fire_blast_cooldown)
@@ -317,10 +317,6 @@ class Mage(Character):
         if self.tal.ice_barrier and damage_type == DamageType.FROST and self._ice_barrier_active():
             dmg *= 1.15
 
-        if self._t3_arcane_8set_proc and not is_periodic:
-            self.print("_t3_arcane_8set_proc")
-            dmg *= 1.1
-
         return int(dmg)
 
     # caller must handle any gcd cooldown
@@ -358,6 +354,12 @@ class Mage(Character):
             dmg = self.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0), damage_type)
             dmg = self.modify_dmg(dmg, damage_type, is_periodic=False)
 
+            if (self._t3_arcane_8set_proc_time and
+                    (spell != Spell.ARCANE_MISSILE and spell != Spell.ICICLE)):
+                if self._t3_arcane_8set_proc_time + 6 > self.env.now:
+                    dmg *= 1.1
+                self._t3_arcane_8set_proc_time = False
+
             if self.tal.arcane_instability and damage_type == DamageType.ARCANE:
                 hit_chance = 8
                 if self.tal.arcane_instability == 2:
@@ -375,10 +377,6 @@ class Mage(Character):
         else:
             self.num_resists += 1
 
-        if self._t3_arcane_8set_proc and spell != Spell.ARCANE_MISSILE and spell != Spell.ICICLE:
-            # reset proc
-            self._t3_arcane_8set_proc = False
-
         is_binary_spell = (
                 spell == Spell.FROSTBOLT or
                 spell == Spell.FROSTBOLTRK4 or
@@ -394,7 +392,7 @@ class Mage(Character):
             self.arcane_surge_cd.enable_due_to_partial_resist()
 
             if self.opts.t3_8_set:
-                self._t3_arcane_8set_proc = True
+                self._t3_arcane_8set_proc_time = self.env.now
 
         if casting_time:
             yield self.env.timeout(casting_time)
@@ -517,10 +515,6 @@ class Mage(Character):
                 yield from self._arcane_missile(casting_time=time_between_missiles + self.lag)  # initial delay
             else:
                 yield from self._arcane_missile(casting_time=time_between_missiles)
-
-        # reset proc at end of channel
-        if self._t3_arcane_8set_proc:
-            self._t3_arcane_8set_proc = False
 
         if channel_time < self.env.GCD:
             self.print(f"Post arcane missiles {round(self.env.GCD - channel_time, 2)} gcd")
@@ -821,10 +815,6 @@ class Mage(Character):
                 yield from self._icicle(casting_time=time_between_icicles + self.lag)  # initial delay
             else:
                 yield from self._icicle(casting_time=time_between_icicles)
-
-        # reset proc at end of channel
-        if self._t3_arcane_8set_proc:
-            self._t3_arcane_8set_proc = False
 
         if channel_time < self.env.GCD:
             self.print(f"Post icicles {round(self.env.GCD - channel_time, 2)} gcd")

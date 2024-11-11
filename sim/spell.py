@@ -53,7 +53,7 @@ SPELL_COEFFICIENTS = {
     Spell.FROSTBOLTRK4: 0.7057,  # 2.6 / 3.5 * 0.95 spell lvl 20
     Spell.FROST_NOVA: 0.1357,
     Spell.CONE_OF_COLD: 0.1357,
-    Spell.ICICLE: 0.4,
+    Spell.ICICLE: 0.4285,
 
     # Proc Spells
     Spell.ENGULFING_SHADOWS: 0,  # Blade of Eternal Darkness

@@ -4,7 +4,7 @@ mages = []
 num_mages = 1
 
 for i in range(num_mages):
-    fm = Mage(name=f'mage{i}', sp=1009, crit=33.17, hit=16,
+    fm = Mage(name=f'mage{i}', sp=1051, crit=33.17, hit=16,
               tal=IcicleMageTalents,
               opts=MageOptions(
                   use_frostnova_for_icicles=True,
