@@ -23,5 +23,5 @@ class MageOptions:
 
     # Arcane
     use_presence_of_mind_on_cd: bool = True
-    extra_second_arcane_missile: bool = True # some gear increases the duration of arcane missiles by 1 second
+    extra_second_arcane_missile: bool = False # some gear increases the duration of arcane missiles by 1 second
     t3_8_set: bool = False  # t3 8 set bonus

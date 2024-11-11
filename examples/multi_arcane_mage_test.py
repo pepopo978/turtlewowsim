@@ -6,7 +6,7 @@ for i in range(num_mages):
     if i == 0:
         fm = Mage(name=f'test', sp=990, crit=37, hit=16, haste=2,
                   tal=ArcaneMageTalents,
-                  opts=MageOptions(t3_8_set=True),
+                  opts=MageOptions(t3_8_set=True, extra_second_arcane_missile=False),
                   equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=False,
