@@ -306,10 +306,7 @@ class Mage(Character):
         dmg = super().modify_dmg(dmg, damage_type, is_periodic)
 
         if damage_type == DamageType.FIRE and self.tal.fire_power:
-            if self.tal.fire_power == 5:
-                dmg *= 1.1
-            else:
-                dmg *= 1 + 0.02 * self.tal.fire_power
+            dmg *= 1.1 if self.tal.fire_power == 5 else 1 + 0.02 * self.tal.fire_power
 
         if self.tal.piercing_ice and damage_type == DamageType.FROST:
             dmg *= 1.06
@@ -361,11 +358,7 @@ class Mage(Character):
                 self._t3_arcane_8set_proc_time = False
 
             if self.tal.arcane_instability and damage_type == DamageType.ARCANE:
-                hit_chance = 8
-                if self.tal.arcane_instability == 2:
-                    hit_chance = 16
-                elif self.tal.arcane_instability == 3:
-                    hit_chance = 25
+                hit_chance = {1: 8, 2: 16, 3: 25}.get(self.tal.arcane_instability, 0)
 
                 arcane_instability_hit = self._roll_proc(hit_chance)
                 if arcane_instability_hit:
@@ -377,12 +370,8 @@ class Mage(Character):
         else:
             self.num_resists += 1
 
-        is_binary_spell = (
-                spell == Spell.FROSTBOLT or
-                spell == Spell.FROSTBOLTRK4 or
-                spell == Spell.FROSTBOLTRK3 or
-                spell == Spell.FROST_NOVA or
-                spell == Spell.CONE_OF_COLD)
+        is_binary_spell = spell in {Spell.FROSTBOLT, Spell.FROSTBOLTRK4, Spell.FROSTBOLTRK3, Spell.FROST_NOVA,
+                                    Spell.CONE_OF_COLD}
 
         partial_amount = self.roll_partial(is_dot=False, is_binary=is_binary_spell)
         partial_desc = ""
@@ -418,12 +407,13 @@ class Mage(Character):
         if hit and SPELL_TRIGGERS_ON_HIT.get(spell, False):
             self._check_for_procs()
 
-        if hit and self.opts.fullt2 and (
-                spell == Spell.FIREBALL or
-                spell == Spell.FROSTBOLT or
-                spell == Spell.FROSTBOLTRK4 or
-                spell == Spell.FROSTBOLTRK3 or
-                spell == Spell.ARCANE_MISSILE):
+        if (hit and
+                self.opts.fullt2 and
+                spell in (Spell.FIREBALL,
+                          Spell.FROSTBOLT,
+                          Spell.FROSTBOLTRK4,
+                          Spell.FROSTBOLTRK3,
+                          Spell.ARCANE_MISSILE)):
             if random.randint(1, 100) <= 10:
                 self._t2_8set_proc = True
                 self.print("T2 proc")
@@ -569,21 +559,20 @@ class Mage(Character):
             return
 
         # check for ignite extension
-        if (has_5_stack_scorch and
-                has_5_stack_ignite and
-                (self.opts.extend_ignite_with_fire_blast or self.opts.extend_ignite_with_scorch)):
-            # check that spell is not already fireblast or scorch
-            if spell not in (Spell.FIREBLAST, Spell.SCORCH):
-                ignite_time_remaining = self.env.ignite.time_remaining
-                if ignite_time_remaining <= self.opts.remaining_seconds_for_ignite_extend:
-                    if self.opts.extend_ignite_with_fire_blast and self.fire_blast_cd.usable:
-                        yield from self._fire_blast()
-                        return
+        if has_5_stack_scorch and has_5_stack_ignite:
+            if self.opts.extend_ignite_with_fire_blast or self.opts.extend_ignite_with_scorch:
+                # check that spell is not already fireblast or scorch
+                if spell not in (Spell.FIREBLAST, Spell.SCORCH):
+                    ignite_time_remaining = self.env.ignite.time_remaining
+                    if ignite_time_remaining <= self.opts.remaining_seconds_for_ignite_extend:
+                        if self.opts.extend_ignite_with_fire_blast and self.fire_blast_cd.usable:
+                            yield from self._fire_blast()
+                            return
 
-                    scorch_cast_time = self._get_cast_time(1.5, DamageType.FIRE) + self.lag
-                    if self.opts.extend_ignite_with_scorch and ignite_time_remaining > scorch_cast_time:
-                        yield from self._scorch()
-                        return
+                        scorch_cast_time = self._get_cast_time(1.5, DamageType.FIRE) + self.lag
+                        if self.opts.extend_ignite_with_scorch and ignite_time_remaining > scorch_cast_time:
+                            yield from self._scorch()
+                            return
 
         hit, crit, dmg, cooldown, partial_amount = yield from self._spell(spell=spell,
                                                                           damage_type=DamageType.FIRE,
