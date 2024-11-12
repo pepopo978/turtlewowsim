@@ -1,10 +1,8 @@
 import random
 from functools import partial
-from typing import Optional
 
 from sim.character import Character, CooldownUsages
 from sim.cooldowns import Cooldown
-from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.spell import Spell, SPELL_COEFFICIENTS
 from sim.spell_school import DamageType

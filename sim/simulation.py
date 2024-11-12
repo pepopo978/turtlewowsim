@@ -1,17 +1,16 @@
 from collections import defaultdict
 from typing import List
 
+import numpy as np
+# histogram dependencies
+import plotly.express as px
+import plotly.graph_objects as go
 from tqdm import trange
 
 from sim import JUSTIFY
 from sim.character import Character
 from sim.env import Environment
 from sim.utils import mean, mean_percentage
-
-# histogram dependencies
-import plotly.express as px
-import numpy as np
-import plotly.graph_objects as go
 
 
 class Simulation:
@@ -76,27 +75,20 @@ class Simulation:
             env.add_characters(self.characters)
 
             env.run(until=duration)
-            for character, mdps in env.meter.dps().items():
+            dps_results = env.meter.dps()
+            for character, mdps in dps_results.items():
                 self.results['dps'][character].append(mdps)
 
             for character in self.characters:
-                if character.name not in self.results['partial_resists']:
-                    self.results['partial_resists'][character.name] = []
-                self.results['partial_resists'][character.name].append(character.num_partials)
+                char_name = character.name
+                self.results['partial_resists'][char_name].append(character.num_partials)
+                self.results['resists'][char_name].append(character.num_resists)
+                self.results['casts'][char_name].append(sum(character.num_casts.values()))
 
-                if character.name not in self.results['resists']:
-                    self.results['resists'][character.name] = []
-                self.results['resists'][character.name].append(character.num_resists)
-
-                # add up all values in the num_casts dict
-                self.results['casts'][character.name].append(sum(character.num_casts.values()))
+                per_spell_casts = self.results['per_spell_casts'].setdefault(char_name, {})
                 for spell_enum, num_casts in character.num_casts.items():
                     spell_name = spell_enum.value
-                    if character.name not in self.results['per_spell_casts']:
-                        self.results['per_spell_casts'][character.name] = {}
-                    if spell_name not in self.results['per_spell_casts'][character.name]:
-                        self.results['per_spell_casts'][character.name][spell_name] = []
-                    self.results['per_spell_casts'][character.name][spell_name].append(num_casts)
+                    per_spell_casts.setdefault(spell_name, []).append(num_casts)
 
             self.results['total_spell_dmg'][i] = env.total_spell_dmg
             self.results['total_dot_dmg'][i] = env.total_dot_dmg
@@ -104,32 +96,32 @@ class Simulation:
 
             self.results['total_dmg'][i] = env.get_total_dmg()
             self.results['avg_dps'][i] = env.meter.raid_dmg()
-            self.results['max_single_dps'][i] = max(env.meter.dps().values())
+            self.results['max_single_dps'][i] = max(dps_results.values())
 
-            # include ignite info if there was any
-            self.results['>=1 stack uptime'][i] = env.ignite.uptime_gte_1_stack
-            self.results['>=2 stack uptime'][i] = env.ignite.uptime_gte_2_stacks
-            self.results['>=3 stack uptime'][i] = env.ignite.uptime_gte_3_stacks
-            self.results['>=4 stack uptime'][i] = env.ignite.uptime_gte_4_stacks
-            self.results['5 stack uptime'][i] = env.ignite.uptime_5_stacks
-            self.results['1 stack ticks'][i] = env.ignite.num_1_stack_ticks
-            self.results['2 stack ticks'][i] = env.ignite.num_2_stack_ticks
-            self.results['3 stack ticks'][i] = env.ignite.num_3_stack_ticks
-            self.results['4 stack ticks'][i] = env.ignite.num_4_stack_ticks
-            self.results['5 stack ticks'][i] = env.ignite.num_5_stack_ticks
-            self.results['num_ticks'][i] = env.ignite.num_ticks
-            self.results['avg_tick'][i] = env.ignite.avg_tick
-            self.results['max_tick'][i] = env.ignite.max_tick
-            self.results['num_drops'][i] = env.ignite.num_drops
+            ignite = env.ignite
+            self.results['>=1 stack uptime'][i] = ignite.uptime_gte_1_stack
+            self.results['>=2 stack uptime'][i] = ignite.uptime_gte_2_stacks
+            self.results['>=3 stack uptime'][i] = ignite.uptime_gte_3_stacks
+            self.results['>=4 stack uptime'][i] = ignite.uptime_gte_4_stacks
+            self.results['5 stack uptime'][i] = ignite.uptime_5_stacks
+            self.results['1 stack ticks'][i] = ignite.num_1_stack_ticks
+            self.results['2 stack ticks'][i] = ignite.num_2_stack_ticks
+            self.results['3 stack ticks'][i] = ignite.num_3_stack_ticks
+            self.results['4 stack ticks'][i] = ignite.num_4_stack_ticks
+            self.results['5 stack ticks'][i] = ignite.num_5_stack_ticks
+            self.results['num_ticks'][i] = ignite.num_ticks
+            self.results['avg_tick'][i] = ignite.avg_tick
+            self.results['max_tick'][i] = ignite.max_tick
+            self.results['num_drops'][i] = ignite.num_drops
 
-            # include isb info if there was any
-            self.results['ISB uptime'][i] = env.improved_shadow_bolt.uptime_percent
-            self.results['Total added dot dmg'][i] = env.improved_shadow_bolt.total_added_dot_dmg
-            self.results['Total added spell dmg'][i] = env.improved_shadow_bolt.total_added_spell_dmg
+            isb = env.improved_shadow_bolt
+            self.results['ISB uptime'][i] = isb.uptime_percent
+            self.results['Total added dot dmg'][i] = isb.total_added_dot_dmg
+            self.results['Total added spell dmg'][i] = isb.total_added_spell_dmg
 
-            if env.ignite.had_any_ignites:
+            if ignite.had_any_ignites:
                 self.results['had_any_ignite'] = True
-            if env.improved_shadow_bolt.had_any_isbs:
+            if isb.had_any_isbs:
                 self.results['had_any_isbs'] = True
 
     def _justify(self, string):

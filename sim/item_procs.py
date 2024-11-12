@@ -40,5 +40,6 @@ class OrnateBloodstoneDagger(ItemProc):
 class WrathOfCenarius(ItemProc):
     PERCENT_CHANCE = 5
 
+
 class EndlessGulch(ItemProc):
     PERCENT_CHANCE = 20

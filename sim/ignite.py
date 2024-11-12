@@ -1,4 +1,3 @@
-import math
 from typing import Optional
 
 from sim import JUSTIFY
@@ -40,10 +39,10 @@ class Ignite:
 
     def record_uptimes(self):
         if self.active:
+            now = self.env.now
             for i in range(self.stacks):
-                self._uptimes[i] += self.env.now - self.last_monitor_time
-
-        self.last_monitor_time = self.env.now
+                self._uptimes[i] += now - self.last_monitor_time
+            self.last_monitor_time = now
 
     def refresh(self, mage: Mage, dmg: int, spell: Spell, partial: bool, ignite_talent_points: int):
         self.check_for_drop()
@@ -140,9 +139,7 @@ class Ignite:
     @property
     def time_remaining(self):
         time_left = (self.last_crit_time + IGNITE_WINDOW) - self.env.now
-        if time_left < 0:
-            return 0
-        return time_left
+        return max(time_left, 0)
 
     @property
     def uptime_gte_1_stack(self):
@@ -166,13 +163,11 @@ class Ignite:
 
     @property
     def avg_tick(self):
-        if not self.ticks:
-            return 0
-        return sum(self.ticks) / len(self.ticks)
+        return sum(self.ticks) / len(self.ticks) if self.ticks else 0
 
     @property
     def max_tick(self):
-        return max(self.ticks) if self.ticks else 0
+        return max(self.ticks, default=0)
 
     @property
     def num_ticks(self):

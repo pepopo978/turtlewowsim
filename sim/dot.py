@@ -9,7 +9,7 @@ class Dot:
         self.env = env
         self.damage_type = damage_type
 
-        self.sp = self.owner.eff_sp # snapshot sp
+        self.sp = self.owner.eff_sp  # snapshot sp
         self.coefficient = 0
         self.time_between_ticks = 0
         self.starting_ticks = 0

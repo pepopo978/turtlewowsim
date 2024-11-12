@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass(kw_only=True)
 class MageOptions:
     fullt2: bool = False
@@ -10,7 +11,7 @@ class MageOptions:
     extend_ignite_with_fire_blast: bool = False  # extend ignite with fire blast (prio over scorch)
     extend_ignite_with_scorch: bool = False  # extend ignite with scorch
     pyro_on_t2_proc: bool = True
-    pyro_on_9_hot_streak: bool = True # cast pyroblast on 9 stacks of hot streak
+    pyro_on_9_hot_streak: bool = True  # cast pyroblast on 9 stacks of hot streak
 
     # Frost
     frostbolt_rank: int = 11  # only ranks 11, 4, 3 are supported.  defaults to 11 for unknown ranks
@@ -23,5 +24,5 @@ class MageOptions:
 
     # Arcane
     use_presence_of_mind_on_cd: bool = True
-    extra_second_arcane_missile: bool = False # some gear increases the duration of arcane missiles by 1 second
+    extra_second_arcane_missile: bool = False  # some gear increases the duration of arcane missiles by 1 second
     t3_8_set: bool = False  # t3 8 set bonus

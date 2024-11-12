@@ -1,10 +1,9 @@
-from typing import Optional
-
 from sim import JUSTIFY
 from sim.env import Environment
 
 IGNITE_WINDOW = 4
 IGNITE_TICK_TIME = 2
+
 
 class HotStreak:
     def __init__(self, env, character):
@@ -14,7 +13,7 @@ class HotStreak:
         self.last_crit_time = 0
         self.stacks = 0
         self.num_usages = 0
-        
+
     def add_stack(self):
         if self.stacks < 9:
             self.stacks += 1

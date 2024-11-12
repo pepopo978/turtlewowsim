@@ -15,7 +15,7 @@ class MageTalents:
     fire_blast_gcd: float = 1.5
 
     # Frost
-    elemental_precision: int = 0 # todo implement
+    elemental_precision: int = 0  # todo implement
     piercing_ice: int = 0
     frostbite: int = 0
     ice_shards: int = 0
@@ -57,11 +57,11 @@ IcicleMageTalents = MageTalents(
     winters_chill=5,
     flash_freeze=2,
     ice_barrier=True,
-    frost_nova_cooldown=21 # 2 points in improved frost nova
+    frost_nova_cooldown=21  # 2 points in improved frost nova
 )
 
 ArcaneMageTalents = MageTalents(
-    arcane_focus=3, # not looked at currently
+    arcane_focus=3,  # not looked at currently
     arcane_impact=3,
     arcane_rupture=True,
     temporal_convergence=3,

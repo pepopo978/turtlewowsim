@@ -5,8 +5,8 @@ from sim.character import CooldownUsages
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.hot_streak import HotStreak
-from sim.mage_rotation_cooldowns import *
 from sim.mage_options import MageOptions
+from sim.mage_rotation_cooldowns import *
 from sim.mage_talents import MageTalents
 from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT
 from sim.spell_school import DamageType

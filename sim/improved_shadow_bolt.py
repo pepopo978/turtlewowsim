@@ -6,6 +6,7 @@ from sim.warlock import Character
 
 ISB_DURATION = 12
 
+
 class ImprovedShadowBolt:
     def __init__(self, env):
         self._uptime = 0

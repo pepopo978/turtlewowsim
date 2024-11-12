@@ -36,15 +36,16 @@ class Debuffs:
         return self.permanent_nightfall
 
     def modify_dmg(self, character: Character, dmg: int, damage_type: DamageType, is_periodic: bool):
-        if self.env.debuffs.has_cos and damage_type in [DamageType.SHADOW, DamageType.ARCANE]:
+        debuffs = self.env.debuffs
+        if debuffs.has_cos and damage_type in (DamageType.SHADOW, DamageType.ARCANE):
             dmg *= 1.1
-        elif self.env.debuffs.has_coe and damage_type in [DamageType.FIRE, DamageType.FROST]:
+        elif debuffs.has_coe and damage_type in (DamageType.FIRE, DamageType.FROST):
             dmg *= 1.1
 
         if damage_type == DamageType.FIRE and self.scorch_stacks:
             dmg *= 1 + self.scorch_stacks * 0.03
 
-        if self.env.debuffs.has_nightfall:
+        if debuffs.has_nightfall:
             dmg *= 1.15
 
         if damage_type == DamageType.SHADOW:

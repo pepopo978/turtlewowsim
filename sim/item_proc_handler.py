@@ -54,7 +54,6 @@ class ItemProcHandler:
 
         self.character.num_casts[spell] = self.character.num_casts.get(spell, 0) + 1
 
-
     def _blade_of_eternal_darkness_proc(self):
         self._tigger_proc_dmg(Spell.ENGULFING_SHADOWS, 100, 100, DamageType.SHADOW)
 
