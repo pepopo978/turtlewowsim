@@ -20,7 +20,7 @@ for i in range(num_mages):
                   ))
         fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
     elif i == 1:
-        fm = Mage(name=f'1 hit',  sp=control_sp, crit=control_crit, hit=control_hit, haste=control_haste,
+        fm = Mage(name=f'1 hit',  sp=control_sp, crit=control_crit, hit=control_hit+1, haste=control_haste,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
@@ -29,7 +29,7 @@ for i in range(num_mages):
                   ))
         fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
     elif i == 2:
-        fm = Mage(name=f'1 crit',  sp=control_sp, crit=control_crit, hit=control_hit, haste=control_haste,
+        fm = Mage(name=f'1 crit',  sp=control_sp, crit=control_crit+1, hit=control_hit, haste=control_haste,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(

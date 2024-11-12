@@ -8,8 +8,7 @@ for i in range(num_mages):
         fm = Mage(name=f'test', sp=1095, crit=40.43, hit=16,
                   tal=IcicleMageTalents,
                   opts=MageOptions(use_frostnova_for_icicles=True,
-                                   start_with_ice_barrier=True,
-                                   frostbolt_rank=11),
+                                   start_with_ice_barrier=True),
                   )
     else:
         fm = Mage(name=f'mage{i}', sp=1095, crit=40.43, hit=16,
