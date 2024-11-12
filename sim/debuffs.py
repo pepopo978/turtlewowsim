@@ -64,7 +64,7 @@ class Debuffs:
             self.env.p(f"{self.env.time()} - Winters Chill stack {self.wc_stacks + 1} added")
 
         self.wc_stacks = min(self.wc_stacks + 1, 5)
-        self.wc_timer = 30
+        self.wc_timer = 15
 
     def _add_dot(self, dot_dict, dot, owner):
         if owner in dot_dict and dot_dict[owner].is_active():
