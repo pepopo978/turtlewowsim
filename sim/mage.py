@@ -308,15 +308,11 @@ class Mage(Character):
         if damage_type == DamageType.FIRE and self.tal.fire_power:
             dmg *= 1.1 if self.tal.fire_power == 5 else 1 + 0.02 * self.tal.fire_power
 
-        # Check if both Piercing Ice and Ice Barrier are active
-        if self.tal.piercing_ice and self.tal.ice_barrier and damage_type == DamageType.FROST and self._ice_barrier_active():
-            dmg *= 1.21  # Combined effect of Piercing Ice (1.06) and Ice Barrier (1.15)
-        else:
-            if self.tal.piercing_ice and damage_type == DamageType.FROST:
-                dmg *= 1.06
+        if self.tal.piercing_ice and damage_type == DamageType.FROST:
+            dmg *= 1.06
 
-            if self.tal.ice_barrier and damage_type == DamageType.FROST and self._ice_barrier_active():
-                dmg *= 1.15
+        if self.tal.ice_barrier and damage_type == DamageType.FROST and self._ice_barrier_active():
+            dmg *= 1.15
 
         return int(dmg)
 
