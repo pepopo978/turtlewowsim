@@ -9,7 +9,7 @@ reg_mage3 = Mage(name='mage3', sp=1008, crit=30.87, hit=16, haste=2, tal=FireMag
 # reg_mage3.smart_scorch_and_fireblast()
 # reg_mage4.smart_scorch_and_fireblast()
 
-reg_mage1.smart_scorch(cds=CooldownUsages(berserking30=10))
+reg_mage1.smart_scorch(cds=CooldownUsages(berserking15=10))
 reg_mage2.smart_scorch()
 reg_mage3.smart_scorch()
 

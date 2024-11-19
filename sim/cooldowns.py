@@ -159,6 +159,41 @@ class Berserking(Cooldown):
         self.character.remove_trinket_haste(self.name)
 
 
+class BloodFury(Cooldown):
+    @property
+    def duration(self):
+        return 15
+
+    @property
+    def cooldown(self):
+        return 120
+
+    def activate(self):
+        super().activate()
+        self.character.add_sp_bonus(60)
+
+    def deactivate(self):
+        super().deactivate()
+        self.character.remove_sp_bonus(60)
+
+
+class Perception(Cooldown):
+    @property
+    def duration(self):
+        return 20
+
+    @property
+    def cooldown(self):
+        return 180
+
+    def activate(self):
+        super().activate()
+        self.character.add_crit_bonus(2)
+
+    def deactivate(self):
+        super().deactivate()
+        self.character.remove_crit_bonus(2)
+
 class TOEP(Cooldown):
     # Talisman of Ephemeral Power
     DMG_BONUS = 175
@@ -440,6 +475,9 @@ class Cooldowns:
         self.toep = TOEP(character)
         self.reos = REOS(character)
         self.mqg = MQG(character)
-        self.berserking30 = Berserking(character, 30)
-        self.berserking20 = Berserking(character, 20)
+
+        # racials
+        self.berserking15 = Berserking(character, 15)
         self.berserking10 = Berserking(character, 10)
+        self.blood_fury = BloodFury(character)
+        self.perception = Perception(character)

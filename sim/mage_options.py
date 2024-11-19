@@ -4,6 +4,7 @@ from dataclasses import dataclass
 @dataclass(kw_only=True)
 class MageOptions:
     fullt2: bool = False
+    apply_undead_bonus: bool = False
 
     # Fire
     drop_suboptimal_ignites: bool = False  # cast frostbolt if scorch/fireblast/partial in ignite to drop ignite

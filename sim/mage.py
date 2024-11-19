@@ -314,6 +314,9 @@ class Mage(Character):
         if self.tal.ice_barrier and damage_type == DamageType.FROST and self._ice_barrier_active():
             dmg *= 1.15
 
+        if self.opts.apply_undead_bonus:
+            dmg *= 1.02
+
         return int(dmg)
 
     # caller must handle any gcd cooldown

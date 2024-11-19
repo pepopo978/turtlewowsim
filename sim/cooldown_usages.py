@@ -14,9 +14,12 @@ class CooldownUsages:
 
     # Buffs
     power_infusion: Optional[Union[float, List[float]]] = None
-    berserking30: Optional[Union[float, List[float]]] = None
-    berserking20: Optional[Union[float, List[float]]] = None
+
+    # Racials
+    berserking15: Optional[Union[float, List[float]]] = None
     berserking10: Optional[Union[float, List[float]]] = None
+    blood_fury: Optional[Union[float, List[float]]] = None
+    perception: Optional[Union[float, List[float]]] = None
 
     # Trinkets
     charm_of_magic: Optional[Union[float, List[float]]] = None

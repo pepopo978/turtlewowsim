@@ -4,22 +4,22 @@ mages = []
 num_mages = 2
 for i in range(num_mages):
     if i == 0:
-        fm = Mage(name=f'test', sp=990, crit=37, hit=16, haste=2,
+        fm = Mage(name=f'zerking', sp=1000, crit=40, hit=16, haste=0,
                   tal=ArcaneMageTalents,
-                  opts=MageOptions(t3_8_set=True, extra_second_arcane_missile=False),
+                  opts=MageOptions(t3_8_set=False, extra_second_arcane_missile=False),
                   equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
-                      wrath_of_cenarius=False,
+                      wrath_of_cenarius=True,
                       endless_gulch=False,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5, berserking15=5))
     else:
-        fm = Mage(name=f'reg', sp=1000, crit=40, hit=16, haste=0,
+        fm = Mage(name=f'reg', sp=1000, crit=40.4, hit=16, haste=0,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
                   equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
-                      wrath_of_cenarius=False,
+                      wrath_of_cenarius=True,
                       endless_gulch=False,
                   ))
 

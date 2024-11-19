@@ -93,6 +93,7 @@ class Character:
         self._cooldown_haste = {}
         self._consume_haste = {}
         self._sp_bonus = 0
+        self._crit_bonus = 0
 
         self.num_casts = {}
         self.used_cds = {}
@@ -197,7 +198,7 @@ class Character:
         return random.randint(1, 100) <= hit_chance + self.damage_type_hit[damage_type]
 
     def _roll_crit(self, crit_chance: float, damage_type: DamageType):
-        return random.randint(1, 100) <= crit_chance + self.damage_type_crit[damage_type]
+        return random.randint(1, 100) <= crit_chance + self._crit_bonus + self.damage_type_crit[damage_type]
 
     def roll_spell_dmg(self, min_dmg: int, max_dmg: int, spell_coeff: float, damage_type: DamageType):
         dmg = random.randint(min_dmg, max_dmg)
@@ -280,6 +281,12 @@ class Character:
 
     def remove_sp_bonus(self, sp):
         self._sp_bonus -= sp
+
+    def add_crit_bonus(self, crit):
+        self._crit_bonus += crit
+
+    def remove_crit_bonus(self, crit):
+        self._crit_bonus -= crit
 
     @property
     def dmg_modifier(self):

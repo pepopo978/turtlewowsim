@@ -343,7 +343,6 @@ class CooldownUsages:
     presence_of_mind: Optional[float] = None
     toep: Optional[float] = None
     mqg: Optional[float] = None
-    berserking30: Optional[float] = None
-    berserking20: Optional[float] = None
+    berserking15: Optional[float] = None
     berserking10: Optional[float] = None
 ```
