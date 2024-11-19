@@ -4,7 +4,7 @@ mages = []
 num_mages = 7
 
 base_sp = 1000
-base_crit = 100
+base_crit = 40
 base_hit = 14
 
 for i in range(num_mages):

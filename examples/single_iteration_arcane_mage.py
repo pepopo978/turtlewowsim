@@ -4,7 +4,7 @@ mages = []
 num_mages = 1
 
 for i in range(num_mages):
-    fm = Mage(name=f'mqg', sp=1000, crit=40, hit=16,
+    fm = Mage(name=f'mqg', sp=1000, crit=40.4, hit=16,
               tal=ArcaneMageTalents,
               opts=MageOptions(t3_8_set=True),
               equipped_items=EquippedItems(

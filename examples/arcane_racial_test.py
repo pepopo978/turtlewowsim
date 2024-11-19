@@ -1,10 +1,10 @@
 from _example_imports import *
 
 mages = []
-num_mages = 5
+num_mages = 6
 
 base_sp = 1000
-base_crit = 100
+base_crit = 40
 base_hit = 14
 
 for i in range(num_mages):
@@ -53,6 +53,15 @@ for i in range(num_mages):
                       wrath_of_cenarius=True,
                   ))
         fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=10, mqg=10, perception=10))
+    else:
+        fm = Mage(name=f'no racial', sp=base_sp, crit=base_crit, hit=base_hit,
+                  tal=ArcaneMageTalents,
+                  opts=MageOptions(),
+                  equipped_items=EquippedItems(
+                      ornate_bloodstone_dagger=False,
+                      wrath_of_cenarius=True,
+                  ))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=10, mqg=10))
 
     mages.append(fm)
 

@@ -192,13 +192,13 @@ class Character:
                         cooldown_obj.activate()
 
     def _roll_proc(self, proc_chance: float):
-        return random.randint(1, 100) <= proc_chance
+        return random.randint(1, 1000) <= 10 * proc_chance
 
     def _roll_hit(self, hit_chance: float, damage_type: DamageType):
-        return random.randint(1, 100) <= hit_chance + self.damage_type_hit[damage_type]
+        return random.randint(1, 1000) <= 10 * (hit_chance + self.damage_type_hit[damage_type])
 
     def _roll_crit(self, crit_chance: float, damage_type: DamageType):
-        return random.randint(1, 100) <= crit_chance + self._crit_bonus + self.damage_type_crit[damage_type]
+        return random.randint(1, 1000) <= 10 * (crit_chance + self._crit_bonus + self.damage_type_crit[damage_type])
 
     def roll_spell_dmg(self, min_dmg: int, max_dmg: int, spell_coeff: float, damage_type: DamageType):
         dmg = random.randint(min_dmg, max_dmg)
