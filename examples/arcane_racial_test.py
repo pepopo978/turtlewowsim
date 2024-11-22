@@ -16,7 +16,7 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=10, mqg=10))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=0, mqg=0))
     elif i == 1:
         fm = Mage(name=f'undead', sp=base_sp, crit=base_crit, hit=base_hit,
                   tal=ArcaneMageTalents,
@@ -25,7 +25,7 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=10, mqg=10))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=0, mqg=0))
     elif i == 2:
         fm = Mage(name=f'troll', sp=base_sp, crit=base_crit, hit=base_hit,
                   tal=ArcaneMageTalents,
@@ -34,7 +34,7 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=10, mqg=10, berserking10=10))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=0, mqg=0, berserking10=0))
     elif i == 3:
         fm = Mage(name=f'orc', sp=base_sp, crit=base_crit, hit=base_hit,
                   tal=ArcaneMageTalents,
@@ -43,7 +43,7 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=10, mqg=10, blood_fury=10))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=0, mqg=0, blood_fury=0))
     elif i == 4:
         fm = Mage(name=f'human', sp=base_sp, crit=base_crit, hit=base_hit,
                   tal=ArcaneMageTalents,
@@ -52,7 +52,7 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=10, mqg=10, perception=10))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=0, mqg=0, perception=0))
     else:
         fm = Mage(name=f'no racial', sp=base_sp, crit=base_crit, hit=base_hit,
                   tal=ArcaneMageTalents,

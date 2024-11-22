@@ -42,4 +42,4 @@ class WrathOfCenarius(ItemProc):
 
 
 class EndlessGulch(ItemProc):
-    PERCENT_CHANCE = 20
+    PERCENT_CHANCE = 12

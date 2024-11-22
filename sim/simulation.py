@@ -204,18 +204,19 @@ class Simulation:
                 print(f"{self._justify(label)}: {mean(self.results['resists'][char])}")
 
             print(f"------ Advanced Stats ------")
-            label = f"{char} DPS standard deviation"
-            print(f"{self._justify(label)}: {round(np.std(self.results['dps'][char]), 2)}")
-            label = f"{char} DPS min"
-            print(f"{self._justify(label)}: {np.min(self.results['dps'][char])}")
-            label = f"{char} DPS 25th percentile"
-            print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 25)}")
-            label = f"{char} DPS 50th percentile"
-            print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 50)}")
-            label = f"{char} DPS 75th percentile"
-            print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 75)}")
-            label = f"{char} DPS max"
-            print(f"{self._justify(label)}: {np.max(self.results['dps'][char])}")
+            for char in self.results['dps']:
+                label = f"{char} DPS standard deviation"
+                print(f"{self._justify(label)}: {round(np.std(self.results['dps'][char]), 2)}")
+                label = f"{char} DPS min"
+                print(f"{self._justify(label)}: {np.min(self.results['dps'][char])}")
+                label = f"{char} DPS 25th percentile"
+                print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 25)}")
+                label = f"{char} DPS 50th percentile"
+                print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 50)}")
+                label = f"{char} DPS 75th percentile"
+                print(f"{self._justify(label)}: {np.percentile(self.results['dps'][char], 75)}")
+                label = f"{char} DPS max"
+                print(f"{self._justify(label)}: {np.max(self.results['dps'][char])}")
 
             # label = f"{char} DPS Variance"
             # print(f"{self._justify(label)}: {np.var(self.results['dps'][char])}")

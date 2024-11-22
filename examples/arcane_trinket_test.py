@@ -25,7 +25,7 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, reos=5))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5, reos=55))
     elif i == 2:
         fm = Mage(name=f'charm_of_magic', sp=base_sp, crit=base_crit, hit=base_hit,
                   tal=ArcaneMageTalents,
@@ -34,18 +34,8 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, charm_of_magic=5))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5, charm_of_magic=55))
     elif i == 3:
-        fm = Mage(name=f'mqg_gulch', sp=base_sp+30, crit=base_crit, hit=base_hit,
-                  tal=ArcaneMageTalents,
-                  opts=MageOptions(),
-                  equipped_items=EquippedItems(
-                      ornate_bloodstone_dagger=False,
-                      wrath_of_cenarius=True,
-                      endless_gulch=True,
-                  ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
-    elif i == 4:
         fm = Mage(name=f'eye of dim', sp=base_sp, crit=base_crit+3, hit=base_hit,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
@@ -53,8 +43,8 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5))
-    elif i == 5:
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
+    elif i == 4:
         fm = Mage(name=f'gulch', sp=base_sp+30, crit=base_crit, hit=base_hit,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
@@ -63,8 +53,8 @@ for i in range(num_mages):
                       wrath_of_cenarius=True,
                       endless_gulch=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5))
-    elif i == 6:
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
+    elif i == 5:
         fm = Mage(name=f'tear', sp=base_sp+44, crit=base_crit, hit=base_hit+2,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(),
@@ -73,7 +63,7 @@ for i in range(num_mages):
                       wrath_of_cenarius=True,
                       endless_gulch=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
     else:
         fm = Mage(name=f'mark of champ', sp=1085, crit=base_crit, hit=base_hit,
                   tal=ArcaneMageTalents,
@@ -82,7 +72,7 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
 
 
     mages.append(fm)
