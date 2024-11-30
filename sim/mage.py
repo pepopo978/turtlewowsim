@@ -49,8 +49,6 @@ class Mage(Character):
             self.damage_type_crit_mult[DamageType.ARCANE] += self.tal.arcane_potency * 0.25
 
         self._ice_barrier_expiration = 0
-        if opts.start_with_ice_barrier:
-            self._ice_barrier_expiration = opts.starting_ice_barrier_duration
 
     def reset(self):
         super().reset()
@@ -74,6 +72,9 @@ class Mage(Character):
 
         if self.tal.hot_streak:
             self.hot_streak = HotStreak(env, self)
+
+        if self.opts.start_with_ice_barrier:
+            self._ice_barrier_expiration = self.opts.starting_ice_barrier_duration
 
     def _ice_barrier_active(self):
         return self._ice_barrier_expiration >= self.env.now

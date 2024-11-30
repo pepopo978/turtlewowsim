@@ -25,7 +25,7 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5, reos=55))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5, reos=30))
     elif i == 2:
         fm = Mage(name=f'charm_of_magic', sp=base_sp, crit=base_crit, hit=base_hit,
                   tal=ArcaneMageTalents,
@@ -34,7 +34,7 @@ for i in range(num_mages):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5, charm_of_magic=55))
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5, charm_of_magic=30))
     elif i == 3:
         fm = Mage(name=f'eye of dim', sp=base_sp, crit=base_crit+3, hit=base_hit,
                   tal=ArcaneMageTalents,
@@ -78,5 +78,5 @@ for i in range(num_mages):
     mages.append(fm)
 
 sim = Simulation(characters=mages)
-sim.run(iterations=10000, duration=120, print_casts=False)
+sim.run(iterations=10000, duration=50, print_casts=False)
 sim.detailed_report()
