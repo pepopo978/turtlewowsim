@@ -29,6 +29,12 @@ class Spell(Enum):
     ICICLES_CHANNEL = "Icicles Channel"
     ICICLE = "Icicle"
 
+    # Druid
+    MOONFIRE = "Moonfire"
+    WRATH = "Wrath"
+    STARFIRE = "Starfire"
+    INSECT_SWARM = "Insect Swarm"
+
     # Proc Spells
     ENGULFING_SHADOWS = "ENGULFING_SHADOWS"  # Blade of Eternal Darkness
     BURNING_HATRED = "Burning Hatred"  # Ornate Bloodstone Dagger
@@ -54,6 +60,12 @@ SPELL_COEFFICIENTS = {
     Spell.FROST_NOVA: 0.1357,
     Spell.CONE_OF_COLD: 0.1357,
     Spell.ICICLE: 0.4,
+
+    # Druid
+    Spell.MOONFIRE: 0.1495,
+    Spell.WRATH: 0.6214, # turtle added 5% guessing they meant a flat amount
+    Spell.STARFIRE: 1.0,
+    Spell.INSECT_SWARM: 0.158,
 
     # Proc Spells
     Spell.ENGULFING_SHADOWS: 0,  # Blade of Eternal Darkness
@@ -82,6 +94,12 @@ SPELL_TRIGGERS_ON_HIT = {
     Spell.FROST_NOVA: True,
     Spell.CONE_OF_COLD: True,
     Spell.ICICLE: True,
+
+    # Druid
+    Spell.MOONFIRE: True,
+    Spell.WRATH: True,
+    Spell.STARFIRE: True,
+    Spell.INSECT_SWARM: False,
 
     # Proc Spells
     Spell.ENGULFING_SHADOWS: False,  # Blade of Eternal Darkness

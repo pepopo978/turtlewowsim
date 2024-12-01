@@ -1,5 +1,7 @@
+from sim.arcane_dots import MoonfireDot
 from sim.character import Character
 from sim.fire_dots import PyroblastDot, FireballDot, ImmolateDot
+from sim.nature_dots import InsectSwarmDot
 from sim.shadow_dots import CorruptionDot, CurseOfAgonyDot
 from sim.spell_school import DamageType
 
@@ -22,6 +24,8 @@ class Debuffs:
         self.corruption_dots = {}  # owner  -> CorruptionDot
         self.curse_of_agony_dots = {}  # owner  -> CurseOfAgonyDot
         self.immolate_dots = {}  # owner  -> ImmolateDot
+        self.insect_swarm_dots = {}  # owner  -> InsectSwarmDot
+        self.moonfire_dots = {}  # owner  -> MoonfireDot
 
     @property
     def has_coe(self):
@@ -106,6 +110,18 @@ class Debuffs:
 
     def add_curse_of_shadows_dot(self):
         self.cos_timer = 300
+
+    def is_insect_swarm_active(self, owner):
+        return owner in self.insect_swarm_dots and self.insect_swarm_dots[owner].is_active()
+
+    def add_insect_swarm_dot(self, owner):
+        self._add_dot(self.insect_swarm_dots, InsectSwarmDot, owner)
+
+    def is_moonfire_active(self, owner):
+        return owner in self.moonfire_dots and self.moonfire_dots[owner].is_active()
+
+    def add_moonfire_dot(self, owner):
+        self._add_dot(self.moonfire_dots, MoonfireDot, owner)
 
     def run(self):
         while True:
