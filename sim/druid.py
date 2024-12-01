@@ -28,6 +28,8 @@ class Druid(Character):
         super().__init__(tal, name, sp, crit, hit, haste, lag, equipped_items)
         self.tal = tal
         self.opts = opts
+        self.nature_eclipse_rotation = None
+        self.arcane_eclipse_rotation = None
 
     def reset(self):
         super().reset()
@@ -273,8 +275,6 @@ class Druid(Character):
             max_dmg = int(max_dmg)
             crit_modifier = 5 * self.tal.imp_moonfire
 
-
-
         yield from self._nature_spell(spell=Spell.MOONFIRE,
                                       min_dmg=min_dmg,
                                       max_dmg=max_dmg,
@@ -321,45 +321,121 @@ class Druid(Character):
         # use rank 2 to get full spell coefficient
         min_dmg = 278
         max_dmg = 313
-        casting_time = 2.0
+        casting_time = 0
         crit_modifier = 0
 
         yield from self._nature_dot(spell=Spell.INSECT_SWARM,
                                     base_cast_time=casting_time)
 
-    def _starfire_insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+    # subrotations for different eclipse states
+    def insect_swarm_wrath_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        if not self.env.debuffs.is_insect_swarm_active(self):
+            yield from self._insect_swarm()
+        else:
+            yield from self._wrath()
+
+    def moonfire_starfire_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        if not self.env.debuffs.is_moonfire_active(self):
+            yield from self._moonfire()
+        else:
+            yield from self._starfire()
+
+    def set_nature_eclipse_subrotation(self, rotation):
+        self.nature_eclipse_rotation = rotation
+
+    def set_arcane_eclipse_subrotation(self, rotation):
+        self.arcane_eclipse_rotation = rotation
+
+    def _base_rotation(self, cds: CooldownUsages = CooldownUsages(), delay=2, rotation_callback=None):
         self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(cds)
-            if self.nature_eclipse.is_active():
-                if not self.env.debuffs.is_insect_swarm_active(self):
-                    yield from self._insect_swarm()
-                else:
-                    yield from self._wrath()
+            if self.nature_eclipse.is_active() and self.nature_eclipse_rotation and not self.opts.ignore_nature_eclipse:
+                yield from self.nature_eclipse_rotation(self)
+            elif self.arcane_eclipse.is_active() and self.arcane_eclipse_rotation and not self.opts.ignore_arcane_eclipse:
+                yield from self.arcane_eclipse_rotation(self)
+            elif rotation_callback:
+                yield from rotation_callback()
+
+    # Regular rotations when not in eclipse
+    def _spam_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        def _rotation_callback():
+            yield from self._starfire()
+
+        return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
+
+    def _spam_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        def _rotation_callback():
+            yield from self._wrath()
+
+        return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
+
+    def _moonfire_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        def _rotation_callback():
+            if not self.env.debuffs.is_moonfire_active(self):
+                yield from self._moonfire()
             else:
                 yield from self._starfire()
 
-    def _moonfire_starfire_moonfire_insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        self._use_cds(cds)
-        yield from self._random_delay(delay)
+        return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
 
-        while True:
-            self._use_cds(cds)
-            if self.nature_eclipse.is_active():
-                if not self.env.debuffs.is_insect_swarm_active(self):
-                    yield from self._insect_swarm()
-                else:
-                    yield from self._wrath()
+    def _insect_swarm_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        def _rotation_callback():
+            if not self.env.debuffs.is_insect_swarm_active(self):
+                yield from self._insect_swarm()
             else:
-                if not self.env.debuffs.is_moonfire_active(self):
-                    yield from self._moonfire()
-                else:
-                    yield from self._starfire()
+                yield from self._starfire()
 
-    def starfire_insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="starfire_insect_swarm_wrath")(cds=cds, delay=delay)
+        return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
 
-    def moonfire_starfire_moonfire_insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="moonfire_starfire_moonfire_insect_swarm_wrath")(cds=cds, delay=delay)
+    def _insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        def _rotation_callback():
+            if not self.env.debuffs.is_insect_swarm_active(self):
+                yield from self._insect_swarm()
+            else:
+                yield from self._wrath()
+
+        return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
+
+    def _moonfire_insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        def _rotation_callback():
+            if not self.env.debuffs.is_moonfire_active(self):
+                yield from self._moonfire()
+            elif not self.env.debuffs.is_insect_swarm_active(self):
+                yield from self._insect_swarm()
+            else:
+                yield from self._wrath()
+
+        return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
+
+    def _moonfire_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        def _rotation_callback():
+            if not self.env.debuffs.is_moonfire_active(self):
+                yield from self._moonfire()
+            else:
+                yield from self._wrath()
+
+        return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
+
+    def spam_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="spam_starfire")(cds=cds, delay=delay)
+
+    def spam_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="spam_wrath")(cds=cds, delay=delay)
+
+    def moonfire_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="moonfire_starfire")(cds=cds, delay=delay)
+
+    def insect_swarm_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="insect_swarm_starfire")(cds=cds, delay=delay)
+
+    def insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="insect_swarm_wrath")(cds=cds, delay=delay)
+
+    def moonfire_insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="moonfire_insect_swarm_wrath")(cds=cds, delay=delay)
+
+    def moonfire_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="moonfire_wrath")(cds=cds, delay=delay)

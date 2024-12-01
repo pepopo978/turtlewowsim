@@ -3,18 +3,20 @@ from sim.druid import Druid
 from sim.druid_options import DruidOptions
 from sim.druid_talents import BoomkinTalents
 
-druids = []
+boomkins = []
 num_boomkins = 1
 
 for i in range(num_boomkins):
-    d = Druid(name=f'druid', sp=1000, crit=40.4, hit=16,
+    d = Druid(name=f'test', sp=1000, crit=40, hit=16, haste=0,
               tal=BoomkinTalents,
-              opts=DruidOptions(),
+              opts=DruidOptions(ignore_arcane_eclipse=False, ignore_nature_eclipse=True),
               equipped_items=EquippedItems())
-    d.starfire_insect_swarm_wrath()
-    druids.append(d)
+    d.moonfire_insect_swarm_wrath(cds=CooldownUsages())
+    d.set_arcane_eclipse_subrotation(d.moonfire_starfire_subrotation)
+    d.set_nature_eclipse_subrotation(d.insect_swarm_wrath_subrotation)
+    boomkins.append(d)
 
 env = Environment(print_dots=True)
-env.add_characters(druids)
+env.add_characters(boomkins)
 env.run(until=120)
 env.meter.report()
