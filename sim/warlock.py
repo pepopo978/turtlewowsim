@@ -59,6 +59,9 @@ class Warlock(Character):
         self.tal = tal
         self.opts = opts
 
+        #TODO Update for 1.17.2
+        print("Warlock is not yet updated for 1.17.2")
+
         # Warlock
         self.nightfall = False
 
