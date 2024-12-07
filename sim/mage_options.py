@@ -21,7 +21,6 @@ class MageOptions:
     keep_ice_barrier_up: bool = False  # keep ice barrier up
     start_with_ice_barrier: bool = False  # start with ice barrier without having to cast it
     starting_ice_barrier_duration: int = 55  # duration of ice barrier at start, assumes you cast 5s before pull
-    icicle_hit_bug: bool = True  # icicle not benefiting from elemental precision
 
     # Arcane
     use_presence_of_mind_on_cd: bool = True

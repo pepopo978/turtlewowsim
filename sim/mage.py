@@ -111,6 +111,25 @@ class Mage(Character):
             else:
                 yield from self._arcane_missiles_channel()
 
+    def _arcane_surge_fireblast_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(cds)
+
+            if self.arcane_surge_cd.usable and not self.has_trinket_or_cooldown_haste():
+                yield from self._arcane_surge()
+            elif self.fire_blast_cd.usable and not self.has_trinket_or_cooldown_haste():
+                yield from self._fire_blast()
+            elif self.arcane_rupture_cd.usable:
+                # if pom available, use it on rupture
+                if self.opts.use_presence_of_mind_on_cd and self.cds.presence_of_mind.usable:
+                    self.cds.presence_of_mind.activate()
+                yield from self._arcane_rupture()
+            else:
+                yield from self._arcane_missiles_channel()
+
     def _arcane_rupture_surge_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
         yield from self._random_delay(delay)
@@ -297,9 +316,6 @@ class Mage(Character):
             raise ValueError(f"Unknown spell {spell}")
 
     def _get_hit_chance(self, spell: Spell, is_binary=False):
-        if self.opts.icicle_hit_bug and spell == Spell.ICICLE:
-            return min(77 + self.hit, 99)
-
         # elemental precision assumed to be included in hit already
         return min(83 + self.hit, 99)
 
@@ -818,6 +834,9 @@ class Mage(Character):
 
     def arcane_surge_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="arcane_surge_rupture_missiles")(cds=cds, delay=delay)
+
+    def arcane_surge_fireblast_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="arcane_surge_fireblast_rupture_missiles")(cds=cds, delay=delay)
 
     def arcane_rupture_surge_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="arcane_rupture_surge_missiles")(cds=cds, delay=delay)
