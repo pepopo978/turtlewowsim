@@ -345,7 +345,7 @@ class Mage(Character):
             if casting_time == 0:
                 cooldown += self.lag
 
-        hit = self._roll_hit(self._get_hit_chance(spell), damage_type)
+        hit = self._roll_hit(self._get_hit_chance(spell), damage_type) if spell != Spell.ARCANE_SURGE else True # arcane surge always hits
         crit = False
         dmg = 0
         arcane_instability_hit = False

@@ -1,10 +1,10 @@
 from _example_imports import *
 
 mages = []
-num_mages = 1
+num_mages = 3
 for i in range(num_mages):
     if i == 0:
-        fm = Mage(name=f'test', sp=1000, crit=40, hit=16, haste=0,
+        fm = Mage(name=f'arcane_surge_rupture_missiles', sp=1000, crit=40, hit=16, haste=0,
                   tal=ArcaneMageTalents,
                   opts=MageOptions(t3_8_set=False, extra_second_arcane_missile=False),
                   equipped_items=EquippedItems(
@@ -12,20 +12,29 @@ for i in range(num_mages):
                       wrath_of_cenarius=True,
                       endless_gulch=False,
                   ))
-        fm.arcane_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5, berserking15=5))
-    else:
-        fm = Mage(name=f'reg', sp=1000, crit=40.4, hit=16, haste=0,
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
+    elif i==1:
+        fm = Mage(name=f'arcane_rupture_missiles', sp=1000, crit=40, hit=16, haste=0,
                   tal=ArcaneMageTalents,
-                  opts=MageOptions(),
+                  opts=MageOptions(t3_8_set=False, extra_second_arcane_missile=False),
                   equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                       endless_gulch=False,
                   ))
-
-        fm.arcane_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
+        fm.arcane_rupture_missiles(cds=CooldownUsages())
+    else:
+        fm = Mage(name=f'arcane_missiles', sp=1000, crit=40, hit=16, haste=0,
+                  tal=ArcaneMageTalents,
+                  opts=MageOptions(t3_8_set=False, extra_second_arcane_missile=False),
+                  equipped_items=EquippedItems(
+                      ornate_bloodstone_dagger=False,
+                      wrath_of_cenarius=True,
+                      endless_gulch=False,
+                  ))
+        fm.arcane_missiles(cds=CooldownUsages())
     mages.append(fm)
 
 sim = Simulation(characters=mages)
-sim.run(iterations=10000, duration=127, print_casts=False)
+sim.run(iterations=10000, duration=120, print_casts=False)
 sim.detailed_report()
