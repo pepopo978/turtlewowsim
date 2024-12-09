@@ -120,13 +120,13 @@ class Mage(Character):
 
             if self.arcane_surge_cd.usable and not self.has_trinket_or_cooldown_haste():
                 yield from self._arcane_surge()
-            elif self.fire_blast_cd.usable and not self.has_trinket_or_cooldown_haste():
-                yield from self._fire_blast()
             elif self.arcane_rupture_cd.usable:
                 # if pom available, use it on rupture
                 if self.opts.use_presence_of_mind_on_cd and self.cds.presence_of_mind.usable:
                     self.cds.presence_of_mind.activate()
                 yield from self._arcane_rupture()
+            elif self.fire_blast_cd.usable and not self.has_trinket_or_cooldown_haste():
+                yield from self._fire_blast()
             else:
                 yield from self._arcane_missiles_channel()
 
@@ -391,7 +391,7 @@ class Mage(Character):
             self.num_resists += 1
 
         is_binary_spell = spell in {Spell.FROSTBOLT, Spell.FROSTBOLTRK4, Spell.FROSTBOLTRK3, Spell.FROST_NOVA,
-                                    Spell.CONE_OF_COLD}
+                                    Spell.CONE_OF_COLD, Spell.ARCANE_SURGE}
 
         partial_amount = self.roll_partial(is_dot=False, is_binary=is_binary_spell)
         partial_desc = ""

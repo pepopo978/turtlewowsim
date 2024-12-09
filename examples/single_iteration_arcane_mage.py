@@ -12,7 +12,7 @@ for i in range(num_mages):
                   wrath_of_cenarius=True,
                   endless_gulch=False,
               ))
-    fm.arcane_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
+    fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
     mages.append(fm)
 
 env = Environment()
