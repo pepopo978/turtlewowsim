@@ -70,6 +70,14 @@ class Ignite:
             self.owner = mage
             self.ticks_left = 2
 
+            if partial:
+                self.contains_partial = True
+
+            if spell == Spell.SCORCH:
+                self.contains_scorch = True
+            elif spell == Spell.FIREBLAST:
+                self.contains_fire_blast = True
+
             # start tick thread
             self.env.process(self.run(self.ignite_id))
 
@@ -107,8 +115,10 @@ class Ignite:
                 self._do_dmg()
 
                 if self.ticks_left == 0:
-                    time_left = self.last_crit_time + IGNITE_WINDOW - self.env.now
+                    time_left = self.last_crit_time + IGNITE_WINDOW - self.env.now + .001 # add a small amount to prevent rounding errors
                     self.env.process(self.check_for_drop_after(time_left))
+            else:
+                self.check_for_drop()
 
     def _do_dmg(self):
         self.record_uptimes()

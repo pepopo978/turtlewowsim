@@ -17,13 +17,11 @@ class HotStreak:
     def add_stack(self):
         if self.stacks < 9:
             self.stacks += 1
-            self.character.print(f"Hot Streak stacks: {self.stacks}")
         self.last_crit_time = self.env.now
 
     def get_stacks(self):
         # reset stacks if more than 30 seconds have passed since last crit
         if self.env.now - self.last_crit_time > 30:
-            self.character.print(f"Hot Streak stacks reset")
             self.stacks = 0
 
         return self.stacks

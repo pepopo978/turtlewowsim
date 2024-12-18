@@ -8,7 +8,7 @@ for i in range(num_mages):
               tal=ArcaneMageTalents,
               opts=MageOptions(t3_8_set=False),
               equipped_items=EquippedItems(
-                  ornate_bloodstone_dagger=False,
+                  ornate_bloodstone_dagger=True,
                   wrath_of_cenarius=True,
                   endless_gulch=False,
               ))
