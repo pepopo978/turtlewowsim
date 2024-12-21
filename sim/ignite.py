@@ -5,7 +5,7 @@ from sim.env import Environment
 from sim.mage import Mage, Spell
 
 IGNITE_WINDOW = 6
-IGNITE_TICK_TIME = 3
+IGNITE_TICK_TIME = 2
 
 
 class Ignite:
@@ -52,7 +52,7 @@ class Ignite:
 
         if self.active:
             if self.stacks <= 4:
-                self.tick_dmg += dmg * (.04 * ignite_talent_points)
+                self.tick_dmg += dmg * (.02667 * ignite_talent_points)
                 self.stacks += 1
                 if partial:
                     self.contains_partial = True
@@ -62,13 +62,13 @@ class Ignite:
                 elif spell == Spell.FIREBLAST:
                     self.contains_fire_blast = True
 
-            self.ticks_left = 2
+            self.ticks_left = 3
         else:  # new ignite
             self.active = True
-            self.tick_dmg = dmg * (.04 * ignite_talent_points)
+            self.tick_dmg = dmg * (.02667 * ignite_talent_points)
             self.stacks = 1
             self.owner = mage
-            self.ticks_left = 2
+            self.ticks_left = 3
 
             if partial:
                 self.contains_partial = True
