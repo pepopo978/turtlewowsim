@@ -572,7 +572,7 @@ class Mage(Character):
             return
 
         # check for hot streak pyroblast
-        if self.hot_streak and self.hot_streak.get_stacks() == 9 and self.opts.pyro_on_9_hot_streak:
+        if self.hot_streak and self.hot_streak.get_stacks() == 5 and self.opts.pyro_on_max_hot_streak:
             self.print("Hot Streak Pyroblast")
             self.hot_streak.use_stacks()
             yield from self._pyroblast(casting_time=1.5)

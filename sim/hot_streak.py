@@ -15,7 +15,7 @@ class HotStreak:
         self.num_usages = 0
 
     def add_stack(self):
-        if self.stacks < 9:
+        if self.stacks < 5:
             self.stacks += 1
         self.last_crit_time = self.env.now
 

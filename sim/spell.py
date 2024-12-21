@@ -49,7 +49,7 @@ SPELL_COEFFICIENTS = {
     # Mage
     Spell.ARCANE_MISSILE: 0.328,
     Spell.ARCANE_SURGE: 0.65,
-    Spell.ARCANE_RUPTURE: 1.0,
+    Spell.ARCANE_RUPTURE: 0.9,
     Spell.FIREBALL: 1.0,
     Spell.PYROBLAST: 1.0,
     Spell.SCORCH: 0.4285,

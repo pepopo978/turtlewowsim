@@ -12,7 +12,7 @@ class MageOptions:
     extend_ignite_with_fire_blast: bool = False  # extend ignite with fire blast (prio over scorch)
     extend_ignite_with_scorch: bool = False  # extend ignite with scorch
     pyro_on_t2_proc: bool = True
-    pyro_on_9_hot_streak: bool = True  # cast pyroblast on 9 stacks of hot streak
+    pyro_on_max_hot_streak: bool = True  # cast pyroblast on 5 stacks of hot streak
 
     # Frost
     frostbolt_rank: int = 11  # only ranks 11, 4, 3 are supported.  defaults to 11 for unknown ranks
