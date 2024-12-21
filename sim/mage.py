@@ -60,6 +60,7 @@ class Mage(Character):
     def _setup_cds(self):
         self.fire_blast_cd = FireBlastCooldown(self, self.tal.fire_blast_cooldown)
         self.frost_nova_cd = FrostNovaCooldown(self, self.tal.frost_nova_cooldown)
+        self.cold_snap_cd = ColdSnapCooldown(self)
         self.icicles_cd = IciclesCooldown(self)
         self.arcane_rupture_cd = ArcaneRuptureCooldown(self, self.tal.accelerated_arcana)
         self.arcane_surge_cd = ArcaneSurgeCooldown(self, self.tal.accelerated_arcana)
@@ -193,6 +194,9 @@ class Mage(Character):
                 self._flash_freeze_proc = False
                 yield from self._icicles_channel(channel_time=1.0)
             elif self.opts.use_frostnova_for_icicles and self.frost_nova_cd.usable:
+                yield from self._frost_nova()
+            elif self.opts.use_frostnova_for_icicles and self.opts.use_cold_snap_for_nova and self.cold_snap_cd.usable:
+                self.cold_snap_cd.activate()
                 yield from self._frost_nova()
             elif self.opts.use_icicles_without_flash_freeze and self.icicles_cd.usable:
                 yield from self._icicles_channel()
@@ -721,7 +725,7 @@ class Mage(Character):
                                                                           calculate_cast_time=calculate_cast_time)
 
         if hit:
-            if self.tal.winters_chill:
+            if self.tal.winters_chill and spell != Spell.FROST_NOVA:
                 # roll for whether debuff hits
                 winters_chill_hit = self._roll_hit(self._get_hit_chance(spell), DamageType.FROST)
                 if winters_chill_hit:
@@ -781,8 +785,10 @@ class Mage(Character):
 
     def _frost_nova(self):
         # use rank 2 to get full spell coefficient
-        min_dmg = 33
-        max_dmg = 38
+        # min_dmg = 33
+        # max_dmg = 38
+        min_dmg = 0
+        max_dmg = 0 # assume target is immune and takes no dmg
         casting_time = 0
         crit_modifier = 0
 

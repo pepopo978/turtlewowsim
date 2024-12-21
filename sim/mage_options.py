@@ -21,6 +21,7 @@ class MageOptions:
     keep_ice_barrier_up: bool = False  # keep ice barrier up
     start_with_ice_barrier: bool = False  # start with ice barrier without having to cast it
     starting_ice_barrier_duration: int = 55  # duration of ice barrier at start, assumes you cast 5s before pull
+    use_cold_snap_for_nova: bool = False  # use cold snap to reset frost nova
 
     # Arcane
     use_presence_of_mind_on_cd: bool = True

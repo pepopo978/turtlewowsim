@@ -21,11 +21,63 @@ class FrostNovaCooldown(Cooldown):
     def __init__(self, character: Character, cooldown: float):
         super().__init__(character)
         self._cd = cooldown
+        self._cast_number = 0
 
     @property
     def cooldown(self):
         return self._cd
 
+    # need special handling for when cooldown ends due to possibility of cooldown reset
+    def activate(self):
+        if self.usable:
+            self._active = True
+            if self.PRINTS_ACTIVATION:
+                self.character.print(f"{self.name} activated")
+
+            cooldown = self.cooldown
+            if self.STARTS_CD_ON_ACTIVATION and cooldown:
+                self._on_cooldown = True
+
+                def callback(self, cooldown, cast_number):
+                    yield self.env.timeout(cooldown)
+                    # if cooldown got reset already, do nothing
+                    if cast_number == self._cast_number:
+                        if self.PRINTS_ACTIVATION:
+                            self.character.print(f"{self.name} cooldown ended after {cooldown} seconds")
+
+                        self._on_cooldown = False
+                        self._cast_number += 1
+
+                self.character.env.process(callback(self, cooldown, self._cast_number))
+
+            if self.duration:
+                def callback(self):
+                    yield self.character.env.timeout(self.duration)
+                    self.deactivate()
+
+                self.character.env.process(callback(self))
+            else:
+                self.deactivate()
+
+    def reset_cooldown(self):
+        if self.PRINTS_ACTIVATION:
+            self.character.print(f"{self.name} cooldown reset")
+        self._cast_number += 1
+        self._on_cooldown = False
+
+class ColdSnapCooldown(Cooldown):
+    PRINTS_ACTIVATION = False
+
+    @property
+    def cooldown(self):
+        return 600
+
+    def activate(self):
+        if self.usable:
+            super().activate()
+            # reset all frost cooldowns (only frost nova for now)
+            if hasattr(self.character, 'frost_nova_cd'):
+                self.character.frost_nova_cd.reset_cooldown()
 
 class IciclesCooldown(Cooldown):
     PRINTS_ACTIVATION = False

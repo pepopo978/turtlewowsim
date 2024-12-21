@@ -8,6 +8,7 @@ for i in range(num_mages):
               tal=IcicleMageTalents,
               opts=MageOptions(
                   use_frostnova_for_icicles=True,
+                  use_cold_snap_for_nova=True,
                   start_with_ice_barrier=True))
     fm.icicle_frostbolts()
     mages.append(fm)
