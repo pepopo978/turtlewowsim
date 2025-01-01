@@ -72,5 +72,6 @@ ArcaneMageTalents = MageTalents(
     resonance_cascade=3,
     arcane_power=True,
     fire_blast_gcd=1.0,
-    fire_blast_cooldown=6.5
+    fire_blast_cooldown=6.5,
+    ignite=True,
 )

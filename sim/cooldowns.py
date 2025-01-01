@@ -85,31 +85,6 @@ class Cooldown:
             self.character.env.process(callback(self, cooldown))
 
 
-class PowerInfusion(Cooldown):
-    DURATION = 15
-    DMG_MOD = 0.2
-
-    @property
-    def duration(self):
-        return 15
-
-    @property
-    def cooldown(self):
-        return 180
-
-    @property
-    def usable(self):
-        return not self._active and not self.on_cooldown and not self.character.cds.arcane_power.is_active()
-
-    def activate(self):
-        super().activate()
-        self.character.add_dmg_modifier(self.DMG_MOD)
-
-    def deactivate(self):
-        super().deactivate()
-        self.character.remove_dmg_modifier(self.DMG_MOD)
-
-
 class MQG(Cooldown):
     # Mind Quickening Gem
     @property
@@ -119,10 +94,6 @@ class MQG(Cooldown):
     @property
     def cooldown(self):
         return 300
-
-    @property
-    def usable(self):
-        return super().usable and not self.character.cds.toep.is_active()
 
     def activate(self):
         super().activate()
@@ -145,10 +116,6 @@ class Berserking(Cooldown):
     def __init__(self, character: Character, haste: float):
         super().__init__(character)
         self.haste = haste
-
-    @property
-    def usable(self):
-        return not self._active and not self.on_cooldown
 
     def activate(self):
         super().activate()
@@ -206,10 +173,6 @@ class TOEP(Cooldown):
     def cooldown(self):
         return 90
 
-    @property
-    def usable(self):
-        return super().usable and not self.character.cds.mqg.is_active()
-
     def activate(self):
         super().activate()
         self.character.add_sp_bonus(self.DMG_BONUS)
@@ -230,10 +193,6 @@ class REOS(Cooldown):
     @property
     def cooldown(self):
         return 120
-
-    @property
-    def usable(self):
-        return super().usable and not self.character.cds.mqg.is_active() and not self.character.cds.toep.is_active()
 
     def activate(self):
         super().activate()
@@ -308,10 +267,6 @@ class ArcanePower(Cooldown):
     @property
     def duration(self):
         return 20
-
-    @property
-    def usable(self):
-        return not self._active and not self.on_cooldown and not self.character.cds.power_infusion.is_active()
 
     def activate(self):
         super().activate()
@@ -399,10 +354,6 @@ class EndlessGulchBuff(Cooldown):
     def duration(self):
         return 15
 
-    @property
-    def usable(self):
-        return not self._active and not self.on_cooldown
-
     # need special handling for when cooldown ends due to possibility of refresh
     def activate(self):
         if self.usable:
@@ -458,8 +409,6 @@ class CharmOfMagic(Cooldown):
 
 class Cooldowns:
     def __init__(self, character):
-        self.power_infusion = PowerInfusion(character)
-
         # mage cds
         has_accelerated_arcana = False
         if hasattr(character.tal, "accelerated_arcana"):

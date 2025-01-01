@@ -331,8 +331,8 @@ Some currently supported rotations are:
      
 
 You can pass as arguments to each rotation when you want each mage to attempt
-to activate their cooldowns. For example `mage1.one_scorch_one_pyro_then_fb(cds=CooldownUsages(arcane_power=5, power_infusion=6, mqg=7))
-` will tell the first mage to attempt to activate arcane_power at 5 seconds, power_infusion at 6 seconds and mqg at 7 seconds.
+to activate their cooldowns. For example `mage1.one_scorch_one_pyro_then_fb(cds=CooldownUsages(arcane_power=5, mqg=7))
+` will tell the first mage to attempt to activate arcane_power at 5 seconds and mqg at 7 seconds.
 
 Available cooldowns are:
 ```

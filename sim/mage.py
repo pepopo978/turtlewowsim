@@ -340,6 +340,33 @@ class Mage(Character):
 
         return int(dmg)
 
+    def check_for_ignite_extend(self, spell: Spell):
+        has_5_stack_scorch = self.env.debuffs.scorch_stacks == 5
+        has_5_stack_ignite = self.env.ignite and self.env.ignite.stacks == 5
+
+        has_ignite_extend_option = self.opts.extend_ignite_with_fire_blast or self.opts.extend_ignite_with_scorch
+
+        return (has_5_stack_scorch and
+                has_5_stack_ignite and
+                has_ignite_extend_option and
+                spell not in (Spell.FIREBLAST, Spell.SCORCH)) # if already casting fireblast or scorch, don't use extend ignite logic
+
+    def extend_ignite(self):
+        # check that spell is not already fireblast or scorch
+        ignite_time_remaining = self.env.ignite.time_remaining
+        if ignite_time_remaining <= self.opts.remaining_seconds_for_ignite_extend:
+            if self.opts.extend_ignite_with_fire_blast and self.fire_blast_cd.usable:
+                yield from self._fire_blast()
+                return True
+
+
+            scorch_cast_time = self._get_cast_time(1.5, DamageType.FIRE) + self.lag
+            if self.opts.extend_ignite_with_scorch and ignite_time_remaining > scorch_cast_time:
+                yield from self._scorch()
+                return True
+
+        return False
+
     # caller must handle any gcd cooldown
     def _spell(self,
                spell: Spell,
@@ -459,6 +486,12 @@ class Mage(Character):
                       on_gcd: bool = True,
                       calculate_cast_time: bool = True):
 
+        # check if we need to extend ignite instead of casting intended spell
+        if self.check_for_ignite_extend(spell):
+            cast_spell = yield from self.extend_ignite()
+            if cast_spell:
+                return
+
         crit_modifier += self.tal.arcane_impact * 2
 
         hit, crit, dmg, cooldown, partial_amount = yield from self._spell(spell=spell,
@@ -565,8 +598,13 @@ class Mage(Character):
                     crit_modifier: float,
                     cooldown: float = 0.0,
                     on_gcd: bool = True):
+        # check if we need to extend ignite instead of casting intended spell
+        if self.check_for_ignite_extend(spell):
+            cast_spell = yield from self.extend_ignite()
+            if cast_spell:
+                return
+
         # check for ignite conditions
-        has_5_stack_scorch = self.env.debuffs.scorch_stacks == 5
         has_5_stack_ignite = self.env.ignite and self.env.ignite.stacks == 5
         has_bad_ignite = has_5_stack_ignite and self.env.ignite.is_suboptimal()
 
@@ -581,22 +619,6 @@ class Mage(Character):
             self.hot_streak.use_stacks()
             yield from self._pyroblast(casting_time=1.5)
             return
-
-        # check for ignite extension
-        if has_5_stack_scorch and has_5_stack_ignite:
-            if self.opts.extend_ignite_with_fire_blast or self.opts.extend_ignite_with_scorch:
-                # check that spell is not already fireblast or scorch
-                if spell not in (Spell.FIREBLAST, Spell.SCORCH):
-                    ignite_time_remaining = self.env.ignite.time_remaining
-                    if ignite_time_remaining <= self.opts.remaining_seconds_for_ignite_extend:
-                        if self.opts.extend_ignite_with_fire_blast and self.fire_blast_cd.usable:
-                            yield from self._fire_blast()
-                            return
-
-                        scorch_cast_time = self._get_cast_time(1.5, DamageType.FIRE) + self.lag
-                        if self.opts.extend_ignite_with_scorch and ignite_time_remaining > scorch_cast_time:
-                            yield from self._scorch()
-                            return
 
         hit, crit, dmg, cooldown, partial_amount = yield from self._spell(spell=spell,
                                                                           damage_type=DamageType.FIRE,
@@ -711,6 +733,12 @@ class Mage(Character):
                      cooldown: float = 0.0,
                      on_gcd: bool = True,
                      calculate_cast_time: bool = True):
+        # check if we need to extend ignite instead of casting intended spell
+        if self.check_for_ignite_extend(spell):
+            cast_spell = yield from self.extend_ignite()
+            if cast_spell:
+                return
+
         crit_modifier += self.env.debuffs.wc_stacks * 2  # winters chill added crit (2% per stack)
 
         hit, crit, dmg, cooldown, partial_amount = yield from self._spell(spell=spell,

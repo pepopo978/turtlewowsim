@@ -214,7 +214,7 @@ class Druid(Character):
             casting_time -= 0.5
 
         if self.balance_of_all_things_active:
-            casting_time -= 0.5
+            casting_time -= 0.75
             self.balance_of_all_things_active = False
 
         yield from self._nature_spell(spell=Spell.STARFIRE,

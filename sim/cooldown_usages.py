@@ -12,9 +12,6 @@ class CooldownUsages:
     # Consumables
     potion_of_quickness: Optional[Union[float, List[float]]] = None
 
-    # Buffs
-    power_infusion: Optional[Union[float, List[float]]] = None
-
     # Racials
     berserking15: Optional[Union[float, List[float]]] = None
     berserking10: Optional[Union[float, List[float]]] = None
