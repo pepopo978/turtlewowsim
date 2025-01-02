@@ -14,7 +14,7 @@ fm = Mage(name=f'normal', sp=1000, crit=40.43, hit=16,
               fire_blast_gcd=1
           ),
           haste=3)
-fm.smart_scorch_and_fireblast(CooldownUsages(combustion=5, mqg=5))
+fm.smart_scorch_and_fireblast(CooldownUsages(combustion=5))
 mages.append(fm)
 #
 # fm = Mage(name=f'scorch spam', sp=1000, crit=40.43, hit=16, tal=FireMageTalents, haste=3,

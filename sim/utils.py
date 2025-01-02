@@ -188,3 +188,6 @@ class DamageMeter:
         for name, dmg in self.character_dmg.items():
             dps[name] = round(dmg / total_time, 1)
         return dps
+
+    def total_casts(self, char_name):
+        return sum(self.character_num_casts[char_name].values())

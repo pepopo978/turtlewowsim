@@ -61,6 +61,7 @@ class Mage(Character):
         self.fire_blast_cd = FireBlastCooldown(self, self.tal.fire_blast_cooldown)
         self.frost_nova_cd = FrostNovaCooldown(self, self.tal.frost_nova_cooldown)
         self.cold_snap_cd = ColdSnapCooldown(self)
+        self.cone_of_cold_cd = ConeOfColdCooldown(self)
         self.icicles_cd = IciclesCooldown(self)
         self.arcane_rupture_cd = ArcaneRuptureCooldown(self, self.tal.accelerated_arcana)
         self.arcane_surge_cd = ArcaneSurgeCooldown(self, self.tal.accelerated_arcana)
@@ -208,6 +209,29 @@ class Mage(Character):
                 yield from self._frost_nova()
             elif self.opts.use_icicles_without_flash_freeze and self.icicles_cd.usable:
                 yield from self._icicles_channel()
+            else:
+                yield from self._frostbolt()
+
+    def _icicle_coc_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(cds)
+            if self.tal.ice_barrier and not self._ice_barrier_active():
+                yield from self._ice_barrier()
+            elif self._flash_freeze_proc:
+                self._flash_freeze_proc = False
+                yield from self._icicles_channel(channel_time=1.0)
+            elif self.opts.use_frostnova_for_icicles and self.frost_nova_cd.usable:
+                yield from self._frost_nova()
+            elif self.opts.use_frostnova_for_icicles and self.opts.use_cold_snap_for_nova and self.cold_snap_cd.usable:
+                self.cold_snap_cd.activate()
+                yield from self._frost_nova()
+            elif self.opts.use_icicles_without_flash_freeze and self.icicles_cd.usable:
+                yield from self._icicles_channel()
+            elif self.cone_of_cold_cd.usable:
+                yield from self._cone_of_cold()
             else:
                 yield from self._frostbolt()
 
@@ -809,6 +833,8 @@ class Mage(Character):
 
         if spell == Spell.FROST_NOVA:
             self.frost_nova_cd.activate()
+        elif spell == Spell.CONE_OF_COLD:
+            self.cone_of_cold_cd.activate()
 
         # handle gcd
         if cooldown:
@@ -834,6 +860,29 @@ class Mage(Character):
             spell = Spell.FROSTBOLTRK3
 
         yield from self._frost_spell(spell=spell,
+                                     min_dmg=min_dmg,
+                                     max_dmg=max_dmg,
+                                     base_cast_time=casting_time,
+                                     crit_modifier=crit_modifier)
+
+    def _cone_of_cold(self):
+        min_dmg = 335
+        max_dmg = 366
+        casting_time = 0
+        crit_modifier = 0
+
+        mult = 1
+        if self.tal.improved_cone_of_cold == 1:
+            mult = 1.15
+        elif self.tal.improved_cone_of_cold == 2:
+            mult = 1.25
+        else:
+            mult = 1.35
+
+        min_dmg = int(min_dmg * mult)
+        max_dmg = int(max_dmg * mult)
+
+        yield from self._frost_spell(spell=Spell.CONE_OF_COLD,
                                      min_dmg=min_dmg,
                                      max_dmg=max_dmg,
                                      base_cast_time=casting_time,
@@ -945,3 +994,6 @@ class Mage(Character):
 
     def icicle_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="icicle_frostbolts")(cds=cds, delay=delay)
+
+    def icicle_coc_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="icicle_coc_frostbolts")(cds=cds, delay=delay)

@@ -81,6 +81,7 @@ class Simulation:
             dps_results = env.meter.dps()
             for character, mdps in dps_results.items():
                 self.results['dps'][character].append(mdps)
+                self.results['casts'][character].append(env.meter.total_casts(character))
 
             for character in self.characters:
                 char_name = character.name

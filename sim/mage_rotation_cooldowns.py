@@ -3,6 +3,14 @@ from sim.cooldowns import Cooldown
 from sim.spell_school import DamageType
 
 
+class ConeOfColdCooldown(Cooldown):
+    PRINTS_ACTIVATION = False
+
+    @property
+    def cooldown(self):
+        return 10
+
+
 class FireBlastCooldown(Cooldown):
     PRINTS_ACTIVATION = False
 
@@ -13,7 +21,6 @@ class FireBlastCooldown(Cooldown):
     @property
     def cooldown(self):
         return self._cd
-
 
 class FrostNovaCooldown(Cooldown):
     PRINTS_ACTIVATION = False
@@ -65,6 +72,7 @@ class FrostNovaCooldown(Cooldown):
         self._cast_number += 1
         self._on_cooldown = False
 
+
 class ColdSnapCooldown(Cooldown):
     PRINTS_ACTIVATION = False
 
@@ -78,6 +86,7 @@ class ColdSnapCooldown(Cooldown):
             # reset all frost cooldowns (only frost nova for now)
             if hasattr(self.character, 'frost_nova_cd'):
                 self.character.frost_nova_cd.reset_cooldown()
+
 
 class IciclesCooldown(Cooldown):
     PRINTS_ACTIVATION = False

@@ -24,6 +24,7 @@ class MageTalents:
     flash_freeze: int = 0
     ice_barrier: bool = False
     frost_nova_cooldown: float = 25
+    improved_cone_of_cold: int = 0
 
     # Arcane
     arcane_focus: int = 0  # todo implement
@@ -57,6 +58,7 @@ IcicleMageTalents = MageTalents(
     winters_chill=5,
     flash_freeze=2,
     ice_barrier=True,
+    improved_cone_of_cold=3,
     frost_nova_cooldown=21  # 2 points in improved frost nova
 )
 
