@@ -40,17 +40,13 @@ class ItemProcHandler:
         dmg = self.character.modify_dmg(dmg, damage_type, is_periodic=False)
 
         partial_amount = self.character.roll_partial(is_dot=False, is_binary=False)
-        partial_desc = ""
         if partial_amount < 1:
             dmg = int(dmg * partial_amount)
-            partial_desc = f"({int(partial_amount * 100)}% partial)"
             if hasattr(self.character, "arcane_surge_cd"):
                 self.character.arcane_surge_cd.enable_due_to_partial_resist()
 
         # 100 flat shadow damage
-        self.character.print(f"{spell.value} {partial_desc} {dmg}")
-        self.env.total_spell_dmg += dmg
-        self.env.meter.register(self.character.name, dmg)
+        self.env.meter.register_proc_dmg(self.character.name, dmg)
 
         self.character.num_casts[spell] = self.character.num_casts.get(spell, 0) + 1
 

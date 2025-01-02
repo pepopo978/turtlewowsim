@@ -4,7 +4,7 @@ from functools import partial
 from sim.character import Character, CooldownUsages
 from sim.cooldowns import Cooldown
 from sim.equipped_items import EquippedItems
-from sim.spell import Spell, SPELL_COEFFICIENTS
+from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_HITS_MULTIPLE_TARGETS
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
 from sim.warlock_options import WarlockOptions
@@ -224,8 +224,7 @@ class Warlock(Character):
             # refresh isb
             self.env.improved_shadow_bolt.refresh(self)
 
-        self.env.total_spell_dmg += dmg
-        self.env.meter.register(self.name, dmg)
+        self.env.meter.register_spell_dmg(self.name, dmg, aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
         self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
 
@@ -281,8 +280,7 @@ class Warlock(Character):
         if spell == Spell.IMMOLATE and hit:
             self.env.debuffs.add_immolate_dot(self)
 
-        self.env.total_spell_dmg += dmg
-        self.env.meter.register(self.name, dmg)
+        self.env.meter.register_spell_dmg(self.name, dmg, aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
         self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
 

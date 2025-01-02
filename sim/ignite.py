@@ -142,8 +142,7 @@ class Ignite:
                 f"{self.env.time()} - ({self.owner.name}) ({self.stacks}) ignite tick {tick_dmg} ticks remaining {self.ticks_left} time left {round(time_left, 2)}s")
 
         self._num_ticks[self.stacks - 1] += 1
-        self.env.meter.register(self.owner.name, tick_dmg)
-        self.env.total_ignite_dmg += tick_dmg
+        self.env.meter.register_ignite_dmg(self.owner.name, tick_dmg)
         self.ticks.append(tick_dmg)
 
     @property

@@ -15,12 +15,15 @@ class Spell(Enum):
     # Mage
     ARCANE_MISSILE = "Arcane Missile"
     ARCANE_MISSILES_CHANNEL = "Arcane Missiles Channel"
+    ARCANE_EXPLOSION = "Arcane Explosion"
     ARCANE_SURGE = "Arcane Surge"
     ARCANE_RUPTURE = "Arcane Rupture"
+    BLASTWAVE = "Blastwave"
     FIREBALL = "Fireball"
     PYROBLAST = "Pyroblast"
     SCORCH = "Scorch"
     FIREBLAST = "Fire Blast"
+    FLAMESTRIKE = "Flamestrike"
     FROSTBOLT = "Frostbolt"
     FROSTBOLTRK3 = "Frostbolt Rank 3"
     FROSTBOLTRK4 = "Frostbolt Rank 4"
@@ -50,6 +53,9 @@ SPELL_COEFFICIENTS = {
     Spell.ARCANE_MISSILE: 0.328,
     Spell.ARCANE_SURGE: 0.65,
     Spell.ARCANE_RUPTURE: 0.9,
+    Spell.ARCANE_EXPLOSION: .1428,
+    Spell.BLASTWAVE: .1357,
+    Spell.FLAMESTRIKE: .1761,
     Spell.FIREBALL: 1.0,
     Spell.PYROBLAST: 1.0,
     Spell.SCORCH: 0.4285,
@@ -91,9 +97,13 @@ SPELL_TRIGGERS_ON_HIT = {
     Spell.SCORCH: True,
     Spell.FIREBLAST: True,
     Spell.FROSTBOLT: True,
+    Spell.ICICLE: True,
+    # aoe
+    Spell.ARCANE_EXPLOSION: True,
     Spell.FROST_NOVA: True,
     Spell.CONE_OF_COLD: True,
-    Spell.ICICLE: True,
+    Spell.FLAMESTRIKE: True,
+    Spell.BLASTWAVE: True,
 
     # Druid
     Spell.MOONFIRE: True,
@@ -104,4 +114,12 @@ SPELL_TRIGGERS_ON_HIT = {
     # Proc Spells
     Spell.ENGULFING_SHADOWS: False,  # Blade of Eternal Darkness
     Spell.BURNING_HATRED: False  # Ornate Bloodstone Dagger
+}
+
+SPELL_HITS_MULTIPLE_TARGETS = {
+    Spell.ARCANE_EXPLOSION: True,
+    Spell.FROST_NOVA: True,
+    Spell.CONE_OF_COLD: True,
+    Spell.FLAMESTRIKE: True,
+    Spell.BLASTWAVE: True,
 }

@@ -25,14 +25,46 @@ def mean_percentage(sequence):
 
 
 class DamageMeter:
-    def __init__(self, env):
+    def __init__(self, env, num_mobs):
         self.env = env
+        self.num_mobs = num_mobs
         self.characters: Dict[str, int] = {}
 
-    def register(self, name: str, dmg: int):
+        self.total_spell_dmg = 0
+        self.total_dot_dmg = 0
+        self.total_ignite_dmg = 0
+        self.total_proc_dmg = 0
+
+    def register_spell_dmg(self, name: str, dmg: int, aoe=False):
+        if not name in self.characters:
+            self.characters[name] = 0
+        if aoe:
+            dmg *= self.num_mobs
+        self.characters[name] += dmg
+        self.total_spell_dmg += dmg
+
+    def register_proc_dmg(self, name: str, dmg: int, aoe=False):
+        if not name in self.characters:
+            self.characters[name] = 0
+        if aoe:
+            dmg *= self.num_mobs
+        self.characters[name] += dmg
+        self.total_proc_dmg += dmg
+
+    def register_dot_dmg(self, name: str, dmg: int):
         if not name in self.characters:
             self.characters[name] = 0
         self.characters[name] += dmg
+        self.total_dot_dmg += dmg
+
+    def register_ignite_dmg(self, name: str, dmg: int):
+        if not name in self.characters:
+            self.characters[name] = 0
+        self.characters[name] += dmg
+        self.total_ignite_dmg += dmg
+
+    def get_total_dmg(self):
+        return self.total_spell_dmg + self.total_dot_dmg + self.total_ignite_dmg
 
     def raid_dmg(self):
         total_raid_dmg = sum(self.characters.values())

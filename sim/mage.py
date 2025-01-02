@@ -8,7 +8,7 @@ from sim.hot_streak import HotStreak
 from sim.mage_options import MageOptions
 from sim.mage_rotation_cooldowns import *
 from sim.mage_talents import MageTalents
-from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT
+from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT, SPELL_HITS_MULTIPLE_TARGETS
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
 
@@ -154,6 +154,14 @@ class Mage(Character):
         while True:
             self._use_cds(cds)
             yield from self._arcane_missiles_channel()
+
+    def _spam_arcane_explosion(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        self._use_cds(cds)
+        yield from self._random_delay(delay)
+
+        while True:
+            self._use_cds(cds)
+            yield from self._arcane_explosion()
 
     def _spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
@@ -469,8 +477,7 @@ class Mage(Character):
                 self._t2_8set_proc = True
                 self.print("T2 proc")
 
-        self.env.total_spell_dmg += dmg
-        self.env.meter.register(self.name, dmg)
+        self.env.meter.register_spell_dmg(self.name, dmg, aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
         self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
 
@@ -512,8 +519,7 @@ class Mage(Character):
                     num_duplicates += 1
                     dmg /= 2
                     self.print(f"{spell.value} duplicated for {dmg}")
-                    self.env.total_spell_dmg += dmg
-                    self.env.meter.register(self.name, dmg)
+                    self.env.meter.register_spell_dmg(self.name, dmg, aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
                 else:
                     break
 
@@ -585,6 +591,18 @@ class Mage(Character):
         crit_modifier = 0
 
         yield from self._arcane_spell(spell=Spell.ARCANE_RUPTURE,
+                                      min_dmg=min_dmg,
+                                      max_dmg=max_dmg,
+                                      base_cast_time=casting_time,
+                                      crit_modifier=crit_modifier)
+
+    def _arcane_explosion(self):
+        min_dmg = 243
+        max_dmg = 264
+        casting_time = 0
+        crit_modifier = 0
+
+        yield from self._arcane_spell(spell=Spell.ARCANE_EXPLOSION,
                                       min_dmg=min_dmg,
                                       max_dmg=max_dmg,
                                       base_cast_time=casting_time,
@@ -877,6 +895,9 @@ class Mage(Character):
 
     def arcane_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="arcane_missiles")(cds=cds, delay=delay)
+
+    def spam_arcane_explosion(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="spam_arcane_explosion")(cds=cds, delay=delay)
 
     def spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function

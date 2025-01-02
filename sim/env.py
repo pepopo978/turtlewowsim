@@ -10,6 +10,7 @@ class Environment(simpy.Environment):
                  permanent_coe=True,
                  permanent_cos=True,
                  permanent_nightfall=False,
+                 num_mobs=1,
                  *args,
                  **kwargs):
         super().__init__(*args, **kwargs)
@@ -17,11 +18,12 @@ class Environment(simpy.Environment):
         from sim.utils import DamageMeter
 
         self.characters = []
+
         self.print = print_casts
         self.print_dots = print_dots
         self.debuffs = Debuffs(self, permanent_coe=permanent_coe, permanent_cos=permanent_cos,
                                permanent_nightfall=permanent_nightfall)
-        self.meter = DamageMeter(self)
+        self.meter = DamageMeter(self, num_mobs)
         self.process(self.debuffs.run())
 
         from sim.ignite import Ignite
@@ -30,13 +32,7 @@ class Environment(simpy.Environment):
         from sim.improved_shadow_bolt import ImprovedShadowBolt
         self.improved_shadow_bolt = ImprovedShadowBolt(self)
 
-        self.total_spell_dmg = 0
-        self.total_dot_dmg = 0
-        self.total_ignite_dmg = 0
         self.GCD = 1.5
-
-    def get_total_dmg(self):
-        return self.total_spell_dmg + self.total_dot_dmg + self.total_ignite_dmg
 
     def time(self):
         dt = str(round(self.now, 1))

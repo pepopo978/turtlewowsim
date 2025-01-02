@@ -33,8 +33,7 @@ class Dot:
         if self.env.print_dots:
             self.env.p(
                 f"{self.env.time()} - ({self.owner.name}) {self.name} dot tick {partial_desc} {tick_dmg} ticks remaining {self.ticks_left}")
-        self.env.total_dot_dmg += tick_dmg
-        self.env.meter.register(self.owner.name, tick_dmg)
+        self.env.meter.register_dot_dmg(self.owner.name, tick_dmg)
 
     def run(self):
         while self.ticks_left > 0:

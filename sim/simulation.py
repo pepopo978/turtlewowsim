@@ -18,11 +18,13 @@ class Simulation:
                  characters: List[Character] = None,
                  permanent_coe: bool = True,
                  permanent_cos: bool = True,
-                 permanent_nightfall: bool = False):
+                 permanent_nightfall: bool = False,
+                 num_mobs: int = 1):
         self.characters = characters or []
         self.permanent_coe = permanent_coe
         self.permanent_cos = permanent_cos
         self.permanent_nightfall = permanent_nightfall
+        self.num_mobs = num_mobs
 
     def run(self, iterations, duration, print_casts=False, print_dots=False):
         self.results = {
@@ -66,7 +68,8 @@ class Simulation:
                               print_dots=print_dots,
                               permanent_coe=self.permanent_coe,
                               permanent_cos=self.permanent_cos,
-                              permanent_nightfall=self.permanent_nightfall)
+                              permanent_nightfall=self.permanent_nightfall,
+                              num_mobs=self.num_mobs)
 
             # reset each char to clear last run
             for character in self.characters:
@@ -90,11 +93,11 @@ class Simulation:
                     spell_name = spell_enum.value
                     per_spell_casts.setdefault(spell_name, []).append(num_casts)
 
-            self.results['total_spell_dmg'][i] = env.total_spell_dmg
-            self.results['total_dot_dmg'][i] = env.total_dot_dmg
-            self.results['total_ignite_dmg'][i] = env.total_ignite_dmg
+            self.results['total_spell_dmg'][i] = env.meter.total_spell_dmg
+            self.results['total_dot_dmg'][i] = env.meter.total_dot_dmg
+            self.results['total_ignite_dmg'][i] = env.meter.total_ignite_dmg
 
-            self.results['total_dmg'][i] = env.get_total_dmg()
+            self.results['total_dmg'][i] = env.meter.get_total_dmg()
             self.results['avg_dps'][i] = env.meter.raid_dmg()
             self.results['max_single_dps'][i] = max(dps_results.values())
 

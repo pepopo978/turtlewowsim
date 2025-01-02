@@ -8,7 +8,7 @@ from sim.druid_talents import DruidTalents
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.mage_rotation_cooldowns import *
-from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT
+from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT, SPELL_HITS_MULTIPLE_TARGETS
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
 
@@ -167,8 +167,7 @@ class Druid(Character):
         if hit and SPELL_TRIGGERS_ON_HIT.get(spell, False):
             self._check_for_procs()
 
-        self.env.total_spell_dmg += dmg
-        self.env.meter.register(self.name, dmg)
+        self.env.meter.register_spell_dmg(self.name, dmg, aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
         self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
 
