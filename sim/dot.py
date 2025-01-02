@@ -4,7 +4,7 @@ from sim.spell_school import DamageType
 
 
 class Dot:
-    def __init__(self, name: str, owner: Character, env: Environment, damage_type: DamageType, cast_time: float, register_cast=True):
+    def __init__(self, name: str, owner: Character, env: Environment, damage_type: DamageType, cast_time: float, register_casts=True):
         self.owner = owner
         self.env = env
         self.damage_type = damage_type
@@ -16,8 +16,9 @@ class Dot:
         self.ticks_left = 0
         self.base_tick_dmg = 0
         self.name = name
+        self.register_casts = register_casts
 
-        if register_cast:
+        if register_casts:
             self.env.meter.register_dot_cast(
                 char_name=self.owner.name,
                 spell_name=self.name,
@@ -55,10 +56,11 @@ class Dot:
     def refresh(self, cast_time: float):
         self.ticks_left = self.starting_ticks
 
-        self.env.meter.register_dot_cast(
-            char_name=self.owner.name,
-            spell_name=self.name,
-            cast_time=cast_time)
+        if self.register_casts:
+            self.env.meter.register_dot_cast(
+                char_name=self.owner.name,
+                spell_name=self.name,
+                cast_time=cast_time)
 
     def is_active(self):
         return self.ticks_left > 0

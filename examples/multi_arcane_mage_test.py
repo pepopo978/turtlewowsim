@@ -12,7 +12,7 @@ for i in range(num_mages):
                       wrath_of_cenarius=True,
                       endless_gulch=False,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
     elif i == 1:
         fm = Mage(name=f'dagger', sp=905, crit=39, hit=15, haste=0,
                   tal=ArcaneMageTalents,
@@ -22,7 +22,7 @@ for i in range(num_mages):
                       wrath_of_cenarius=True,
                       endless_gulch=False,
                   ))
-        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
     elif i == 2:
         fm = Mage(name=f'arcane_surge_fireblast_rupture_missiles', sp=1000, crit=40, hit=16, haste=0,
                   tal=ArcaneMageTalents,
@@ -33,7 +33,7 @@ for i in range(num_mages):
                       endless_gulch=False,
                   ))
         fm.damage_type_hit[DamageType.FIRE] = -6
-        fm.arcane_surge_fireblast_rupture_missiles(cds=CooldownUsages())
+        fm.arcane_surge_fireblast_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
     else:
         fm = Mage(name=f'arcane_missiles', sp=1000, crit=40, hit=16, haste=0,
                   tal=ArcaneMageTalents,
@@ -43,9 +43,9 @@ for i in range(num_mages):
                       wrath_of_cenarius=True,
                       endless_gulch=False,
                   ))
-        fm.arcane_missiles(cds=CooldownUsages())
+        fm.arcane_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
     mages.append(fm)
 
 sim = Simulation(characters=mages)
-sim.run(iterations=1000, duration=120, print_casts=False)
+sim.run(iterations=10000, duration=120, print_casts=False)
 sim.detailed_report()

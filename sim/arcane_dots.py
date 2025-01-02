@@ -5,7 +5,7 @@ from sim.spell_school import DamageType
 
 class MoonfireDot(Dot):
     def __init__(self, owner, env, cast_time: float):
-        super().__init__(MageSpell.MOONFIRE.value, owner, env, DamageType.ARCANE, cast_time, register_cast=False)
+        super().__init__(MageSpell.MOONFIRE.value, owner, env, DamageType.ARCANE, cast_time, register_casts=False)
 
         self.coefficient = .1302
         self.time_between_ticks = 3

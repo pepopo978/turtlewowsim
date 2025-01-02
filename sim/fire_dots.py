@@ -6,7 +6,7 @@ from sim.warlock import Spell as LockSpell
 
 class FireballDot(Dot):
     def __init__(self, owner, env, cast_time: float):
-        super().__init__(MageSpell.FIREBALL.value, owner, env, DamageType.FIRE, cast_time, register_cast=False)
+        super().__init__(MageSpell.FIREBALL.value, owner, env, DamageType.FIRE, cast_time, register_casts=False)
 
         self.coefficient = 0
         self.time_between_ticks = 2
@@ -17,7 +17,7 @@ class FireballDot(Dot):
 
 class PyroblastDot(Dot):
     def __init__(self, owner, env, cast_time: float):
-        super().__init__(MageSpell.PYROBLAST.value, owner, env, DamageType.FIRE, cast_time, register_cast=False)
+        super().__init__(MageSpell.PYROBLAST.value, owner, env, DamageType.FIRE, cast_time, register_casts=False)
 
         self.coefficient = 0.15
         self.time_between_ticks = 3
@@ -28,7 +28,7 @@ class PyroblastDot(Dot):
 
 class ImmolateDot(Dot):
     def __init__(self, owner, env, cast_time: float):
-        super().__init__(LockSpell.IMMOLATE.value, owner, env, DamageType.FIRE, cast_time, register_cast=False)
+        super().__init__(LockSpell.IMMOLATE.value, owner, env, DamageType.FIRE, cast_time, register_casts=False)
 
         self.coefficient = 0.15
         self.time_between_ticks = 3

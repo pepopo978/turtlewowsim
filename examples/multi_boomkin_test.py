@@ -4,7 +4,7 @@ from sim.druid_options import DruidOptions
 from sim.druid_talents import BoomkinTalents
 
 boomkins = []
-options = DruidOptions(ignore_arcane_eclipse=True, ignore_nature_eclipse=False, starfire_on_balance_of_all_things_proc=True)
+options = DruidOptions(ignore_arcane_eclipse=False, ignore_nature_eclipse=False, starfire_on_balance_of_all_things_proc=True)
 
 d = Druid(name=f'spam_starfire', sp=1000, crit=30, hit=16, haste=0,
           tal=BoomkinTalents,
