@@ -71,39 +71,39 @@ class Debuffs:
         self.wc_stacks = min(self.wc_stacks + 1, 5)
         self.wc_timer = 15
 
-    def _add_dot(self, dot_dict, dot, owner):
+    def _add_dot(self, dot_dict, dot, owner, cast_time):
         if owner in dot_dict and dot_dict[owner].is_active():
             # refresh
-            dot_dict[owner].refresh()
+            dot_dict[owner].refresh(cast_time)
         else:
             # create new dot
-            dot_dict[owner] = dot(owner, self.env)
+            dot_dict[owner] = dot(owner, self.env, cast_time)
             # start dot thread
             self.env.process(dot_dict[owner].run())
 
     def add_fireball_dot(self, owner):
-        self._add_dot(self.fireball_dots, FireballDot, owner)
+        self._add_dot(self.fireball_dots, FireballDot, owner, 0)  # cast time already accounted for from direct dmg
 
     def add_pyroblast_dot(self, owner):
-        self._add_dot(self.pyroblast_dots, PyroblastDot, owner)
+        self._add_dot(self.pyroblast_dots, PyroblastDot, owner, 0)  # cast time already accounted for from direct dmg
 
     def is_immolate_active(self, owner):
         return owner in self.immolate_dots and self.immolate_dots[owner].is_active()
 
     def add_immolate_dot(self, owner):
-        self._add_dot(self.immolate_dots, ImmolateDot, owner)
+        self._add_dot(self.immolate_dots, ImmolateDot, owner, 0)  # cast time already accounted for from direct dmg
 
     def is_corruption_active(self, owner):
         return owner in self.corruption_dots and self.corruption_dots[owner].is_active()
 
-    def add_corruption_dot(self, owner):
-        self._add_dot(self.corruption_dots, CorruptionDot, owner)
+    def add_corruption_dot(self, owner, cast_time):
+        self._add_dot(self.corruption_dots, CorruptionDot, owner, cast_time)
 
     def is_curse_of_agony_active(self, owner):
         return owner in self.curse_of_agony_dots and self.curse_of_agony_dots[owner].is_active()
 
-    def add_curse_of_agony_dot(self, owner):
-        self._add_dot(self.curse_of_agony_dots, CurseOfAgonyDot, owner)
+    def add_curse_of_agony_dot(self, owner, cast_time):
+        self._add_dot(self.curse_of_agony_dots, CurseOfAgonyDot, owner, cast_time)
 
     def is_curse_of_shadows_active(self):
         return self.cos_timer > 0
@@ -114,14 +114,14 @@ class Debuffs:
     def is_insect_swarm_active(self, owner):
         return owner in self.insect_swarm_dots and self.insect_swarm_dots[owner].is_active()
 
-    def add_insect_swarm_dot(self, owner):
-        self._add_dot(self.insect_swarm_dots, InsectSwarmDot, owner)
+    def add_insect_swarm_dot(self, owner, cast_time):
+        self._add_dot(self.insect_swarm_dots, InsectSwarmDot, owner, cast_time)
 
     def is_moonfire_active(self, owner):
         return owner in self.moonfire_dots and self.moonfire_dots[owner].is_active()
 
     def add_moonfire_dot(self, owner):
-        self._add_dot(self.moonfire_dots, MoonfireDot, owner)
+        self._add_dot(self.moonfire_dots, MoonfireDot, owner, 0) # cast time already accounted for from direct dmg
 
     def run(self):
         while True:

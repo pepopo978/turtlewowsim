@@ -45,10 +45,11 @@ class ItemProcHandler:
             if hasattr(self.character, "arcane_surge_cd"):
                 self.character.arcane_surge_cd.enable_due_to_partial_resist()
 
-        # 100 flat shadow damage
-        self.env.meter.register_proc_dmg(self.character.name, dmg)
-
-        self.character.num_casts[spell] = self.character.num_casts.get(spell, 0) + 1
+        self.env.meter.register_proc_dmg(
+            char_name=self.character.name,
+            spell_name=spell.value,
+            dmg=dmg,
+            aoe=False)
 
     def _blade_of_eternal_darkness_proc(self):
         self._tigger_proc_dmg(Spell.ENGULFING_SHADOWS, 100, 100, DamageType.SHADOW)

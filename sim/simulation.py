@@ -30,7 +30,7 @@ class Simulation:
         self.results = {
             'dps': defaultdict(list),
             'casts': defaultdict(list),
-            'per_spell_casts': defaultdict(list),
+            'per_spell_data': defaultdict(list),
             'partial_resists': defaultdict(list),
             'resists': defaultdict(list),
 
@@ -86,12 +86,16 @@ class Simulation:
                 char_name = character.name
                 self.results['partial_resists'][char_name].append(character.num_partials)
                 self.results['resists'][char_name].append(character.num_resists)
-                self.results['casts'][char_name].append(sum(character.num_casts.values()))
 
-                per_spell_casts = self.results['per_spell_casts'].setdefault(char_name, {})
-                for spell_enum, num_casts in character.num_casts.items():
-                    spell_name = spell_enum.value
-                    per_spell_casts.setdefault(spell_name, []).append(num_casts)
+                if char_name not in self.results['per_spell_data']:
+                    self.results['per_spell_data'][char_name] = env.meter.per_spell_data(char_name)
+                else:
+                    for spell_name, data in env.meter.per_spell_data(char_name).items():
+                        if spell_name in self.results['per_spell_data'][char_name]:
+                            for key, value in data.items():
+                                self.results['per_spell_data'][char_name][spell_name][key] += value
+                        else:
+                            self.results['per_spell_data'][char_name][spell_name] = data
 
             self.results['total_spell_dmg'][i] = env.meter.total_spell_dmg
             self.results['total_dot_dmg'][i] = env.meter.total_dot_dmg
@@ -131,8 +135,9 @@ class Simulation:
         return string.ljust(JUSTIFY, ' ')
 
     def report(self, verbosity=1):
-        if verbosity > 1:
+        chars_to_dps = {}
 
+        if verbosity > 1:
             messages_to_dps = {}
             # per character stats
             for char in self.results['dps']:
@@ -141,8 +146,11 @@ class Simulation:
                 label = f"{char} DPS Mean"
                 msg = f"{self._justify(label)}: {mean_dps} in {mean_casts} casts"
                 messages_to_dps[msg] = mean_dps
+                chars_to_dps[char] = mean_dps
 
             sorted_by_dps = dict(sorted(messages_to_dps.items(), key=lambda item: item[1], reverse=True))
+
+            chars_sorted_by_dps = dict(sorted(chars_to_dps.items(), key=lambda item: item[1], reverse=True))
 
             # sort dps_to_dps_messages by dps
             for msg, dps in sorted_by_dps.items():
@@ -191,11 +199,28 @@ class Simulation:
                 print(f"{self._justify('Total added spell dmg')}: {mean(self.results['Total added spell dmg'])}")
 
         if verbosity > 2:
-            print(f"------ Per Spell Casts ------")
-            for char in self.results['per_spell_casts']:
-                for spell_name, num_casts in self.results['per_spell_casts'][char].items():
-                    label = f"{char} {spell_name} Casts"
-                    print(f"{self._justify(label)}: {mean(num_casts)}")
+            print(f"------ Per Spell Data ------")
+            for char in chars_sorted_by_dps.keys():
+                iterations = len(self.results['dps'][char])
+                print(f"{char}:")
+                total_char_dmg = self.results['total_spell_dmg']
+                for spell_name, data in self.results['per_spell_data'][char].items():
+                    num_casts = round(data['num_casts'] / iterations, 1)
+                    total_dmg = round(data['total_dmg'] / iterations)
+                    percent_dmg = round(data['percent_dmg'] / iterations, 1)
+                    avg_dmg = round(data['avg_dmg'] / iterations)
+                    avg_cast_time = round(data['avg_cast_time'] / iterations, 2)
+                    avg_dps = round(data['avg_dps'] / iterations)
+
+                    stats = f"{num_casts} casts"
+                    if total_dmg:
+                        stats += f", {total_dmg} dmg ({percent_dmg}%), {avg_dmg} avg dmg"
+                    if avg_cast_time:
+                        stats += f", {avg_cast_time} avg cast time"
+                    if avg_dps:
+                        stats += f", {avg_dps} dps"
+
+                    print(f"    {spell_name.ljust(JUSTIFY, ' ')}: {stats}")
 
             print(f"------ Resists ------")
             for char in self.results['partial_resists']:
@@ -206,6 +231,7 @@ class Simulation:
                 label = f"{char} Resists"
                 print(f"{self._justify(label)}: {mean(self.results['resists'][char])}")
 
+        if verbosity > 3:
             print(f"------ Advanced Stats ------")
             for char in self.results['dps']:
                 label = f"{char} DPS standard deviation"
@@ -229,6 +255,9 @@ class Simulation:
 
     def detailed_report(self):
         self.report(verbosity=3)
+
+    def extremely_detailed_report(self):
+        self.report(verbosity=4)
 
     def histogram_report_individual(self):
         for char in self.results['dps']:

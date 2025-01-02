@@ -78,6 +78,12 @@ class Ignite:
             elif spell == Spell.FIREBLAST:
                 self.contains_fire_blast = True
 
+            self.env.meter.register_ignite_dmg(
+                char_name=self.owner.name,
+                dmg=0,
+                aoe=False,
+                increment_cast=True)
+
             # start tick thread
             self.env.process(self.run(self.ignite_id))
 
@@ -142,8 +148,11 @@ class Ignite:
                 f"{self.env.time()} - ({self.owner.name}) ({self.stacks}) ignite tick {tick_dmg} ticks remaining {self.ticks_left} time left {round(time_left, 2)}s")
 
         self._num_ticks[self.stacks - 1] += 1
-        self.env.meter.register_ignite_dmg(self.owner.name, tick_dmg)
         self.ticks.append(tick_dmg)
+        self.env.meter.register_ignite_dmg(
+            char_name=self.owner.name,
+            dmg=tick_dmg,
+            aoe=False)
 
     @property
     def time_remaining(self):

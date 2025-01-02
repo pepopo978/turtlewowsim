@@ -167,9 +167,12 @@ class Druid(Character):
         if hit and SPELL_TRIGGERS_ON_HIT.get(spell, False):
             self._check_for_procs()
 
-        self.env.meter.register_spell_dmg(self.name, dmg, aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
-
-        self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
+        self.env.meter.register_spell_dmg(
+            char_name=self.name,
+            spell_name=spell.value,
+            dmg=dmg,
+            cast_time=round(casting_time + cooldown, 2),
+            aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
         return hit, crit, dmg, cooldown, partial_amount
 
@@ -308,9 +311,7 @@ class Druid(Character):
         else:
             self.print(f"{spell.value} {description}")
             if spell == Spell.INSECT_SWARM:
-                self.env.debuffs.add_insect_swarm_dot(self)
-
-        self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
+                self.env.debuffs.add_insect_swarm_dot(self, round(casting_time + cooldown, 2))
 
         # handle gcd
         if cooldown:

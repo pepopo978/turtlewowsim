@@ -95,7 +95,6 @@ class Character:
         self._sp_bonus = 0
         self._crit_bonus = 0
 
-        self.num_casts = {}
         self.used_cds = {}
         self.num_partials = 0
         self.num_resists = 0
@@ -120,7 +119,6 @@ class Character:
         self.num_partials = 0
         self.num_resists = 0
 
-        self.num_casts = {}
         self.used_cds = {}
 
     def has_trinket_or_cooldown_haste(self):

@@ -224,9 +224,12 @@ class Warlock(Character):
             # refresh isb
             self.env.improved_shadow_bolt.refresh(self)
 
-        self.env.meter.register_spell_dmg(self.name, dmg, aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
-
-        self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
+        self.env.meter.register_spell_dmg(
+            char_name=self.name,
+            spell_name=spell.value,
+            dmg=dmg,
+            cast_time=round(casting_time + cooldown, 2),
+            aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
         # handle gcd
         if cooldown:
@@ -280,9 +283,12 @@ class Warlock(Character):
         if spell == Spell.IMMOLATE and hit:
             self.env.debuffs.add_immolate_dot(self)
 
-        self.env.meter.register_spell_dmg(self.name, dmg, aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
-
-        self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
+        self.env.meter.register_spell_dmg(
+            char_name=self.name,
+            spell_name=spell.value,
+            dmg=dmg,
+            cast_time=round(casting_time + cooldown, 2),
+            aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
         # handle gcd
         if cooldown:
@@ -316,13 +322,11 @@ class Warlock(Character):
         else:
             self.print(f"{spell.value} {description}")
             if spell == Spell.CORRUPTION:
-                self.env.debuffs.add_corruption_dot(self)
+                self.env.debuffs.add_corruption_dot(self, round(casting_time + cooldown, 2))
             elif spell == Spell.CURSE_OF_AGONY:
-                self.env.debuffs.add_curse_of_agony_dot(self)
+                self.env.debuffs.add_curse_of_agony_dot(self, round(casting_time + cooldown, 2))
             elif spell == Spell.CURSE_OF_SHADOW:
                 self.env.debuffs.add_curse_of_shadows_dot()
-
-        self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
 
         # handle gcd
         if cooldown:

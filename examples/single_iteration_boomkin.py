@@ -19,4 +19,4 @@ for i in range(num_boomkins):
 env = Environment(print_dots=True)
 env.add_characters(boomkins)
 env.run(until=120)
-env.meter.report()
+env.meter.detailed_report()

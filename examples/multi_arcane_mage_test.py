@@ -1,7 +1,7 @@
 from _example_imports import *
 
 mages = []
-num_mages = 1
+num_mages = 4
 for i in range(num_mages):
     if i == 0:
         fm = Mage(name=f'arcane_surge_rupture_missiles', sp=1000, crit=40, hit=16, haste=0,
@@ -47,5 +47,5 @@ for i in range(num_mages):
     mages.append(fm)
 
 sim = Simulation(characters=mages)
-sim.run(iterations=50000, duration=120, print_casts=False)
+sim.run(iterations=1000, duration=120, print_casts=False)
 sim.detailed_report()

@@ -6,15 +6,14 @@ from sim.warlock import Spell, Warlock
 
 
 class CorruptionDot(Dot):
-    def __init__(self, owner, env):
-        super().__init__(owner, env, DamageType.SHADOW)
+    def __init__(self, owner, env, cast_time: float):
+        super().__init__(Spell.CORRUPTION.value, owner, env, DamageType.SHADOW, cast_time)
 
         self.coefficient = 0.1666
         self.time_between_ticks = 3
         self.ticks_left = 6
         self.starting_ticks = 6
         self.base_tick_dmg = 137
-        self.name = Spell.CORRUPTION.value
 
     def _do_dmg(self):
         super()._do_dmg()
@@ -26,15 +25,14 @@ class CorruptionDot(Dot):
 
 
 class CurseOfAgonyDot(Dot):
-    def __init__(self, owner, env):
-        super().__init__(owner, env, DamageType.SHADOW)
+    def __init__(self, owner, env, cast_time: float):
+        super().__init__(Spell.CURSE_OF_AGONY.value, owner, env, DamageType.SHADOW, cast_time)
 
         self.coefficient = 0.0833
         self.time_between_ticks = 2
         self.ticks_left = 12
         self.starting_ticks = 12
         self.base_tick_dmg = 87
-        self.name = Spell.CURSE_OF_AGONY.value
 
     def _get_effective_tick_dmg(self):
         standard_tick_dmg = super()._get_effective_tick_dmg()

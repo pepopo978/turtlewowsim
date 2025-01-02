@@ -357,7 +357,8 @@ class Mage(Character):
         return (has_5_stack_scorch and
                 has_5_stack_ignite and
                 has_ignite_extend_option and
-                spell not in (Spell.FIREBLAST, Spell.SCORCH)) # if already casting fireblast or scorch, don't use extend ignite logic
+                spell not in (
+                Spell.FIREBLAST, Spell.SCORCH))  # if already casting fireblast or scorch, don't use extend ignite logic
 
     def extend_ignite(self):
         # check that spell is not already fireblast or scorch
@@ -366,7 +367,6 @@ class Mage(Character):
             if self.opts.extend_ignite_with_fire_blast and self.fire_blast_cd.usable:
                 yield from self._fire_blast()
                 return True
-
 
             scorch_cast_time = self._get_cast_time(1.5, DamageType.FIRE) + self.lag
             if self.opts.extend_ignite_with_scorch and ignite_time_remaining > scorch_cast_time:
@@ -400,7 +400,8 @@ class Mage(Character):
             if casting_time == 0:
                 cooldown += self.lag
 
-        hit = self._roll_hit(self._get_hit_chance(spell), damage_type) if spell != Spell.ARCANE_SURGE else True # arcane surge always hits
+        hit = self._roll_hit(self._get_hit_chance(spell),
+                             damage_type) if spell != Spell.ARCANE_SURGE else True  # arcane surge always hits
         crit = False
         dmg = 0
         arcane_instability_hit = False
@@ -477,9 +478,12 @@ class Mage(Character):
                 self._t2_8set_proc = True
                 self.print("T2 proc")
 
-        self.env.meter.register_spell_dmg(self.name, dmg, aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
-
-        self.num_casts[spell] = self.num_casts.get(spell, 0) + 1
+        self.env.meter.register_spell_dmg(
+            char_name=self.name,
+            spell_name=spell.value,
+            dmg=dmg,
+            cast_time=round(casting_time + cooldown, 2),
+            aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
         return hit, crit, dmg, cooldown, partial_amount
 
@@ -519,7 +523,13 @@ class Mage(Character):
                     num_duplicates += 1
                     dmg /= 2
                     self.print(f"{spell.value} duplicated for {dmg}")
-                    self.env.meter.register_spell_dmg(self.name, dmg, aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
+                    self.env.meter.register_spell_dmg(
+                        char_name=self.name,
+                        spell_name=spell.value,
+                        dmg=dmg,
+                        cast_time=0,
+                        aoe=spell in SPELL_HITS_MULTIPLE_TARGETS,
+                        increment_cast=False)
                 else:
                     break
 
@@ -834,7 +844,7 @@ class Mage(Character):
         # min_dmg = 33
         # max_dmg = 38
         min_dmg = 0
-        max_dmg = 0 # assume target is immune and takes no dmg
+        max_dmg = 0  # assume target is immune and takes no dmg
         casting_time = 0
         crit_modifier = 0
 

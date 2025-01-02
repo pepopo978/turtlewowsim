@@ -7,15 +7,14 @@ from sim.warlock import Spell as LockSpell
 
 
 class InsectSwarmDot(Dot):
-    def __init__(self, owner, env):
-        super().__init__(owner, env, DamageType.NATURE)
+    def __init__(self, owner, env, cast_time: float):
+        super().__init__(MageSpell.INSECT_SWARM.value, owner, env, DamageType.NATURE, cast_time)
 
         self.coefficient = .158
         self.time_between_ticks = 2
         self.ticks_left = 9
         self.starting_ticks = 9
         self.base_tick_dmg = 54
-        self.name = MageSpell.INSECT_SWARM.value
 
         self.balance_of_all_things = self.owner.tal.balance_of_all_things
 

@@ -4,7 +4,7 @@ from sim.spell_school import DamageType
 
 
 class Dot:
-    def __init__(self, owner: Character, env: Environment, damage_type: DamageType):
+    def __init__(self, name: str, owner: Character, env: Environment, damage_type: DamageType, cast_time: float, register_cast=True):
         self.owner = owner
         self.env = env
         self.damage_type = damage_type
@@ -15,7 +15,13 @@ class Dot:
         self.starting_ticks = 0
         self.ticks_left = 0
         self.base_tick_dmg = 0
-        self.name = ""
+        self.name = name
+
+        if register_cast:
+            self.env.meter.register_dot_cast(
+                char_name=self.owner.name,
+                spell_name=self.name,
+                cast_time=cast_time)
 
     def _get_effective_tick_dmg(self):
         dmg = self.base_tick_dmg + self.sp * self.coefficient
@@ -33,7 +39,12 @@ class Dot:
         if self.env.print_dots:
             self.env.p(
                 f"{self.env.time()} - ({self.owner.name}) {self.name} dot tick {partial_desc} {tick_dmg} ticks remaining {self.ticks_left}")
-        self.env.meter.register_dot_dmg(self.owner.name, tick_dmg)
+
+        self.env.meter.register_dot_dmg(
+            char_name=self.owner.name,
+            spell_name=self.name,
+            dmg=tick_dmg,
+            aoe=False)
 
     def run(self):
         while self.ticks_left > 0:
@@ -41,8 +52,13 @@ class Dot:
             self.ticks_left -= 1
             self._do_dmg()
 
-    def refresh(self):
+    def refresh(self, cast_time: float):
         self.ticks_left = self.starting_ticks
+
+        self.env.meter.register_dot_cast(
+            char_name=self.owner.name,
+            spell_name=self.name,
+            cast_time=cast_time)
 
     def is_active(self):
         return self.ticks_left > 0
