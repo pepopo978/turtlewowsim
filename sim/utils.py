@@ -51,15 +51,19 @@ class DamageMeter:
         self.characters[name] += dmg
         self.total_proc_dmg += dmg
 
-    def register_dot_dmg(self, name: str, dmg: int):
+    def register_dot_dmg(self, name: str, dmg: int, aoe=False):
         if not name in self.characters:
             self.characters[name] = 0
+        if aoe:
+            dmg *= self.num_mobs
         self.characters[name] += dmg
         self.total_dot_dmg += dmg
 
-    def register_ignite_dmg(self, name: str, dmg: int):
+    def register_ignite_dmg(self, name: str, dmg: int, aoe=False):
         if not name in self.characters:
             self.characters[name] = 0
+        if aoe:
+            dmg *= self.num_mobs
         self.characters[name] += dmg
         self.total_ignite_dmg += dmg
 
