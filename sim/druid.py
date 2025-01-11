@@ -334,11 +334,29 @@ class Druid(Character):
         else:
             yield from self._wrath()
 
+    def insect_swarm_moonfire_wrath_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        if not self.env.debuffs.is_insect_swarm_active(self):
+            yield from self._insect_swarm()
+        elif not self.env.debuffs.is_moonfire_active(self):
+            yield from self._moonfire()
+        else:
+            yield from self._wrath()
+
+
     def moonfire_starfire_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         if not self.env.debuffs.is_moonfire_active(self):
             yield from self._moonfire()
         else:
             yield from self._starfire()
+
+    def moonfire_insect_swarm_starfire_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        if not self.env.debuffs.is_moonfire_active(self):
+            yield from self._moonfire()
+        elif not self.env.debuffs.is_insect_swarm_active(self):
+            yield from self._insect_swarm()
+        else:
+            yield from self._starfire()
+
 
     def set_nature_eclipse_subrotation(self, rotation):
         self.nature_eclipse_rotation = rotation
