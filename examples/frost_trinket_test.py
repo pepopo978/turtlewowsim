@@ -1,7 +1,7 @@
 from _example_imports import *
 
 mages = []
-num_trinkets = 10
+num_trinkets = 11
 
 base_sp = 1000
 base_crit = 40
@@ -88,6 +88,14 @@ for i in range(num_trinkets):
                   equipped_items=EquippedItems())
 
         fm.icicle_frostbolts(cds=CooldownUsages())
+    elif i == 10:
+        fm = Mage(name=f'zandalarian hero charm', sp=base_sp, crit=base_crit, hit=base_hit,
+                  tal=IcicleMageTalents,
+                  opts=MageOptions(use_frostnova_for_icicles=True,
+                                   start_with_ice_barrier=True),
+                  equipped_items=EquippedItems())
+
+        fm.icicle_frostbolts(cds=CooldownUsages(zhc=5))
 
     if fm:
         mages.append(fm)

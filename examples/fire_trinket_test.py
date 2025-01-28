@@ -87,3 +87,12 @@ fm.smart_scorch(cds=CooldownUsages())
 sim = Simulation(characters=[fm])
 sim.run(iterations=20000, duration=110, print_casts=False)
 sim.detailed_report()
+
+fm = Mage(name=f'zandalarian hero charm', sp=base_sp, crit=base_crit, hit=base_hit,
+            tal=FireMageTalents,
+            opts=MageOptions(),
+            equipped_items=EquippedItems())
+fm.smart_scorch(cds=CooldownUsages(zhc=5))
+sim = Simulation(characters=[fm])
+sim.run(iterations=20000, duration=110, print_casts=False)
+sim.detailed_report()

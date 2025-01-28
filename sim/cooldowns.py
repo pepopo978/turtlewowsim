@@ -161,6 +161,7 @@ class Perception(Cooldown):
         super().deactivate()
         self.character.remove_crit_bonus(2)
 
+
 class TOEP(Cooldown):
     # Talisman of Ephemeral Power
     DMG_BONUS = 175
@@ -180,6 +181,39 @@ class TOEP(Cooldown):
     def deactivate(self):
         super().deactivate()
         self.character.remove_sp_bonus(self.DMG_BONUS)
+
+
+class ZandalarianHeroCharm(Cooldown):
+    def __init__(self, character: Character):
+        super().__init__(character)
+        self._initial_sp_bonus = 204
+        self._current_sp_bonus = 0
+
+    @property
+    def cooldown(self):
+        return 120
+
+    @property
+    def duration(self):
+        return 20
+
+    def use_charge(self):
+        if self._current_sp_bonus > 0:
+            deduction = min(17, self._current_sp_bonus)
+            self._current_sp_bonus -= deduction
+
+            # deduct from character
+            self.character.remove_sp_bonus(deduction)
+
+    def activate(self):
+        super().activate()
+        self._current_sp_bonus = self._initial_sp_bonus
+        self.character.add_sp_bonus(self._current_sp_bonus)
+
+    def deactivate(self):
+        super().deactivate()
+        self.character.remove_sp_bonus(self._current_sp_bonus)
+        self._current_sp_bonus = 0
 
 
 class REOS(Cooldown):
@@ -424,6 +458,7 @@ class Cooldowns:
         self.toep = TOEP(character)
         self.reos = REOS(character)
         self.mqg = MQG(character)
+        self.zhc = ZandalarianHeroCharm(character)
 
         # racials
         self.berserking15 = Berserking(character, 15)

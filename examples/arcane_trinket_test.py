@@ -1,11 +1,11 @@
 from _example_imports import *
 
 mages = []
-num_trinkets = 10
+num_trinkets = 11
 
 base_sp = 1000
 base_crit = 40
-base_hit = 16
+base_hit = 14
 
 for i in range(num_trinkets):
     fm = None
@@ -95,11 +95,26 @@ for i in range(num_trinkets):
                       ornate_bloodstone_dagger=False,
                       wrath_of_cenarius=True,
                   ))
+    elif i==10:
+        fm = Mage(name=f'zandalarian hero charm', sp=base_sp, crit=base_crit, hit=base_hit,
+                  tal=ArcaneMageTalents,
+                  opts=MageOptions(),
+                  equipped_items=EquippedItems(
+                      ornate_bloodstone_dagger=False,
+                      wrath_of_cenarius=True,
+                  ))
+        cds = CooldownUsages(arcane_power=5, zhc=5)
 
     if fm:
-        fm.spam_arcane_explosion(cds=cds)
+        # aoe test
+        #fm.spam_arcane_explosion(cds=cds)
+        # single target test
+        fm.arcane_surge_rupture_missiles(cds=cds)
         mages.append(fm)
 
-sim = Simulation(characters=mages, num_mobs=3, mob_level=60)
-sim.run(iterations=10000, duration=30, print_casts=False)
+# aoe test
+#sim = Simulation(characters=mages, num_mobs=3, mob_level=60)
+# single target test
+sim = Simulation(characters=mages, num_mobs=1, mob_level=63)
+sim.run(iterations=10000, duration=120, print_casts=False)
 sim.detailed_report()

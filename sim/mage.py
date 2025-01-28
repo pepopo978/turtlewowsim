@@ -509,6 +509,9 @@ class Mage(Character):
                 self._t2_8set_proc = True
                 self.print("T2 proc")
 
+        if self.cds.zhc.is_active():
+            self.cds.zhc.use_charge()
+
         self.env.meter.register_spell_dmg(
             char_name=self.name,
             spell_name=spell.value,
