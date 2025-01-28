@@ -15,14 +15,18 @@ class ItemProc:
     def name(self):
         return type(self).__name__
 
-    def _roll_proc(self):
-        return random.randint(1, 100) <= self.PERCENT_CHANCE
+    def _roll_proc(self, num_mobs=1):
+        for _ in range(num_mobs):
+            if random.randint(1, 100) <= self.PERCENT_CHANCE:
+                return True
 
-    def check_for_proc(self, current_time):
+        return False
+
+    def check_for_proc(self, current_time, num_mobs):
         if self.COOLDOWN and self.last_proc_time + self.COOLDOWN > current_time:
             return
 
-        if self._roll_proc():
+        if self._roll_proc(num_mobs):
             self.last_proc_time = current_time
             if self.PRINT_PROC:
                 self.character.print(f"{self.name} triggered")

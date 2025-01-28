@@ -3,7 +3,7 @@ from _example_imports import *
 control_sp = 1000
 control_crit = 40
 control_hit = 15
-control_haste = 0
+control_haste = 3
 
 fm = Mage(name=f'control', sp=control_sp, crit=control_crit, hit=control_hit, haste=control_haste,
                   tal=FireMageTalents,

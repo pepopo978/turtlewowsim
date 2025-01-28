@@ -21,40 +21,40 @@ for i in range(num_druids):
                   opts=options,
                   equipped_items=EquippedItems())
         d.moonfire_insect_swarm_wrath(cds=CooldownUsages())
-        d.set_arcane_eclipse_subrotation(d.moonfire_starfire_subrotation)
-        d.set_nature_eclipse_subrotation(d.insect_swarm_wrath_subrotation)
+        d.set_arcane_eclipse_subrotation(d.moonfire_insect_swarm_starfire_subrotation)
+        d.set_nature_eclipse_subrotation(d.insect_swarm_moonfire_wrath_subrotation)
     elif i == 1:
         d = Druid(name=f'1 hit', sp=control_sp, crit=control_crit, hit=control_hit + 1, haste=control_haste,
                  tal=BoomkinTalents,
                  opts=options,
                  equipped_items=EquippedItems())
         d.moonfire_insect_swarm_wrath(cds=CooldownUsages())
-        d.set_arcane_eclipse_subrotation(d.moonfire_starfire_subrotation)
-        d.set_nature_eclipse_subrotation(d.insect_swarm_wrath_subrotation)
+        d.set_arcane_eclipse_subrotation(d.moonfire_insect_swarm_starfire_subrotation)
+        d.set_nature_eclipse_subrotation(d.insect_swarm_moonfire_wrath_subrotation)
     elif i == 2:
         d = Druid(name=f'1 crit', sp=control_sp, crit=control_crit + 1, hit=control_hit, haste=control_haste,
                  tal=BoomkinTalents,
                  opts=options,
                  equipped_items=EquippedItems())
         d.moonfire_insect_swarm_wrath(cds=CooldownUsages())
-        d.set_arcane_eclipse_subrotation(d.moonfire_starfire_subrotation)
-        d.set_nature_eclipse_subrotation(d.insect_swarm_wrath_subrotation)
+        d.set_arcane_eclipse_subrotation(d.moonfire_insect_swarm_starfire_subrotation)
+        d.set_nature_eclipse_subrotation(d.insect_swarm_moonfire_wrath_subrotation)
     elif i == 3:
         d = Druid(name=f'1 haste', sp=control_sp, crit=control_crit, hit=control_hit, haste=control_haste + 1,
                  tal=BoomkinTalents,
                  opts=options,
                  equipped_items=EquippedItems())
         d.moonfire_insect_swarm_wrath(cds=CooldownUsages())
-        d.set_arcane_eclipse_subrotation(d.moonfire_starfire_subrotation)
-        d.set_nature_eclipse_subrotation(d.insect_swarm_wrath_subrotation)
+        d.set_arcane_eclipse_subrotation(d.moonfire_insect_swarm_starfire_subrotation)
+        d.set_nature_eclipse_subrotation(d.insect_swarm_moonfire_wrath_subrotation)
     elif i == 4:
         d = Druid(name=f'20sp', sp=control_sp + 20, crit=control_crit, hit=control_hit, haste=control_haste,
                  tal=BoomkinTalents,
                  opts=options,
                  equipped_items=EquippedItems())
         d.moonfire_insect_swarm_wrath(cds=CooldownUsages())
-        d.set_arcane_eclipse_subrotation(d.moonfire_starfire_subrotation)
-        d.set_nature_eclipse_subrotation(d.insect_swarm_wrath_subrotation)
+        d.set_arcane_eclipse_subrotation(d.moonfire_insect_swarm_starfire_subrotation)
+        d.set_nature_eclipse_subrotation(d.insect_swarm_moonfire_wrath_subrotation)
 
     if d:
         druids.append(d)

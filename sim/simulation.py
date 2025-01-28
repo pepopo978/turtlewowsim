@@ -19,12 +19,14 @@ class Simulation:
                  permanent_coe: bool = True,
                  permanent_cos: bool = True,
                  permanent_nightfall: bool = False,
-                 num_mobs: int = 1):
+                 num_mobs: int = 1,
+                 mob_level: int = 63):
         self.characters = characters or []
         self.permanent_coe = permanent_coe
         self.permanent_cos = permanent_cos
         self.permanent_nightfall = permanent_nightfall
         self.num_mobs = num_mobs
+        self.mob_level = mob_level
 
     def run(self, iterations, duration, print_casts=False, print_dots=False):
         self.results = {
@@ -69,7 +71,8 @@ class Simulation:
                               permanent_coe=self.permanent_coe,
                               permanent_cos=self.permanent_cos,
                               permanent_nightfall=self.permanent_nightfall,
-                              num_mobs=self.num_mobs)
+                              num_mobs=self.num_mobs,
+                              mob_level=self.mob_level)
 
             # reset each char to clear last run
             for character in self.characters:

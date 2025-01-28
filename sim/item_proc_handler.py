@@ -33,7 +33,7 @@ class ItemProcHandler:
 
     def check_for_procs(self, current_time):
         for proc in self.procs:
-            proc.check_for_proc(current_time)
+            proc.check_for_proc(current_time, self.env.num_mobs)
 
     def _tigger_proc_dmg(self, spell, min_dmg, max_dmg, damage_type):
         dmg = self.character.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0), damage_type)

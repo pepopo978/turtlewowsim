@@ -2,6 +2,8 @@
 
 Simulation for Turtle WoW that currently supports Arcane/Fire/Frost Mages and Boomkins.  Warlocks need to be updated for 1.17.2 started doing it but not done.
 
+# Warlock not yet updated for 1.17.2
+
 ## Installation
 
 Need python 3.10 or later and Poetry to install dependencies

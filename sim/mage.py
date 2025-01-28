@@ -353,7 +353,14 @@ class Mage(Character):
 
     def _get_hit_chance(self, spell: Spell, is_binary=False):
         # elemental precision assumed to be included in hit already
-        return min(83 + self.hit, 99)
+        if self.env.mob_level == 63:
+            return min(83 + self.hit, 99)
+        elif self.env.mob_level == 62:
+            return min(94 + self.hit, 99)
+        elif self.env.mob_level == 61:
+            return min(95 + self.hit, 99)
+        else:
+            return min(96 + self.hit, 99)
 
     def modify_dmg(self, dmg: int, damage_type: DamageType, is_periodic: bool):
         dmg = super().modify_dmg(dmg, damage_type, is_periodic)

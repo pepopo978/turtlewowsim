@@ -11,6 +11,10 @@ class Spell(Enum):
     CURSE_OF_AGONY = "Curse of Agony"
     CURSE_OF_SHADOW = "Curse of Shadow"
     SHADOWBOLT = "Shadowbolt"
+    SIPHON_LIFE = "Siphon Life"
+    DRAIN_SOUL = "Drain Soul"
+    SOUL_FIRE = "Soul Fire"
+    DARK_HARVEST = "Dark Harvest"
 
     # Mage
     ARCANE_MISSILE = "Arcane Missile"
@@ -48,14 +52,17 @@ SPELL_COEFFICIENTS = {
     Spell.IMMOLATE: 0.1865,
     Spell.SEARING_PAIN: 0.4285,
     Spell.SHADOWBOLT: 0.8571,
+    Spell.DRAIN_SOUL: 0.1667,
+    Spell.SOUL_FIRE: 1.25,
+    Spell.DARK_HARVEST: .3, #per tick
 
     # Mage
     Spell.ARCANE_MISSILE: 0.328,
     Spell.ARCANE_SURGE: 0.65,
     Spell.ARCANE_RUPTURE: 0.9,
-    Spell.ARCANE_EXPLOSION: .1428,
-    Spell.BLASTWAVE: .1357,
-    Spell.FLAMESTRIKE: .1761,
+    Spell.ARCANE_EXPLOSION: .143,
+    Spell.BLASTWAVE: .129,
+    Spell.FLAMESTRIKE: .157,
     Spell.FIREBALL: 1.0,
     Spell.PYROBLAST: 1.0,
     Spell.SCORCH: 0.4285,
@@ -64,7 +71,7 @@ SPELL_COEFFICIENTS = {
     Spell.FROSTBOLTRK3: 0.4627,  # 2.2 / 3.5 * 0.95 * 0.775 spell lvl 14 has additional reduction
     Spell.FROSTBOLTRK4: 0.7057,  # 2.6 / 3.5 * 0.95 spell lvl 20
     Spell.FROST_NOVA: 0.0, # assume target is immune and takes no dmg
-    Spell.CONE_OF_COLD: 0.1357,
+    Spell.CONE_OF_COLD: 0.129,
     Spell.ICICLE: 0.4,
 
     # Druid
@@ -87,6 +94,8 @@ SPELL_TRIGGERS_ON_HIT = {
     Spell.CORRUPTION: False,
     Spell.CURSE_OF_AGONY: False,
     Spell.CURSE_OF_SHADOW: False,
+    Spell.DRAIN_SOUL: False,
+    Spell.SOUL_FIRE: True,
 
     # Mage
     Spell.ARCANE_MISSILE: True,

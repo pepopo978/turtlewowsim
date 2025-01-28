@@ -4,9 +4,11 @@ mages = []
 num_mages = 1
 
 for i in range(num_mages):
-    fm = Mage(name=f'fire', sp=1000, crit=40.43, hit=16, tal=FireMageTalents, haste=3,
-              opts=MageOptions())
-    fm.smart_scorch(CooldownUsages(combustion=5))
+    fm = Mage(name=f'gulch', sp=1000, crit=35, hit=16,
+              tal=FireMageTalents,
+              opts=MageOptions(),
+              equipped_items=EquippedItems(endless_gulch=True))
+    fm.smart_scorch(cds=CooldownUsages())
     mages.append(fm)
 
 env = Environment()

@@ -42,7 +42,7 @@ class ConflagrateCooldown(Cooldown):
     def cooldown(self):
         return 10
 
-
+# TODO FINISH UPDATING WARLOCK FOR 1.17.2
 class Warlock(Character):
     def __init__(self,
                  tal: WarlockTalents,
@@ -374,8 +374,11 @@ class Warlock(Character):
                                     base_cast_time=casting_time)
 
     def _corruption(self):
-        cast_time = 2 - self.tal.improved_corruption * 0.4
+        cast_time = 1.5 - self.tal.improved_corruption * 0.3
         yield from self._shadow_dot(spell=Spell.CORRUPTION, base_cast_time=cast_time)
+
+    def _siphon_life(self):
+        yield from self._shadow_dot(spell=Spell.CURSE_OF_AGONY, base_cast_time=0)
 
     def _curse_of_shadow(self):
         yield from self._shadow_dot(spell=Spell.CURSE_OF_SHADOW, base_cast_time=0)

@@ -63,7 +63,14 @@ class Druid(Character):
             raise ValueError(f"Unknown spell {spell}")
 
     def _get_hit_chance(self, spell: Spell, is_binary=False):
-        return min(83 + self.hit, 99)
+        if self.env.mob_level == 63:
+            return min(83 + self.hit, 99)
+        elif self.env.mob_level == 62:
+            return min(94 + self.hit, 99)
+        elif self.env.mob_level == 61:
+            return min(95 + self.hit, 99)
+        else:
+            return min(96 + self.hit, 99)
 
     def _get_crit_multiplier(self, talent_school: TalentSchool, damage_type: DamageType):
         mult = super()._get_crit_multiplier(talent_school, damage_type)

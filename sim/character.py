@@ -212,7 +212,7 @@ class Character:
             self.item_proc_handler.check_for_procs(self.env.now)
 
     def roll_partial(self, is_dot: bool, is_binary: bool):
-        if is_binary:
+        if is_binary or self.env.mob_level < 63:
             return 1
 
         roll = random.random()

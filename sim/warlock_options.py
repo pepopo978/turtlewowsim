@@ -3,4 +3,4 @@ from dataclasses import dataclass
 
 @dataclass(kw_only=True)
 class WarlockOptions:
-    pass
+    firestone: bool = False # 2 % fire crit chance

@@ -11,6 +11,7 @@ class Environment(simpy.Environment):
                  permanent_cos=True,
                  permanent_nightfall=False,
                  num_mobs=1,
+                 mob_level=63,
                  *args,
                  **kwargs):
         super().__init__(*args, **kwargs)
@@ -18,6 +19,8 @@ class Environment(simpy.Environment):
         from sim.utils import DamageMeter
 
         self.characters = []
+        self.num_mobs = num_mobs
+        self.mob_level = mob_level
 
         self.print = print_casts
         self.print_dots = print_dots
