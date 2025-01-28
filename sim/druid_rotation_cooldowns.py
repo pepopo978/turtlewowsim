@@ -3,6 +3,7 @@ from sim.cooldowns import Cooldown
 
 class ArcaneEclipseCooldown(Cooldown):
     PRINTS_ACTIVATION = True
+    TRACK_UPTIME = True
 
     @property
     def cooldown(self):
@@ -14,6 +15,7 @@ class ArcaneEclipseCooldown(Cooldown):
 
 class NatureEclipseCooldown(Cooldown):
     PRINTS_ACTIVATION = True
+    TRACK_UPTIME = True
 
     @property
     def cooldown(self):

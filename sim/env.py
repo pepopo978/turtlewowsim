@@ -36,6 +36,7 @@ class Environment(simpy.Environment):
         self.improved_shadow_bolt = ImprovedShadowBolt(self)
 
         self.GCD = 1.5
+        self.duration = 0
 
     def time(self):
         dt = str(round(self.now, 1))
@@ -54,7 +55,13 @@ class Environment(simpy.Environment):
             self.add_character(char)
 
     def run(self, *args, **kwargs):
+        self.duration = kwargs.get('until', 0)
+
         random.shuffle(self.characters)
         for char in self.characters:
             self.process(char.rotation(char))
         super().run(*args, **kwargs)
+
+        for char in self.characters:
+            char.add_remaining_buff_uptime()
+

@@ -88,6 +88,12 @@ class Character:
         self.equipped_items = equipped_items
         self.item_proc_handler = None
 
+        # buff name -> uptime
+        self.buff_uptimes = {}
+
+        # buff name -> start time
+        self.buff_start_times = {}
+
         self._dmg_modifier = 1
         self._trinket_haste = {}
         self._cooldown_haste = {}
@@ -106,6 +112,13 @@ class Character:
             from sim.item_proc_handler import ItemProcHandler
             self.item_proc_handler = ItemProcHandler(self, self.env, self.equipped_items)
 
+    def add_remaining_buff_uptime(self):
+        for buff_name, start_time in self.buff_start_times.items():
+            if buff_name not in self.buff_uptimes:
+                self.buff_uptimes[buff_name] = 0
+
+            self.buff_uptimes[buff_name] += self.env.now - start_time
+
     def reset(self):
         # avoid circular import
         from sim.cooldowns import Cooldowns
@@ -118,6 +131,9 @@ class Character:
         self._sp_bonus = 0
         self.num_partials = 0
         self.num_resists = 0
+
+        self.buff_uptimes = {}
+        self.buff_start_times = {}
 
         self.used_cds = {}
 

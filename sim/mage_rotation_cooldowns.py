@@ -38,6 +38,7 @@ class FrostNovaCooldown(Cooldown):
     def activate(self):
         if self.usable:
             self._active = True
+
             if self.PRINTS_ACTIVATION:
                 self.character.print(f"{self.name} activated")
 
@@ -149,6 +150,7 @@ class ArcaneSurgeCooldown(Cooldown):
 
 class ArcaneRuptureCooldown(Cooldown):
     PRINTS_ACTIVATION = False
+    TRACK_UPTIME = True
 
     def __init__(self, character: Character, apply_cd_haste: bool):
         super().__init__(character)
@@ -173,6 +175,9 @@ class ArcaneRuptureCooldown(Cooldown):
     def activate(self):
         if self.usable:
             self._active = True
+
+            self.track_buff_start_time()
+
             if self.PRINTS_ACTIVATION:
                 self.character.print(f"{self.name} activated")
 

@@ -28,11 +28,16 @@ class Simulation:
         self.num_mobs = num_mobs
         self.mob_level = mob_level
 
+        self.duration = 0
+
     def run(self, iterations, duration, print_casts=False, print_dots=False):
+        self.duration = duration
+
         self.results = {
             'dps': defaultdict(list),
             'casts': defaultdict(list),
             'per_spell_data': defaultdict(list),
+            'buff_uptime': defaultdict(list),
             'partial_resists': defaultdict(list),
             'resists': defaultdict(list),
 
@@ -100,6 +105,16 @@ class Simulation:
                                 self.results['per_spell_data'][char_name][spell_name][key] += value
                         else:
                             self.results['per_spell_data'][char_name][spell_name] = data
+
+                if char_name not in self.results['buff_uptime']:
+                    self.results['buff_uptime'][char_name] =  character.buff_uptimes
+                else:
+                    for buff_name, buff_uptime in character.buff_uptimes.items():
+                        if buff_name in self.results['buff_uptime'][char_name]:
+                            self.results['buff_uptime'][char_name][buff_name] += buff_uptime
+                        else:
+                            self.results['buff_uptime'][char_name][buff_name] = buff_uptime
+
 
             self.results['total_spell_dmg'][i] = env.meter.total_spell_dmg
             self.results['total_dot_dmg'][i] = env.meter.total_dot_dmg
@@ -207,7 +222,6 @@ class Simulation:
             for char in chars_sorted_by_dps.keys():
                 iterations = len(self.results['dps'][char])
                 print(f"{char}:")
-                total_char_dmg = self.results['total_spell_dmg']
                 for spell_name, data in self.results['per_spell_data'][char].items():
                     num_casts = round(data['num_casts'] / iterations, 1)
                     total_dmg = round(data['total_dmg'] / iterations)
@@ -234,6 +248,17 @@ class Simulation:
             for char in self.results['resists']:
                 label = f"{char} Resists"
                 print(f"{self._justify(label)}: {mean(self.results['resists'][char])}")
+
+        if verbosity > 2:
+            print(f"------ Buff Uptime ------")
+            for char in chars_sorted_by_dps.keys():
+                iterations = len(self.results['dps'][char])
+                print(f"{char}:")
+                for buff_name, total_uptime in self.results['buff_uptime'][char].items():
+                    avg_uptime = round(total_uptime / iterations, 1)
+                    avg_uptime_percent = round(100 * avg_uptime / self.duration, 1)
+                    print(f"    {buff_name.ljust(JUSTIFY, ' ')}: {avg_uptime} sec ({avg_uptime_percent}%)")
+
 
         if verbosity > 3:
             print(f"------ Advanced Stats ------")

@@ -5,6 +5,7 @@ from sim.spell_school import DamageType
 class Cooldown:
     STARTS_CD_ON_ACTIVATION = True
     PRINTS_ACTIVATION = True
+    TRACK_UPTIME = False
 
     def __init__(self, character: Character):
         self.character = character
@@ -38,9 +39,24 @@ class Cooldown:
     def name(self):
         return type(self).__name__
 
+    def track_buff_start_time(self):
+        if self.name not in self.character.buff_start_times:
+            self.character.buff_start_times[self.name] = self.character.env.now
+
+    def track_buff_uptime(self):
+        if self.name not in self.character.buff_uptimes:
+            self.character.buff_uptimes[self.name] = 0
+        self.character.buff_uptimes[self.name] += self.character.env.now - self.character.buff_start_times[self.name]
+
+        del self.character.buff_start_times[self.name]
+
     def activate(self):
         if self.usable:
             self._active = True
+
+            if self.TRACK_UPTIME:
+                self.track_buff_start_time()
+
             if self.PRINTS_ACTIVATION:
                 self.character.print(f"{self.name} activated")
 
@@ -67,7 +83,12 @@ class Cooldown:
                 self.deactivate()
 
     def deactivate(self):
+        if self._active and self.TRACK_UPTIME:
+            # add to uptime
+            self.track_buff_uptime()
+
         self._active = False
+
         if self.PRINTS_ACTIVATION:
             self.character.print(f"{self.name} deactivated")
 
@@ -332,6 +353,7 @@ class PotionOfQuickness(Cooldown):
 class WrathOfCenariusBuff(Cooldown):
     DMG_BONUS = 132
     PRINTS_ACTIVATION = True
+    TRACK_UPTIME = True
 
     def __init__(self, character: Character):
         super().__init__(character)
@@ -349,6 +371,9 @@ class WrathOfCenariusBuff(Cooldown):
     def activate(self):
         if self.usable:
             self.character.add_sp_bonus(self.DMG_BONUS)
+
+            if self.TRACK_UPTIME:
+                self.track_buff_start_time()
 
             self._buff_end_time = self.character.env.now + self.duration
 
@@ -379,6 +404,7 @@ class WrathOfCenariusBuff(Cooldown):
 
 class EndlessGulchBuff(Cooldown):
     PRINTS_ACTIVATION = True
+    TRACK_UPTIME = True
 
     def __init__(self, character: Character):
         super().__init__(character)
@@ -392,6 +418,9 @@ class EndlessGulchBuff(Cooldown):
     def activate(self):
         if self.usable:
             self.character.add_trinket_haste(self.name, 20)
+
+            if self.TRACK_UPTIME:
+                self.track_buff_start_time()
 
             self._buff_end_time = self.character.env.now + self.duration
 

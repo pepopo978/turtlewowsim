@@ -11,6 +11,9 @@ class ItemProc:
         self.callback = callback
         self.last_proc_time = 0
 
+        self.proc_rolls = 0
+        self.proc_successes = 0
+
     @property
     def name(self):
         return type(self).__name__
@@ -26,7 +29,10 @@ class ItemProc:
         if self.COOLDOWN and self.last_proc_time + self.COOLDOWN > current_time:
             return
 
+        self.proc_rolls += num_mobs
         if self._roll_proc(num_mobs):
+            self.proc_successes += 1
+
             self.last_proc_time = current_time
             if self.PRINT_PROC:
                 self.character.print(f"{self.name} triggered")
