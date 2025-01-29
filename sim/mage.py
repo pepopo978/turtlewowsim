@@ -957,7 +957,8 @@ class Mage(Character):
                                      base_cast_time=casting_time,
                                      crit_modifier=0,
                                      on_gcd=False,
-                                     calculate_cast_time=False)
+                                     calculate_cast_time=False,
+                                     cooldown=1)
 
     def _icicles_channel(self, channel_time: float = 5):
         self.icicles_cd.deactivate()

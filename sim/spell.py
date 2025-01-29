@@ -109,7 +109,7 @@ SPELL_TRIGGERS_ON_HIT = {
     Spell.ICICLE: True,
     # aoe
     Spell.ARCANE_EXPLOSION: True,
-    Spell.FROST_NOVA: True,
+    Spell.FROST_NOVA: False,
     Spell.CONE_OF_COLD: True,
     Spell.FLAMESTRIKE: True,
     Spell.BLASTWAVE: True,
