@@ -42,8 +42,6 @@ class ItemProcHandler:
         partial_amount = self.character.roll_partial(is_dot=False, is_binary=False)
         if partial_amount < 1:
             dmg = int(dmg * partial_amount)
-            if hasattr(self.character, "arcane_surge_cd"):
-                self.character.arcane_surge_cd.enable_due_to_partial_resist()
 
         self.env.meter.register_proc_dmg(
             char_name=self.character.name,

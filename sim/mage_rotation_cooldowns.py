@@ -128,7 +128,7 @@ class ArcaneSurgeCooldown(Cooldown):
     def __init__(self, character: Character, apply_cd_haste: bool):
         super().__init__(character)
         self._base_cd = 8
-        self._had_partial_resist = False
+        self._resist_time = None
         self._apply_cd_haste = apply_cd_haste
 
     @property
@@ -136,16 +136,27 @@ class ArcaneSurgeCooldown(Cooldown):
         return self._base_cd / self.character.get_haste_factor_for_damage_type(
             DamageType.ARCANE) if self._apply_cd_haste else self._base_cd
 
-    def enable_due_to_partial_resist(self):
-        self._had_partial_resist = True
+    def enable_due_to_resist(self):
+        self._resist_time = self.character.env.now
 
     @property
     def usable(self):
-        return not self._active and not self._on_cooldown and self._had_partial_resist
+        if not self._active and not self._on_cooldown and self._resist_time:
+            if self.character.env.now - self._resist_time < 3:
+                return True
+            else:
+                self._resist_time = None
+
+        return False
+
+    def time_left(self):
+        if self._resist_time:
+            return self._resist_time + 3 - self.character.env.now
+        return 0
 
     def activate(self):
         super().activate()
-        self._had_partial_resist = False
+        self._resist_time = None
 
 
 class ArcaneRuptureCooldown(Cooldown):

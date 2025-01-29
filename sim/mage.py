@@ -94,7 +94,8 @@ class Mage(Character):
                     self.cds.presence_of_mind.activate()
                 yield from self._arcane_rupture()
             else:
-                yield from self._arcane_missiles_channel()
+                interrupt = self.opts.interrupt_arcane_missiles
+                yield from self._arcane_missiles_channel(interrupt_for_rupture=interrupt)
 
     def _arcane_surge_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
@@ -111,7 +112,9 @@ class Mage(Character):
                     self.cds.presence_of_mind.activate()
                 yield from self._arcane_rupture()
             else:
-                yield from self._arcane_missiles_channel()
+                interrupt = self.opts.interrupt_arcane_missiles
+                yield from self._arcane_missiles_channel(interrupt_for_surge=interrupt,
+                                                         interrupt_for_rupture=interrupt)
 
     def _arcane_surge_fireblast_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
@@ -130,7 +133,9 @@ class Mage(Character):
             elif self.fire_blast_cd.usable and not self.has_trinket_or_cooldown_haste():
                 yield from self._fire_blast()
             else:
-                yield from self._arcane_missiles_channel()
+                interrupt = self.opts.interrupt_arcane_missiles
+                yield from self._arcane_missiles_channel(interrupt_for_surge=interrupt,
+                                                         interrupt_for_rupture=interrupt)
 
     def _arcane_rupture_surge_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
@@ -146,7 +151,9 @@ class Mage(Character):
             elif self.arcane_surge_cd.usable and not self.has_trinket_or_cooldown_haste():
                 yield from self._arcane_surge()
             else:
-                yield from self._arcane_missiles_channel()
+                interrupt = self.opts.interrupt_arcane_missiles
+                yield from self._arcane_missiles_channel(interrupt_for_surge=interrupt,
+                                                         interrupt_for_rupture=interrupt)
 
     def _arcane_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
@@ -389,7 +396,8 @@ class Mage(Character):
                 has_5_stack_ignite and
                 has_ignite_extend_option and
                 spell not in (
-                Spell.FIREBLAST, Spell.SCORCH))  # if already casting fireblast or scorch, don't use extend ignite logic
+                    Spell.FIREBLAST,
+                    Spell.SCORCH))  # if already casting fireblast or scorch, don't use extend ignite logic
 
     def extend_ignite(self):
         # check that spell is not already fireblast or scorch
@@ -459,6 +467,7 @@ class Mage(Character):
                 dmg *= 1.25
                 arcane_rupture_applied = True
         else:
+            self.arcane_surge_cd.enable_due_to_resist()
             self.num_resists += 1
 
         is_binary_spell = spell in {Spell.FROSTBOLT, Spell.FROSTBOLTRK4, Spell.FROSTBOLTRK3, Spell.FROST_NOVA,
@@ -469,7 +478,7 @@ class Mage(Character):
         if partial_amount < 1:
             dmg = int(dmg * partial_amount)
             partial_desc = f"({int(partial_amount * 100)}% partial)"
-            self.arcane_surge_cd.enable_due_to_partial_resist()
+            self.arcane_surge_cd.enable_due_to_resist()
 
             if self.opts.t3_8_set:
                 self._t3_arcane_8set_proc_time = self.env.now
@@ -595,7 +604,8 @@ class Mage(Character):
                                       on_gcd=False,
                                       calculate_cast_time=False)
 
-    def _arcane_missiles_channel(self, channel_time: float = 5):
+    def _arcane_missiles_channel(self, channel_time: float = 5, interrupt_for_surge: bool = False,
+                                 interrupt_for_rupture: bool = False):
         num_missiles = 5
 
         if self.opts.extra_second_arcane_missile:
@@ -608,6 +618,21 @@ class Mage(Character):
         time_between_missiles = channel_time / num_missiles
 
         for i in range(num_missiles):
+            # check for interrupts
+            # don't surge during haste cds as it has gcd that is not reduced by haste
+            if interrupt_for_surge and self.arcane_surge_cd.usable and not self.has_trinket_or_cooldown_haste():
+                # if rupture not active, use surge immediately
+                if not self.arcane_rupture_cd.is_active():
+                    yield from self._arcane_surge()
+                    return
+                # otherwise wait until it is about to expire
+                if self.arcane_surge_cd.time_left() < time_between_missiles:
+                    yield from self._arcane_surge()
+                    return
+            if interrupt_for_rupture and self.arcane_rupture_cd.usable and not self.arcane_rupture_cd.is_active():
+                yield from self._arcane_rupture()
+                return
+
             if i == 0:
                 yield from self._arcane_missile(casting_time=time_between_missiles + self.lag)  # initial delay
             else:
