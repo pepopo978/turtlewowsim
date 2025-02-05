@@ -142,7 +142,7 @@ class ArcaneSurgeCooldown(Cooldown):
     @property
     def usable(self):
         if not self._active and not self._on_cooldown and self._resist_time:
-            if self.character.env.now - self._resist_time < 3:
+            if self.character.env.now - self._resist_time < 4:
                 return True
             else:
                 self._resist_time = None

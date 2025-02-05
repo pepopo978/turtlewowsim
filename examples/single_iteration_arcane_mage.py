@@ -11,7 +11,7 @@ for i in range(num_mages):
                   ornate_bloodstone_dagger=False,
                   wrath_of_cenarius=True,
               ))
-    fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
+    fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
     mages.append(fm)
 
 env = Environment(num_mobs=1, mob_level=63)

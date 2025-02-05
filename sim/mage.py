@@ -423,7 +423,7 @@ class Mage(Character):
                max_dmg: int,
                base_cast_time: float,
                crit_modifier: float,
-               cooldown: float,
+               custom_gcd: float | None,
                on_gcd: bool,
                calculate_cast_time: bool = True):
 
@@ -433,11 +433,14 @@ class Mage(Character):
             self._t2_8set_proc = False
             self.print("T2 proc used")
 
+        gcd = custom_gcd if custom_gcd is not None else self.env.GCD
+        gcd_wait_time = 0
+
         # account for gcd
-        if on_gcd and casting_time < self.env.GCD and cooldown == 0:
-            cooldown = self.env.GCD - casting_time if casting_time > self.lag else self.env.GCD
+        if on_gcd and casting_time < gcd:
+            gcd_wait_time = gcd - casting_time if casting_time > self.lag else gcd
             if casting_time == 0:
-                cooldown += self.lag
+                gcd_wait_time += self.lag
 
         hit = self._roll_hit(self._get_hit_chance(spell),
                              damage_type) if spell != Spell.ARCANE_SURGE else True  # arcane surge always hits
@@ -489,8 +492,8 @@ class Mage(Character):
         description = ""
         if self.env.print:
             description = f"({round(casting_time, 2)} cast)"
-            if cooldown:
-                description += f" ({round(cooldown, 2)} gcd)"
+            if gcd_wait_time:
+                description += f" ({round(gcd_wait_time, 2)} gcd)"
             if arcane_instability_hit:
                 description += " (AI)"
             if arcane_rupture_applied:
@@ -525,10 +528,10 @@ class Mage(Character):
             char_name=self.name,
             spell_name=spell.value,
             dmg=dmg,
-            cast_time=round(casting_time + cooldown, 2),
+            cast_time=round(casting_time + gcd_wait_time, 2),
             aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
-        return hit, crit, dmg, cooldown, partial_amount
+        return hit, crit, dmg, gcd_wait_time, partial_amount
 
     def _arcane_spell(self,
                       spell: Spell,
@@ -536,7 +539,7 @@ class Mage(Character):
                       max_dmg: int,
                       base_cast_time: float,
                       crit_modifier: float,
-                      cooldown: float = 0.0,
+                      custom_gcd: float = None,
                       on_gcd: bool = True,
                       calculate_cast_time: bool = True):
 
@@ -548,16 +551,16 @@ class Mage(Character):
 
         crit_modifier += self.tal.arcane_impact * 2
 
-        hit, crit, dmg, cooldown, partial_amount = yield from self._spell(spell=spell,
-                                                                          damage_type=DamageType.ARCANE,
-                                                                          talent_school=TalentSchool.Arcane,
-                                                                          min_dmg=min_dmg,
-                                                                          max_dmg=max_dmg,
-                                                                          base_cast_time=base_cast_time,
-                                                                          crit_modifier=crit_modifier,
-                                                                          cooldown=cooldown,
-                                                                          on_gcd=on_gcd,
-                                                                          calculate_cast_time=calculate_cast_time)
+        hit, crit, dmg, custom_gcd, partial_amount = yield from self._spell(spell=spell,
+                                                                            damage_type=DamageType.ARCANE,
+                                                                            talent_school=TalentSchool.Arcane,
+                                                                            min_dmg=min_dmg,
+                                                                            max_dmg=max_dmg,
+                                                                            base_cast_time=base_cast_time,
+                                                                            crit_modifier=crit_modifier,
+                                                                            custom_gcd=custom_gcd,
+                                                                            on_gcd=on_gcd,
+                                                                            calculate_cast_time=calculate_cast_time)
 
         if self.tal.resonance_cascade and hit:
             num_duplicates = 0
@@ -590,8 +593,8 @@ class Mage(Character):
             self.arcane_rupture_cd.activate()
 
         # handle gcd
-        if cooldown:
-            yield self.env.timeout(cooldown)
+        if custom_gcd:
+            yield self.env.timeout(custom_gcd)
 
     def _arcane_missile(self, casting_time: float = 1):
         dmg = 230
@@ -683,7 +686,7 @@ class Mage(Character):
                     max_dmg: int,
                     base_cast_time: float,
                     crit_modifier: float,
-                    cooldown: float = 0.0,
+                    custom_gcd: float | None = None,
                     on_gcd: bool = True):
         # check if we need to extend ignite instead of casting intended spell
         if self.check_for_ignite_extend(spell):
@@ -707,15 +710,15 @@ class Mage(Character):
             yield from self._pyroblast(casting_time=1.5)
             return
 
-        hit, crit, dmg, cooldown, partial_amount = yield from self._spell(spell=spell,
-                                                                          damage_type=DamageType.FIRE,
-                                                                          talent_school=TalentSchool.Fire,
-                                                                          min_dmg=min_dmg,
-                                                                          max_dmg=max_dmg,
-                                                                          base_cast_time=base_cast_time,
-                                                                          crit_modifier=crit_modifier,
-                                                                          cooldown=cooldown,
-                                                                          on_gcd=on_gcd)
+        hit, crit, dmg, custom_gcd, partial_amount = yield from self._spell(spell=spell,
+                                                                            damage_type=DamageType.FIRE,
+                                                                            talent_school=TalentSchool.Fire,
+                                                                            min_dmg=min_dmg,
+                                                                            max_dmg=max_dmg,
+                                                                            base_cast_time=base_cast_time,
+                                                                            crit_modifier=crit_modifier,
+                                                                            custom_gcd=custom_gcd,
+                                                                            on_gcd=on_gcd)
 
         if hit:
             self.cds.combustion.cast_fire_spell()  # only happens on hit
@@ -753,8 +756,8 @@ class Mage(Character):
             self.fire_blast_cd.activate()
 
         # handle gcd
-        if cooldown:
-            yield self.env.timeout(cooldown)
+        if custom_gcd:
+            yield self.env.timeout(custom_gcd)
 
     def _scorch(self):
         min_dmg = 237
@@ -798,7 +801,7 @@ class Mage(Character):
                                     max_dmg=max_dmg,
                                     base_cast_time=casting_time,
                                     crit_modifier=crit_modifier,
-                                    cooldown=self.tal.fire_blast_gcd)
+                                    custom_gcd=self.tal.fire_blast_gcd)
 
     def _pyroblast(self, casting_time=6.0):
         min_dmg = 716
@@ -817,7 +820,7 @@ class Mage(Character):
                      max_dmg: int,
                      base_cast_time: float,
                      crit_modifier: float,
-                     cooldown: float = 0.0,
+                     custom_gcd: float | None = None,
                      on_gcd: bool = True,
                      calculate_cast_time: bool = True):
         # check if we need to extend ignite instead of casting intended spell
@@ -828,16 +831,16 @@ class Mage(Character):
 
         crit_modifier += self.env.debuffs.wc_stacks * 2  # winters chill added crit (2% per stack)
 
-        hit, crit, dmg, cooldown, partial_amount = yield from self._spell(spell=spell,
-                                                                          damage_type=DamageType.FROST,
-                                                                          talent_school=TalentSchool.Frost,
-                                                                          min_dmg=min_dmg,
-                                                                          max_dmg=max_dmg,
-                                                                          base_cast_time=base_cast_time,
-                                                                          crit_modifier=crit_modifier,
-                                                                          cooldown=cooldown,
-                                                                          on_gcd=on_gcd,
-                                                                          calculate_cast_time=calculate_cast_time)
+        hit, crit, dmg, custom_gcd, partial_amount = yield from self._spell(spell=spell,
+                                                                            damage_type=DamageType.FROST,
+                                                                            talent_school=TalentSchool.Frost,
+                                                                            min_dmg=min_dmg,
+                                                                            max_dmg=max_dmg,
+                                                                            base_cast_time=base_cast_time,
+                                                                            crit_modifier=crit_modifier,
+                                                                            custom_gcd=custom_gcd,
+                                                                            on_gcd=on_gcd,
+                                                                            calculate_cast_time=calculate_cast_time)
 
         if hit:
             if self.tal.winters_chill and spell != Spell.FROST_NOVA:
@@ -872,8 +875,8 @@ class Mage(Character):
             self.cone_of_cold_cd.activate()
 
         # handle gcd
-        if cooldown:
-            yield self.env.timeout(cooldown)
+        if custom_gcd:
+            yield self.env.timeout(custom_gcd)
 
     def _frostbolt(self):
         min_dmg = 515
@@ -957,8 +960,7 @@ class Mage(Character):
                                      base_cast_time=casting_time,
                                      crit_modifier=0,
                                      on_gcd=False,
-                                     calculate_cast_time=False,
-                                     cooldown=1)
+                                     calculate_cast_time=False)
 
     def _icicles_channel(self, channel_time: float = 5):
         self.icicles_cd.deactivate()
@@ -971,10 +973,6 @@ class Mage(Character):
                 yield from self._icicle(casting_time=time_between_icicles + self.lag)  # initial delay
             else:
                 yield from self._icicle(casting_time=time_between_icicles)
-
-        if channel_time < self.env.GCD:
-            self.print(f"Post icicles {round(self.env.GCD - channel_time, 2)} gcd")
-            yield self.env.timeout(self.env.GCD - channel_time)
 
     def arcane_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="arcane_rupture_missiles")(cds=cds, delay=delay)

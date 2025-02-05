@@ -16,6 +16,13 @@ fire = Mage(name=f'fire', sp=1057, crit=46.43, hit=16, tal=FireMageTalents, opts
 fire.smart_scorch(cds=CooldownUsages(combustion=10, mqg=10))
 mages.append(fire)
 
+frost = Mage(name=f'frost', sp=1050, crit=45.43, hit=16,
+          tal=IcicleMageTalents,
+          opts=MageOptions(use_frostnova_for_icicles=True,
+                           start_with_ice_barrier=True))
+frost.icicle_frostbolts(cds=CooldownUsages(mqg=5))
+mages.append(frost)
+
 sim = Simulation(characters=mages)
 sim.run(iterations=2000, duration=180, print_casts=False)
 sim.detailed_report()
