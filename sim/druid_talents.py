@@ -10,7 +10,7 @@ class DruidTalents:
     vengeance: int = 0
     natures_grace: bool = 0
     imp_starfire: int = 0
-    balance_of_all_things: float = 8
+    balance_of_all_things: float = 0
     eclipse: bool = 0
 
 

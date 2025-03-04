@@ -9,6 +9,6 @@ class MoonfireDot(Dot):
 
         self.coefficient = .1302
         self.time_between_ticks = 3
-        self.ticks_left = 6
-        self.starting_ticks = 6
+        self.ticks_left = 6 + self.owner.opts.extra_dot_ticks
+        self.starting_ticks = 6 + self.owner.opts.extra_dot_ticks
         self.base_tick_dmg = 96

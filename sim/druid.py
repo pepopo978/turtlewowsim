@@ -39,7 +39,7 @@ class Druid(Character):
         self.nature_eclipse = NatureEclipseCooldown(self)
 
         self.natures_grace_active = False
-        self.balance_of_all_things_active = False
+        self.balance_of_all_things_stacks = 0
 
     def attach_env(self, env: Environment):
         super().attach_env(env)
@@ -222,9 +222,9 @@ class Druid(Character):
         elif self.tal.imp_starfire == 3:
             casting_time -= 0.5
 
-        if self.balance_of_all_things_active:
+        if self.balance_of_all_things_stacks > 0:
             casting_time -= 0.75
-            self.balance_of_all_things_active = False
+            self.balance_of_all_things_stacks -= 1
 
         yield from self._nature_spell(spell=Spell.STARFIRE,
                                       min_dmg=min_dmg,
@@ -336,34 +336,32 @@ class Druid(Character):
 
     # subrotations for different eclipse states
     def insect_swarm_wrath_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        if not self.env.debuffs.is_insect_swarm_active(self):
+        if not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
             yield from self._insect_swarm()
         else:
             yield from self._wrath()
 
     def insect_swarm_moonfire_wrath_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        if not self.env.debuffs.is_insect_swarm_active(self):
+        if not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
             yield from self._insect_swarm()
-        elif not self.env.debuffs.is_moonfire_active(self):
+        elif not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
             yield from self._moonfire()
         else:
             yield from self._wrath()
 
-
     def moonfire_starfire_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        if not self.env.debuffs.is_moonfire_active(self):
+        if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
             yield from self._moonfire()
         else:
             yield from self._starfire()
 
     def moonfire_insect_swarm_starfire_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        if not self.env.debuffs.is_moonfire_active(self):
+        if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
             yield from self._moonfire()
-        elif not self.env.debuffs.is_insect_swarm_active(self):
+        elif not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
             yield from self._insect_swarm()
         else:
             yield from self._starfire()
-
 
     def set_nature_eclipse_subrotation(self, rotation):
         self.nature_eclipse_rotation = rotation
@@ -377,7 +375,7 @@ class Druid(Character):
 
         while True:
             self._use_cds(cds)
-            if self.opts.starfire_on_balance_of_all_things_proc and self.balance_of_all_things_active:
+            if self.opts.starfire_on_balance_of_all_things_proc and self.balance_of_all_things_stacks > 0:
                 yield from self._starfire()
             elif self.nature_eclipse.is_active() and self.nature_eclipse_rotation and not self.opts.ignore_nature_eclipse:
                 yield from self.nature_eclipse_rotation(self)
@@ -401,7 +399,7 @@ class Druid(Character):
 
     def _moonfire_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_moonfire_active(self):
+            if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
                 yield from self._moonfire()
             else:
                 yield from self._starfire()
@@ -410,7 +408,7 @@ class Druid(Character):
 
     def _insect_swarm_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_insect_swarm_active(self):
+            if not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
                 yield from self._insect_swarm()
             else:
                 yield from self._starfire()
@@ -419,7 +417,7 @@ class Druid(Character):
 
     def _insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_insect_swarm_active(self):
+            if not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
                 yield from self._insect_swarm()
             else:
                 yield from self._wrath()
@@ -428,7 +426,7 @@ class Druid(Character):
 
     def _moonfire_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_moonfire_active(self):
+            if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
                 yield from self._moonfire()
             else:
                 yield from self._wrath()
@@ -437,9 +435,9 @@ class Druid(Character):
 
     def _moonfire_insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_moonfire_active(self):
+            if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
                 yield from self._moonfire()
-            elif not self.env.debuffs.is_insect_swarm_active(self):
+            elif not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
                 yield from self._insect_swarm()
             else:
                 yield from self._wrath()
@@ -448,9 +446,9 @@ class Druid(Character):
 
     def _moonfire_insect_swarm_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_moonfire_active(self):
+            if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
                 yield from self._moonfire()
-            elif not self.env.debuffs.is_insect_swarm_active(self):
+            elif not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
                 yield from self._insect_swarm()
             else:
                 yield from self._starfire()

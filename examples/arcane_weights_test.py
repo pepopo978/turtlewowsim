@@ -6,7 +6,7 @@ num_mages = 5
 control_sp = 1000
 control_crit = 40
 control_hit = 15
-control_haste = 0
+control_haste = 50
 
 equipped_items = EquippedItems(
     ornate_bloodstone_dagger=False,

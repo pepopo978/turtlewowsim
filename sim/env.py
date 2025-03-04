@@ -42,6 +42,9 @@ class Environment(simpy.Environment):
         dt = str(round(self.now, 1))
         return '[' + str(dt) + ']'
 
+    def remaining_time(self):
+        return self.duration - self.now
+
     def p(self, msg):
         if self.print:
             print(msg)

@@ -8,4 +8,6 @@ class DruidOptions:
 
     starfire_on_balance_of_all_things_proc: bool = False
 
+    extra_dot_ticks: int = 0
+
 

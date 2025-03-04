@@ -5,7 +5,7 @@ num_trinkets = 11
 
 base_sp = 970
 base_crit = 38
-base_hit = 14
+base_hit = 16
 base_haste = 4
 
 for i in range(num_trinkets):
@@ -117,5 +117,5 @@ for i in range(num_trinkets):
 # sim = Simulation(characters=mages, num_mobs=3, mob_level=60)
 # single target test
 sim = Simulation(characters=mages, num_mobs=1, mob_level=63)
-sim.run(iterations=10000, duration=240, print_casts=False)
+sim.run(iterations=10000, duration=180, print_casts=False)
 sim.detailed_report()

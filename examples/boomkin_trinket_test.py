@@ -64,5 +64,5 @@ for i in range(num_trinkets):
         Druids.append(d)
 
 sim = Simulation(characters=Druids)
-sim.run(iterations=10000, duration=120, print_casts=False)
+sim.run(iterations=10000, duration=60, print_casts=False)
 sim.detailed_report()

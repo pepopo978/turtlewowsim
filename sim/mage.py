@@ -37,7 +37,7 @@ class Mage(Character):
         self.hot_streak = None
 
         if self.tal.accelerated_arcana:
-            self.damage_type_haste[DamageType.ARCANE] = 6
+            self.damage_type_haste[DamageType.ARCANE] = 5
 
         if self.tal.critical_mass:
             self.damage_type_crit[DamageType.FIRE] += 6

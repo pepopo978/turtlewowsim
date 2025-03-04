@@ -30,13 +30,26 @@ class ItemProc:
             return
 
         self.proc_rolls += num_mobs
-        if self._roll_proc(num_mobs):
-            self.proc_successes += 1
 
-            self.last_proc_time = current_time
-            if self.PRINT_PROC:
-                self.character.print(f"{self.name} triggered")
-            self.callback()
+        if self.COOLDOWN == 0:
+            # roll on every mob
+            for _ in range(num_mobs):
+                if self._roll_proc():
+                    self.proc_successes += 1
+
+                    self.last_proc_time = current_time
+                    if self.PRINT_PROC:
+                        self.character.print(f"{self.name} triggered")
+                    self.callback()
+        else:
+            # only can proc once per spell due to cooldown
+            if self._roll_proc(num_mobs):
+                self.proc_successes += 1
+
+                self.last_proc_time = current_time
+                if self.PRINT_PROC:
+                    self.character.print(f"{self.name} triggered")
+                self.callback()
 
 
 class BladeOfEternalDarkness(ItemProc):
@@ -45,6 +58,8 @@ class BladeOfEternalDarkness(ItemProc):
 
 class OrnateBloodstoneDagger(ItemProc):
     PERCENT_CHANCE = 20
+    COOLDOWN = 1
+    PRINT_PROC = False
 
 
 class WrathOfCenarius(ItemProc):
@@ -52,4 +67,5 @@ class WrathOfCenarius(ItemProc):
 
 
 class EndlessGulch(ItemProc):
-    PERCENT_CHANCE = 12
+    PERCENT_CHANCE = 20
+    COOLDOWN = 3
