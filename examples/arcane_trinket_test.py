@@ -117,5 +117,5 @@ for i in range(num_trinkets):
 # sim = Simulation(characters=mages, num_mobs=3, mob_level=60)
 # single target test
 sim = Simulation(characters=mages, num_mobs=1, mob_level=63)
-sim.run(iterations=10000, duration=180, print_casts=False)
+sim.run(iterations=10000, duration=30, print_casts=False)
 sim.detailed_report()

@@ -7,3 +7,4 @@ class EquippedItems:
     ornate_bloodstone_dagger: bool = None
     wrath_of_cenarius: bool = None
     endless_gulch: bool = None
+    true_band_of_sulfuras: bool = None

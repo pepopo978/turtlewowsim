@@ -1,5 +1,5 @@
 from sim.character import Character
-from sim.cooldowns import WrathOfCenariusBuff, EndlessGulchBuff
+from sim.cooldowns import WrathOfCenariusBuff, EndlessGulchBuff, TrueBandOfSulfurasBuff
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.item_procs import *
@@ -16,6 +16,7 @@ class ItemProcHandler:
 
         self.wrath_of_cenarius_buff = None
         self.endless_gulch_buff = None
+        self.true_band_of_sulfuras_buff = None
 
         self.wisdom_of_the_makaru_stacks = 0
 
@@ -27,13 +28,16 @@ class ItemProcHandler:
             if equipped_items.wrath_of_cenarius:
                 self.wrath_of_cenarius_buff = WrathOfCenariusBuff(character)
                 self.procs.append(WrathOfCenarius(character, self._wrath_of_cenarius_proc))
+            if equipped_items.true_band_of_sulfuras:
+                self.true_band_of_sulfuras_buff = TrueBandOfSulfurasBuff(character)
+                self.procs.append(TrueBandOfSulfuras(character, self._true_band_of_sulfuras_proc))    
             if equipped_items.endless_gulch:
                 self.endless_gulch_buff = EndlessGulchBuff(character)
                 self.procs.append(EndlessGulch(character, self._endless_gulch_proc))
 
-    def check_for_procs(self, current_time):
+    def check_for_procs(self, current_time, spell: Spell, damage_type: DamageType):
         for proc in self.procs:
-            proc.check_for_proc(current_time, self.env.num_mobs)
+            proc.check_for_proc(current_time, self.env.num_mobs, spell, damage_type)
 
     def _tigger_proc_dmg(self, spell, min_dmg, max_dmg, damage_type):
         dmg = self.character.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0), damage_type)
@@ -66,3 +70,7 @@ class ItemProcHandler:
             self.wisdom_of_the_makaru_stacks = 0
             if self.endless_gulch_buff:
                 self.endless_gulch_buff.activate()
+                
+    def _true_band_of_sulfuras_proc(self):
+        if self.true_band_of_sulfuras_buff:
+            self.true_band_of_sulfuras_buff.activate()                

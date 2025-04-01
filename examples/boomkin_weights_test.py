@@ -60,5 +60,5 @@ for i in range(num_druids):
         druids.append(d)
 
 sim = Simulation(characters=druids)
-sim.run(iterations=50000, duration=120, print_casts=False)
+sim.run(iterations=10000, duration=120, print_casts=False)
 sim.detailed_report()

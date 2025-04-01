@@ -8,7 +8,8 @@ from sim.hot_streak import HotStreak
 from sim.mage_options import MageOptions
 from sim.mage_rotation_cooldowns import *
 from sim.mage_talents import MageTalents
-from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT, SPELL_HITS_MULTIPLE_TARGETS
+from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT, SPELL_HITS_MULTIPLE_TARGETS, \
+    SPELL_HAS_TRAVEL_TIME
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
 
@@ -508,7 +509,10 @@ class Mage(Character):
             self.print(f"{spell.value} {description} {partial_desc} **{dmg}**")
 
         if hit and SPELL_TRIGGERS_ON_HIT.get(spell, False):
-            self._check_for_procs()
+            self.env.process(self._check_for_procs(
+                spell=spell,
+                damage_type=damage_type,
+                delay=spell in SPELL_HAS_TRAVEL_TIME))
 
         if (hit and
                 self.opts.fullt2 and

@@ -8,7 +8,8 @@ from sim.druid_talents import DruidTalents
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.mage_rotation_cooldowns import *
-from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT, SPELL_HITS_MULTIPLE_TARGETS
+from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT, SPELL_HITS_MULTIPLE_TARGETS, \
+    SPELL_HAS_TRAVEL_TIME
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
 
@@ -172,14 +173,17 @@ class Druid(Character):
             self.env.debuffs.add_moonfire_dot(self)
 
         if hit and SPELL_TRIGGERS_ON_HIT.get(spell, False):
-            self._check_for_procs()
+            self.env.process(self._check_for_procs(
+                spell=spell,
+                damage_type=damage_type,
+                delay=spell in SPELL_HAS_TRAVEL_TIME))
 
-        self.env.meter.register_spell_dmg(
-            char_name=self.name,
-            spell_name=spell.value,
-            dmg=dmg,
-            cast_time=round(casting_time + cooldown, 2),
-            aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
+            self.env.meter.register_spell_dmg(
+                char_name=self.name,
+                spell_name=spell.value,
+                dmg=dmg,
+                cast_time=round(casting_time + cooldown, 2),
+                aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
         return hit, crit, dmg, cooldown, partial_amount
 

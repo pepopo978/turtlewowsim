@@ -54,7 +54,7 @@ SPELL_COEFFICIENTS = {
     Spell.SHADOWBOLT: 0.8571,
     Spell.DRAIN_SOUL: 0.1667,
     Spell.SOUL_FIRE: 1.25,
-    Spell.DARK_HARVEST: .3, #per tick
+    Spell.DARK_HARVEST: .3,  # per tick
 
     # Mage
     Spell.ARCANE_MISSILE: 0.328,
@@ -70,13 +70,13 @@ SPELL_COEFFICIENTS = {
     Spell.FROSTBOLT: 0.814,
     Spell.FROSTBOLTRK3: 0.4627,  # 2.2 / 3.5 * 0.95 * 0.775 spell lvl 14 has additional reduction
     Spell.FROSTBOLTRK4: 0.7057,  # 2.6 / 3.5 * 0.95 spell lvl 20
-    Spell.FROST_NOVA: 0.0, # assume target is immune and takes no dmg
+    Spell.FROST_NOVA: 0.0,  # assume target is immune and takes no dmg
     Spell.CONE_OF_COLD: 0.129,
     Spell.ICICLE: 0.4,
 
     # Druid
     Spell.MOONFIRE: 0.1495,
-    Spell.WRATH: 0.6214, # turtle added 5% guessing they meant a flat amount
+    Spell.WRATH: 0.6214,  # turtle added 5% guessing they meant a flat amount
     Spell.STARFIRE: 1.0,
     Spell.INSECT_SWARM: 0.158,
 
@@ -123,6 +123,20 @@ SPELL_TRIGGERS_ON_HIT = {
     # Proc Spells
     Spell.ENGULFING_SHADOWS: False,  # Blade of Eternal Darkness
     Spell.BURNING_HATRED: False  # Ornate Bloodstone Dagger
+}
+
+SPELL_HAS_TRAVEL_TIME = {
+    # Warlock
+    Spell.SHADOWBOLT: True,
+
+    # Mage
+    Spell.ARCANE_MISSILE: True,
+    Spell.FIREBALL: True,
+    Spell.PYROBLAST: True,
+    Spell.FROSTBOLT: True,
+
+    # Druid
+    Spell.WRATH: True,
 }
 
 SPELL_HITS_MULTIPLE_TARGETS = {

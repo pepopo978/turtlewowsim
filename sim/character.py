@@ -5,6 +5,7 @@ from dataclasses import fields, dataclass
 from sim.cooldown_usages import CooldownUsages
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
+from sim.spell import Spell
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
 
@@ -223,9 +224,11 @@ class Character:
     def _get_crit_multiplier(self, talent_school: TalentSchool, damage_type: DamageType):
         return 1.5 + self.damage_type_crit_mult[damage_type]
 
-    def _check_for_procs(self):
+    def _check_for_procs(self, spell: Spell, damage_type: DamageType, delay: bool):
         if self.item_proc_handler:
-            self.item_proc_handler.check_for_procs(self.env.now)
+            if delay:
+                yield self.env.timeout(0.5)
+            self.item_proc_handler.check_for_procs(self.env.now, spell, damage_type)
 
     def roll_partial(self, is_dot: bool, is_binary: bool):
         if is_binary or self.env.mob_level < 63:

@@ -468,6 +468,53 @@ class CharmOfMagic(Cooldown):
         super().deactivate()
         self.character.damage_type_crit[DamageType.ARCANE] -= 5
         self.character.damage_type_crit_mult[DamageType.ARCANE] -= 0.25
+        
+        
+class TrueBandOfSulfurasBuff(Cooldown):
+    PRINTS_ACTIVATION = True
+    TRACK_UPTIME = True
+
+    def __init__(self, character: Character):
+        super().__init__(character)
+        self._buff_end_time = -1
+
+    @property
+    def duration(self):
+        return 6
+
+    # need special handling for when cooldown ends due to possibility of refresh
+    def activate(self):
+        if self.usable:
+            self.character.add_trinket_haste(self.name, 5)
+
+            if self.TRACK_UPTIME:
+                self.track_buff_start_time()
+
+            self._buff_end_time = self.character.env.now + self.duration
+
+            self._active = True
+            if self.PRINTS_ACTIVATION:
+                self.character.print(f"{self.name} activated")
+
+            def callback(self):
+                while True:
+                    remaining_time = self._buff_end_time - self.character.env.now
+                    yield self.character.env.timeout(remaining_time)
+
+                    if self.character.env.now >= self._buff_end_time:
+                        self.deactivate()
+                        break
+
+            self.character.env.process(callback(self))
+        else:
+            # refresh buff end time
+            if self.PRINTS_ACTIVATION:
+                self.character.print(f"{self.name} refreshed")
+            self._buff_end_time = self.character.env.now + self.duration
+
+    def deactivate(self):
+        super().deactivate()
+        self.character.remove_trinket_haste(self.name)        
 
 
 class Cooldowns:
