@@ -325,7 +325,7 @@ class ArcanePower(Cooldown):
 
     def activate(self):
         super().activate()
-        self.character.add_cooldown_haste(self.name, 35)
+        self.character.add_cooldown_haste(self.name, 30)
 
     def deactivate(self):
         super().deactivate()

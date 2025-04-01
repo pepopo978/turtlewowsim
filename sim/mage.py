@@ -611,7 +611,8 @@ class Mage(Character):
                                       on_gcd=False,
                                       calculate_cast_time=False)
 
-    def _arcane_missiles_channel(self, channel_time: float = 5, interrupt_for_surge: bool = False,
+    def _arcane_missiles_channel(self, channel_time: float = 5,
+                                 interrupt_for_surge: bool = False,
                                  interrupt_for_rupture: bool = False):
         num_missiles = 5
 
@@ -623,6 +624,8 @@ class Mage(Character):
             channel_time /= self.get_haste_factor_for_damage_type(DamageType.ARCANE)
 
         time_between_missiles = channel_time / num_missiles
+
+        had_sulfuras_proc = self.equipped_items.true_band_of_sulfuras and self.item_proc_handler.true_band_of_sulfuras_buff.is_active()
 
         for i in range(num_missiles):
             # check for interrupts
@@ -644,6 +647,10 @@ class Mage(Character):
                 yield from self._arcane_missile(casting_time=time_between_missiles + self.lag)  # initial delay
             else:
                 yield from self._arcane_missile(casting_time=time_between_missiles)
+                if not had_sulfuras_proc and self.opts.interrupt_arcane_missiles and self.equipped_items.true_band_of_sulfuras and self.item_proc_handler.true_band_of_sulfuras_buff.is_active():
+                    # interrupt channel to restart it with haste
+                    self.print(f"Interrupting arcane missiles for haste proc")
+                    break
 
         if channel_time < self.env.GCD:
             self.print(f"Post arcane missiles {round(self.env.GCD - channel_time, 2)} gcd")
@@ -711,7 +718,7 @@ class Mage(Character):
         if self.hot_streak and self.hot_streak.get_stacks() == 5 and self.opts.pyro_on_max_hot_streak:
             self.print("Hot Streak Pyroblast")
             self.hot_streak.use_stacks()
-            yield from self._pyroblast(casting_time=1.5)
+            yield from self._pyroblast(casting_time=1)
             return
 
         hit, crit, dmg, custom_gcd, partial_amount = yield from self._spell(spell=spell,
@@ -816,6 +823,7 @@ class Mage(Character):
                                     min_dmg=min_dmg,
                                     max_dmg=max_dmg,
                                     base_cast_time=casting_time,
+                                    custom_gcd=1.0,
                                     crit_modifier=crit_modifier)
 
     def _frost_spell(self,

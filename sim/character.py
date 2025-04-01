@@ -139,7 +139,7 @@ class Character:
         self.used_cds = {}
 
     def has_trinket_or_cooldown_haste(self):
-        return len(self._trinket_haste) > 0 or len(self._cooldown_haste) > 0
+        return len(self._trinket_haste) > 20 or len(self._cooldown_haste) > 20
 
     def get_haste_factor_for_damage_type(self, damage_type: DamageType):
         haste_factor = 1 + self.haste / 100

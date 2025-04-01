@@ -83,9 +83,9 @@ class Druid(Character):
         dmg = super().modify_dmg(dmg, damage_type, is_periodic)
 
         if self.nature_eclipse.is_active() and damage_type == DamageType.NATURE:
-            dmg *= 1.25
+            dmg *= 1.3
         elif self.arcane_eclipse.is_active() and damage_type == DamageType.ARCANE:
-            dmg *= 1.25
+            dmg *= 1.3
 
         if self.tal.moonfury == 1:
             dmg *= 1.03
