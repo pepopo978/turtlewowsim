@@ -73,6 +73,9 @@ class EndlessGulch(ItemProc):
     PERCENT_CHANCE = 20
     COOLDOWN = 3
 
+class UnceasingFrost(ItemProc):
+    PERCENT_CHANCE = 10
+    PRINT_PROC = True
 
 class TrueBandOfSulfuras(ItemProc):
     PERCENT_CHANCE = 8

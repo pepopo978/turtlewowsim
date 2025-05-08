@@ -7,7 +7,7 @@ for i in range(num_mages):
     fm = Mage(name=f'gulch', sp=1000, crit=35, hit=16,
               tal=FireMageTalents,
               opts=MageOptions(),
-              equipped_items=EquippedItems(endless_gulch=True, true_band_of_sulfuras=True))
+              equipped_items=EquippedItems(endless_gulch=False, true_band_of_sulfuras=True, unceasing_frost=True))
     fm.smart_scorch_and_fireblast(cds=CooldownUsages())
     mages.append(fm)
 

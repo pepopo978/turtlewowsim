@@ -34,6 +34,9 @@ class ItemProcHandler:
             if equipped_items.endless_gulch:
                 self.endless_gulch_buff = EndlessGulchBuff(character)
                 self.procs.append(EndlessGulch(character, self._endless_gulch_proc))
+            if equipped_items.unceasing_frost:
+                self.procs.append(UnceasingFrost(character, self._unceasing_frost_proc))
+
 
     def check_for_procs(self, current_time, spell: Spell, damage_type: DamageType):
         for proc in self.procs:
@@ -74,3 +77,6 @@ class ItemProcHandler:
     def _true_band_of_sulfuras_proc(self):
         if self.true_band_of_sulfuras_buff:
             self.true_band_of_sulfuras_buff.activate()                
+
+    def _unceasing_frost_proc(self):
+        self.env.debuffs.add_freezing_cold()

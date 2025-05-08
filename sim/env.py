@@ -68,3 +68,5 @@ class Environment(simpy.Environment):
         for char in self.characters:
             char.add_remaining_buff_uptime()
 
+        self.debuffs.add_remaining_debuff_uptime()
+

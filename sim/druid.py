@@ -227,7 +227,10 @@ class Druid(Character):
             casting_time -= 0.5
 
         if self.balance_of_all_things_stacks > 0:
-            casting_time -= 0.75
+            casting_time -= 1 if self.opts.set_bonus_3_5 else .75
+            if self.opts.ebb_and_flow_idol:
+                casting_time -= 0.2
+
             self.balance_of_all_things_stacks -= 1
 
         yield from self._nature_spell(spell=Spell.STARFIRE,
@@ -379,7 +382,9 @@ class Druid(Character):
 
         while True:
             self._use_cds(cds)
-            if self.opts.starfire_on_balance_of_all_things_proc and self.balance_of_all_things_stacks > 0:
+            if self.opts.starfire_on_balance_of_all_things_proc and self.balance_of_all_things_stacks > 0 and self.arcane_eclipse.is_active():
+                yield from self._starfire()
+            elif self.opts.starfire_on_balance_of_all_things_proc and self.balance_of_all_things_stacks > 2:
                 yield from self._starfire()
             elif self.nature_eclipse.is_active() and self.nature_eclipse_rotation and not self.opts.ignore_nature_eclipse:
                 yield from self.nature_eclipse_rotation(self)

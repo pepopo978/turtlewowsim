@@ -34,10 +34,13 @@ class Simulation:
         self.duration = duration
 
         self.results = {
+            'iterations': iterations,
+
             'dps': defaultdict(list),
             'casts': defaultdict(list),
             'per_spell_data': defaultdict(list),
             'buff_uptime': defaultdict(list),
+            'debuff_uptime': defaultdict(list),
             'partial_resists': defaultdict(list),
             'resists': defaultdict(list),
 
@@ -115,6 +118,10 @@ class Simulation:
                         else:
                             self.results['buff_uptime'][char_name][buff_name] = buff_uptime
 
+            for debuff_name, debuff_uptime in env.debuffs.debuff_uptimes.items():
+                if debuff_name not in self.results['debuff_uptime']:
+                    self.results['debuff_uptime'][debuff_name] = 0
+                self.results['debuff_uptime'][debuff_name] += debuff_uptime
 
             self.results['total_spell_dmg'][i] = env.meter.total_spell_dmg
             self.results['total_dot_dmg'][i] = env.meter.total_dot_dmg
@@ -258,6 +265,12 @@ class Simulation:
                     avg_uptime = round(total_uptime / iterations, 1)
                     avg_uptime_percent = round(100 * avg_uptime / self.duration, 1)
                     print(f"    {buff_name.ljust(JUSTIFY, ' ')}: {avg_uptime} sec ({avg_uptime_percent}%)")
+
+            print(f"------ Debuff Uptime ------")
+            for debuff_name, total_uptime in self.results['debuff_uptime'].items():
+                avg_uptime = round(total_uptime / self.results['iterations'], 1)
+                avg_uptime_percent = round(100 * avg_uptime / self.duration, 1)
+                print(f"    {debuff_name.value.ljust(JUSTIFY, ' ')}: {avg_uptime} sec ({avg_uptime_percent}%)")
 
 
         if verbosity > 3:

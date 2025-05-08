@@ -746,7 +746,7 @@ class Mage(Character):
                 fire_vuln_hit = self._roll_hit(self._get_hit_chance(spell), DamageType.FIRE)
                 if fire_vuln_hit:
                     if imp_scorch_chance == 100 or self._roll_proc(imp_scorch_chance):
-                        self.env.debuffs.scorch()
+                        self.env.debuffs.add_scorch()
 
         if crit:
             if self.tal.ignite:

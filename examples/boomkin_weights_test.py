@@ -6,12 +6,13 @@ from sim.druid_talents import BoomkinTalents
 druids = []
 num_druids = 5
 
-control_sp = 820
-control_crit = 28
-control_hit = 10
-control_haste = 0
+control_sp = 1030
+control_crit = 35
+control_hit = 15
+control_haste = 7
 
-options = DruidOptions(ignore_arcane_eclipse=True, ignore_nature_eclipse=True, starfire_on_balance_of_all_things_proc=True)
+options = DruidOptions(ignore_arcane_eclipse=True, ignore_nature_eclipse=True, starfire_on_balance_of_all_things_proc=True,
+                       set_bonus_3_5=True, extra_dot_ticks=1)
 
 for i in range(num_druids):
     d = None
@@ -60,5 +61,5 @@ for i in range(num_druids):
         druids.append(d)
 
 sim = Simulation(characters=druids)
-sim.run(iterations=10000, duration=120, print_casts=False)
+sim.run(iterations=50000, duration=180, print_casts=False)
 sim.detailed_report()
