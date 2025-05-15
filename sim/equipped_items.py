@@ -9,3 +9,4 @@ class EquippedItems:
     endless_gulch: bool = None
     true_band_of_sulfuras: bool = None
     unceasing_frost: bool = None
+    bindings_of_contained_magic: bool = None

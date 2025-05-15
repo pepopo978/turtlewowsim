@@ -89,3 +89,7 @@ class TrueBandOfSulfuras(ItemProc):
                 return True
 
         return False
+
+class BindingsOfContainedMagic(ItemProc):
+    PERCENT_CHANCE = 10
+    COOLDOWN = 36  # 36-second ICD

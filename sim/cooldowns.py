@@ -516,6 +516,54 @@ class TrueBandOfSulfurasBuff(Cooldown):
         super().deactivate()
         self.character.remove_trinket_haste(self.name)        
 
+class BindingsOfContainedMagicBuff(Cooldown):
+    DMG_BONUS = 100
+    PRINTS_ACTIVATION = True
+    TRACK_UPTIME = True
+
+    def __init__(self, character: Character):
+        super().__init__(character)
+        self._buff_end_time = -1
+
+    @property
+    def usable(self):
+        return not self._active
+
+    @property
+    def duration(self):
+        return 6
+
+    def activate(self):
+        if self.usable:
+            self.character.add_sp_bonus(self.DMG_BONUS)
+
+            if self.TRACK_UPTIME:
+                self.track_buff_start_time()
+
+            self._buff_end_time = self.character.env.now + self.duration
+
+            self._active = True
+            if self.PRINTS_ACTIVATION:
+                self.character.print(f"{self.name} activated")
+
+            def callback(self):
+                while True:
+                    remaining_time = self._buff_end_time - self.character.env.now
+                    yield self.character.env.timeout(remaining_time)
+
+                    if self.character.env.now >= self._buff_end_time:
+                        self.deactivate()
+                        break
+
+            self.character.env.process(callback(self))
+        # else:
+            # if self.PRINTS_ACTIVATION:
+                # self.character.print(f"{self.name} refreshed")
+            # self._buff_end_time = self.character.env.now + self.duration
+
+    def deactivate(self):
+        super().deactivate()
+        self.character.remove_sp_bonus(self.DMG_BONUS)  
 
 class Cooldowns:
     def __init__(self, character):
