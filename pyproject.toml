@@ -16,6 +16,7 @@ plotly = "^5.24.1"
 numpy = "^2.1.1"
 pandas = "^2.2.2"
 dill = "^0.3.8"
+loky = "^3.5.3"
 
 [tool.poetry.dev-dependencies]
 
