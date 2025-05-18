@@ -178,6 +178,9 @@ class Character:
         return base_haste_factor
 
     def _get_cast_time(self, base_cast_time: float, damage_type: DamageType):
+        if base_cast_time <= 0:
+            return 0
+
         haste_scaling_factor = self.get_haste_factor_for_damage_type(damage_type)
 
         return base_cast_time / haste_scaling_factor + self.lag

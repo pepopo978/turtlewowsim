@@ -6,7 +6,7 @@ from sim.cooldowns import Cooldown
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_HITS_MULTIPLE_TARGETS, SPELL_TRIGGERS_ON_HIT, \
-    SPELL_HAS_TRAVEL_TIME, SPELL_IS_CHANNEL_TICK
+    SPELL_HAS_TRAVEL_TIME
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
 from sim.warlock_options import WarlockOptions
@@ -153,25 +153,21 @@ class Warlock(Character):
         if on_gcd and casting_time < gcd:
             gcd_wait_time = gcd - casting_time if casting_time > self.lag else gcd
 
-        if spell in SPELL_IS_CHANNEL_TICK:
-            hit = True  # hit is rolled on initial cast not on each tick
-        else:
-            hit = self._roll_hit(self._get_hit_chance(spell), damage_type)
+        hit = self._roll_hit(self._get_hit_chance(spell), damage_type)
 
         crit = False
         dmg = 0
 
         if hit:
-            if spell in SPELL_IS_CHANNEL_TICK:
-                crit = False
-            else:
+            if spell != Spell.CORRUPTION:
                 crit = self._roll_crit(self.crit + crit_modifier, damage_type)
+
             dmg = self.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0), damage_type)
             dmg = self.modify_dmg(dmg, damage_type, is_periodic=False)
         else:
             self.num_resists += 1
 
-        is_binary_spell = spell in SPELL_IS_CHANNEL_TICK
+        is_binary_spell = False
 
         partial_amount = self.roll_partial(is_dot=False, is_binary=is_binary_spell)
         partial_desc = ""
@@ -224,12 +220,19 @@ class Warlock(Character):
         if spell == Spell.CONFLAGRATE:
             self.conflagrate_cd.activate()
 
-        self.env.meter.register_spell_dmg(
-            char_name=self.name,
-            spell_name=spell.value,
-            dmg=dmg,
-            cast_time=round(casting_time + gcd_wait_time, 2),
-            aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
+        if hit and spell == Spell.CORRUPTION:
+            # avoid calling register_spell_dmg as dots will register already
+            self.env.debuffs.add_corruption_dot(self, max(base_cast_time, self.env.GCD))
+        elif hit and spell == Spell.IMMOLATE:
+            # avoid calling register_spell_dmg as dots will register already
+            self.env.debuffs.add_immolate_dot(self)
+        else:
+            self.env.meter.register_spell_dmg(
+                char_name=self.name,
+                spell_name=spell.value,
+                dmg=dmg,
+                cast_time=round(casting_time + gcd_wait_time, 2),
+                aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
         return hit, crit, dmg, gcd_wait_time, partial_amount
 
@@ -251,12 +254,6 @@ class Warlock(Character):
                                                                                crit_modifier=crit_modifier,
                                                                                custom_gcd=custom_gcd,
                                                                                on_gcd=on_gcd)
-
-        if hit:
-            if spell == Spell.IMMOLATE:
-                self.env.debuffs.add_immolate_dot(self)
-        if crit:
-            pass
 
         # handle gcd
         if effective_gcd:
@@ -281,12 +278,6 @@ class Warlock(Character):
                                                                                custom_gcd=custom_gcd,
                                                                                on_gcd=on_gcd,
                                                                                calculate_cast_time=calculate_cast_time)
-        if hit:
-            if spell == Spell.CORRUPTION:
-                self.env.debuffs.add_corruption_dot(self, max(base_cast_time, self.env.GCD))
-        if crit:
-            pass
-
         # handle gcd
         if effective_gcd:
             yield self.env.timeout(effective_gcd)
@@ -318,6 +309,12 @@ class Warlock(Character):
 
         if not hit:
             self.print(f"{spell.value} {description} RESIST")
+
+            # register the cast
+            self.env.meter.register_dot_cast(
+                char_name=self.name,
+                spell_name=spell.value,
+                cast_time=max(casting_time, self.env.GCD))
         else:
             self.print(f"{spell.value} {description}")
             if spell == Spell.CURSE_OF_SHADOW:
@@ -338,6 +335,40 @@ class Warlock(Character):
         # handle gcd
         if cooldown:
             yield self.env.timeout(cooldown)
+
+    def _channel_tick(self,
+                      spell: Spell,
+                      damage_type: DamageType,
+                      min_dmg: int,
+                      max_dmg: int,
+                      tick_time: float):
+
+        yield self.env.timeout(tick_time)
+
+        description = ""
+        if self.env.print:
+            description = f"({round(tick_time, 2)} tick)"
+
+            if damage_type == DamageType.SHADOW and self.env.debuffs.improved_shadow_bolt.is_active:
+                description += " (ISB)"
+
+        dmg = self.roll_spell_dmg(min_dmg, max_dmg, SPELL_COEFFICIENTS.get(spell, 0), damage_type)
+        dmg = self.modify_dmg(dmg, damage_type, is_periodic=False)
+
+        self.print(f"{spell.value} {description} {dmg}")
+
+        if SPELL_TRIGGERS_ON_HIT.get(spell, False):
+            self.env.process(self._check_for_procs(
+                spell=spell,
+                damage_type=damage_type,
+                delay=spell in SPELL_HAS_TRAVEL_TIME))
+
+        self.env.meter.register_dot_dmg(
+            char_name=self.name,
+            spell_name=spell.value,
+            dmg=dmg,
+            cast_time=round(tick_time, 2),
+            aoe=spell in SPELL_HITS_MULTIPLE_TARGETS)
 
     def _shadowbolt(self):
         min_dmg = 482
@@ -459,23 +490,34 @@ class Warlock(Character):
         return (1 + (self.tal.soul_siphon * 0.02)) * num_affliction_effects
 
     def _drain_soul_channel(self, channel_time: float = 6):
+        self.env.meter.register_spell_dmg(
+            char_name=self.name,
+            spell_name=Spell.DRAIN_SOUL.value,
+            dmg=0,
+            cast_time=0)
+
         # check for resist
         if not self._roll_hit(self._get_hit_chance(Spell.DRAIN_SOUL_CHANNEL), DamageType.SHADOW):
-            self.print(f"{Spell.DRAIN_SOUL_CHANNEL.value} ({round(self.env.GCD, 2)} gcd RESIST")
+            self.print(f"{Spell.DRAIN_SOUL_CHANNEL.value} ({round(self.env.GCD, 2)}) gcd RESIST")
             yield self.env.timeout(self.env.GCD)
             return
+        else:
+            self.print(f"{Spell.DRAIN_SOUL_CHANNEL.value}")
 
         num_ticks = 6
+
+        haste_factor = self.get_haste_factor_for_talent_school(TalentSchool.Affliction, DamageType.SHADOW)
+        channel_time /= haste_factor
 
         time_between_ticks = channel_time / num_ticks
 
         for i in range(num_ticks):
             if i == 0:
-                yield from self._drain_soul_tick(casting_time=time_between_ticks + self.lag)  # initial delay
+                yield from self._drain_soul_tick(tick_time=time_between_ticks + self.lag)  # initial delay
             else:
-                yield from self._drain_soul_tick(casting_time=time_between_ticks)
+                yield from self._drain_soul_tick(tick_time=time_between_ticks)
 
-    def _drain_soul_tick(self, casting_time: float = 3):
+    def _drain_soul_tick(self, tick_time: float = 3):
         dmg = 158
 
         if self.tal.soul_siphon:
@@ -484,24 +526,30 @@ class Warlock(Character):
         if self.tal.improved_drains:
             dmg *= 1 + self.tal.improved_drains * 0.05
 
-        yield from self._shadow_spell(
+        yield from self._channel_tick(
             spell=Spell.DRAIN_SOUL,
+            damage_type=DamageType.SHADOW,
             min_dmg=int(dmg),
             max_dmg=int(dmg),
-            base_cast_time=casting_time,  # Just the tick, not a cast
-            crit_modifier=0,
-            on_gcd=False,
-            calculate_cast_time=False,
+            tick_time=tick_time,
         )
 
     def _dark_harvest_channel(self, channel_time: float = 8):
+        self.env.meter.register_spell_dmg(
+            char_name=self.name,
+            spell_name=Spell.DARK_HARVEST.value,
+            dmg=0,
+            cast_time=0)
+
         self.dark_harvest_cd.activate()
 
         # check for resist
         if not self._roll_hit(self._get_hit_chance(Spell.DARK_HARVEST_CHANNEL), DamageType.SHADOW):
-            self.print(f"{Spell.DARK_HARVEST_CHANNEL.value} ({round(self.env.GCD, 2)} gcd RESIST")
+            self.print(f"{Spell.DARK_HARVEST_CHANNEL.value} ({round(self.env.GCD, 2)}) gcd RESIST")
             yield self.env.timeout(self.env.GCD)
             return
+        else:
+            self.print(f"{Spell.DARK_HARVEST_CHANNEL.value}")
 
         self.add_talent_school_haste(TalentSchool.Affliction, Spell.DARK_HARVEST.value, 30)
 
@@ -514,26 +562,24 @@ class Warlock(Character):
 
         for i in range(num_ticks):
             if i == 0:
-                yield from self._dark_harvest_tick(casting_time=time_between_ticks + self.lag)  # initial delay
+                yield from self._dark_harvest_tick(tick_time=time_between_ticks + self.lag)  # initial delay
             else:
-                yield from self._dark_harvest_tick(casting_time=time_between_ticks)
+                yield from self._dark_harvest_tick(tick_time=time_between_ticks)
 
         self.remove_talent_school_haste(TalentSchool.Affliction, Spell.DARK_HARVEST.value)
 
-    def _dark_harvest_tick(self, casting_time: float = 3):
+    def _dark_harvest_tick(self, tick_time: float = 3):
         dmg = 144
 
         if self.tal.soul_siphon:
             dmg *= self._get_soul_siphon_multiplier()
 
-        yield from self._shadow_spell(
+        yield from self._channel_tick(
             spell=Spell.DARK_HARVEST,
+            damage_type=DamageType.SHADOW,
             min_dmg=int(dmg),
             max_dmg=int(dmg),
-            base_cast_time=casting_time,  # Just the tick, not a cast
-            crit_modifier=0,
-            on_gcd=False,
-            calculate_cast_time=False,
+            tick_time=tick_time,
         )
 
     def nightfall_proc(self):

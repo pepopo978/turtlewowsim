@@ -53,6 +53,7 @@ AfflictionLock = WarlockTalents(
     rapid_deterioration=True,
     soul_siphon=3,
     shadow_mastery=5,
+    malediction=True,
 
     # demonology
     soul_entrapment=3,
@@ -70,6 +71,7 @@ SMRuin = WarlockTalents(
     nightfall=2,
     rapid_deterioration=True,
     shadow_mastery=5,
+    malediction=True,
 
     # destruction
     improved_shadow_bolt=5,

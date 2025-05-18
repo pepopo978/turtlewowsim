@@ -150,9 +150,3 @@ SPELL_HITS_MULTIPLE_TARGETS = {
     Spell.FLAMESTRIKE: True,
     Spell.BLASTWAVE: True,
 }
-
-# these spells can't miss, partial, or crit
-SPELL_IS_CHANNEL_TICK = {
-    Spell.DRAIN_SOUL: True,
-    Spell.DARK_HARVEST: True,
-}

@@ -13,7 +13,7 @@ class WarlockShadowDot(Dot):
             TalentSchool.Affliction, DamageType.SHADOW)
 
         if haste_factor > 1:
-            return round(self.base_time_between_ticks / haste_factor, 3)
+            return round(self.base_time_between_ticks / haste_factor, 2)
 
         return self.base_time_between_ticks
 
@@ -69,13 +69,13 @@ class CurseOfAgonyDot(WarlockShadowDot):
         # https://wowwiki-archive.fandom.com/wiki/Curse_of_Agony
         if self.ticks_left >= 8:
             # instead of 1/12 of the damage use 1/24 for tick 11,10,9,8
-            return standard_tick_dmg * 0.5
+            return int(standard_tick_dmg * 0.5)
         elif self.ticks_left >= 4:
             # 1/12 of the damage for tick 7,6,5,4
-            return standard_tick_dmg
+            return int(standard_tick_dmg)
         elif self.ticks_left >= 0:
             # 1/8 of the damage for tick 3,2,1,0
-            return standard_tick_dmg * 1.5
+            return int(standard_tick_dmg * 1.5)
         else:
             return 0
 

@@ -442,7 +442,11 @@ class Simulation:
                     avg_cast_time = round(data['avg_cast_time'] / iterations, 2)
                     avg_dps = round(data['avg_dps'] / iterations)
 
-                    stats = f"{num_casts} casts"
+                    if data['num_ticks']:
+                        stats = f"{num_casts} casts ({data['num_ticks']} ticks)"
+                    else:
+                        stats = f"{num_casts} casts"
+
                     if total_dmg:
                         stats += f", {total_dmg} dmg ({percent_dmg}%), {avg_dmg} avg dmg"
                     if avg_cast_time:
