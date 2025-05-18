@@ -2,15 +2,27 @@ import random
 
 from sim.dot import Dot
 from sim.spell_school import DamageType
+from sim.talent_school import TalentSchool
 from sim.warlock import Spell, Warlock
 
 
-class CorruptionDot(Dot):
+class WarlockShadowDot(Dot):
+    @property
+    def time_between_ticks(self):
+        haste_factor = self.owner.get_haste_factor_for_talent_school(
+            TalentSchool.Affliction, DamageType.SHADOW)
+
+        if haste_factor > 1:
+            return round(self.base_time_between_ticks / haste_factor, 3)
+
+        return self.base_time_between_ticks
+
+class CorruptionDot(WarlockShadowDot):
     def __init__(self, owner, env, cast_time: float):
         super().__init__(Spell.CORRUPTION.value, owner, env, DamageType.SHADOW, cast_time)
 
         self.coefficient = 0.1666
-        self.time_between_ticks = 3
+        self.base_time_between_ticks = 3
         self.ticks_left = 6
         self.starting_ticks = 6
         self.base_tick_dmg = 137
@@ -24,18 +36,29 @@ class CorruptionDot(Dot):
                     self.owner.nightfall_proc()
 
 
-class CurseOfAgonyDot(Dot):
+class CurseOfAgonyDot(WarlockShadowDot):
     def __init__(self, owner, env, cast_time: float):
         super().__init__(Spell.CURSE_OF_AGONY.value, owner, env, DamageType.SHADOW, cast_time)
 
         self.coefficient = 0.0833
-        self.time_between_ticks = 2
+        self.base_time_between_ticks = 2
         self.ticks_left = 12
         self.starting_ticks = 12
         self.base_tick_dmg = 87
 
     def _get_effective_tick_dmg(self):
         standard_tick_dmg = super()._get_effective_tick_dmg()
+
+        if self.owner.tal.improved_curse_of_agony == 3:
+            # 3/6/10% damage per point
+            standard_tick_dmg *= 1.1
+        elif self.owner.tal.improved_curse_of_agony == 2:
+            # 3/6/10% damage per point
+            standard_tick_dmg *= 1.06
+        elif self.owner.tal.improved_curse_of_agony == 1:
+            # 3/6/10% damage per point
+            standard_tick_dmg *= 1.03
+
 
         # first four ticks each deal 1/24 of the damage each (about 4.2%),
         # the next four deal 1/12 of the damage (about 8.3%),
@@ -55,3 +78,14 @@ class CurseOfAgonyDot(Dot):
             return standard_tick_dmg * 1.5
         else:
             return 0
+
+
+class SiphonLifeDot(WarlockShadowDot):
+    def __init__(self, owner, env, cast_time: float):
+        super().__init__(Spell.SIPHON_LIFE.value, owner, env, DamageType.SHADOW, cast_time)
+
+        self.coefficient = .1
+        self.base_time_between_ticks = 3
+        self.ticks_left = 10  # 30 seconds total / 3 seconds per tick = 10 ticks
+        self.starting_ticks = 10
+        self.base_tick_dmg = 45  # 450 damage total / 10 ticks = 45 damage per tick

@@ -9,7 +9,7 @@ class FireballDot(Dot):
         super().__init__(MageSpell.FIREBALL.value, owner, env, DamageType.FIRE, cast_time, register_casts=False)
 
         self.coefficient = 0
-        self.time_between_ticks = 2
+        self.base_time_between_ticks = 2
         self.ticks_left = 4
         self.starting_ticks = 4
         self.base_tick_dmg = 19
@@ -20,7 +20,7 @@ class PyroblastDot(Dot):
         super().__init__(MageSpell.PYROBLAST.value, owner, env, DamageType.FIRE, cast_time, register_casts=False)
 
         self.coefficient = 0.15
-        self.time_between_ticks = 3
+        self.base_time_between_ticks = 3
         self.ticks_left = 4
         self.starting_ticks = 4
         self.base_tick_dmg = 67
@@ -31,7 +31,11 @@ class ImmolateDot(Dot):
         super().__init__(LockSpell.IMMOLATE.value, owner, env, DamageType.FIRE, cast_time, register_casts=False)
 
         self.coefficient = 0.15
-        self.time_between_ticks = 3
+        self.base_time_between_ticks = 3
         self.ticks_left = 4
         self.starting_ticks = 4
-        self.base_tick_dmg = 102
+        self.base_tick_dmg = 102 * (1 + owner.tal.aftermath * 0.02)
+
+
+    def get_effective_tick_dmg(self):
+        return self._get_effective_tick_dmg()

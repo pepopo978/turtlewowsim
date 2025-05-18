@@ -105,7 +105,7 @@ def run_simulation(args, chunk_range):
             chunk_results['avg_dps'].append(env.meter.raid_dmg())
             chunk_results['max_single_dps'].append(max(dps_results.values()))
             
-            ignite = env.ignite
+            ignite = env.debuffs.ignite
             chunk_results['>=1 stack uptime'].append(ignite.uptime_gte_1_stack)
             chunk_results['>=2 stack uptime'].append(ignite.uptime_gte_2_stacks)
             chunk_results['>=3 stack uptime'].append(ignite.uptime_gte_3_stacks)
@@ -121,7 +121,7 @@ def run_simulation(args, chunk_range):
             chunk_results['max_tick'].append(ignite.max_tick)
             chunk_results['num_drops'].append(ignite.num_drops)
             
-            isb = env.improved_shadow_bolt
+            isb = env.debuffs.improved_shadow_bolt
             chunk_results['ISB uptime'].append(isb.uptime_percent)
             chunk_results['Total added dot dmg'].append(isb.total_added_dot_dmg)
             chunk_results['Total added spell dmg'].append(isb.total_added_spell_dmg)

@@ -4,7 +4,7 @@ from sim import JUSTIFY
 from sim.env import Environment
 from sim.warlock import Character
 
-ISB_DURATION = 12
+ISB_DURATION = 10
 
 
 class ImprovedShadowBolt:
@@ -15,19 +15,19 @@ class ImprovedShadowBolt:
 
         self.env: Environment = env
 
-        self.activation_time = -ISB_DURATION
-        self.stacks = 0
+        self.activation_time = None
         self.last_monitor_time = 0
 
         self.had_any_isbs = False
         self.total_activations = 0
-        self.total_usages = 0
         self.activations: Dict[Character, int] = {}
-        self.usages: Dict[Character, int] = {}
 
     @property
     def is_active(self):
-        return self.stacks > 0 and self.env.now - self.activation_time <= ISB_DURATION
+        if self.activation_time is None:
+            return False
+
+        return self.env.now - self.activation_time <= ISB_DURATION
 
     def record_uptimes(self):
         if self.is_active:
@@ -49,9 +49,6 @@ class ImprovedShadowBolt:
         if self.is_active:
             self.record_uptimes()
 
-            self.stacks -= 1
-            self.total_usages += 1
-            self.usages[warlock] = self.usages.get(warlock, 0) + 1
             added_dmg = int(dmg * 0.2)
             self._added_spell_dmg[warlock] = self._added_spell_dmg.get(warlock, 0) + added_dmg
             return dmg + added_dmg
@@ -63,7 +60,6 @@ class ImprovedShadowBolt:
 
         self.had_any_isbs = True
         self.activation_time = self.env.now
-        self.stacks = 5
         self.total_activations += 1
         self.activations[warlock] = self.activations.get(warlock, 0) + 1
 
@@ -91,12 +87,10 @@ class ImprovedShadowBolt:
             return
 
         print(f"------ ISB ------")
-        for lock, usages in self.usages.items():
-            label = f"{lock.name} ISB   Procs | Usages"
-            activations = self.activations.get(lock, 0)
+        for lock, activations in self.activations.items():
+            label = f"{lock.name} ISB Procs"
             activations_percent = round(activations / self.total_activations * 100, 2)
-            usages_percent = round(usages / self.total_usages * 100, 2)
-            print(f"{self._justify(label)}: {activations} ({activations_percent}%) | {usages} ({usages_percent}%)")
+            print(f"{self._justify(label)}: {activations} ({activations_percent}%)")
 
         for lock, added_dmg in self._added_dot_dmg.items():
             label = f"{lock.name} ISB Dot Dmg | Spell Dmg"

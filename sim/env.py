@@ -29,12 +29,6 @@ class Environment(simpy.Environment):
         self.meter = DamageMeter(self, num_mobs)
         self.process(self.debuffs.run())
 
-        from sim.ignite import Ignite
-        self.ignite = Ignite(self)
-
-        from sim.improved_shadow_bolt import ImprovedShadowBolt
-        self.improved_shadow_bolt = ImprovedShadowBolt(self)
-
         self.GCD = 1.5
         self.duration = 0
 

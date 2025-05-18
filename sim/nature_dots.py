@@ -10,7 +10,7 @@ class InsectSwarmDot(Dot):
         super().__init__(MageSpell.INSECT_SWARM.value, owner, env, DamageType.NATURE, cast_time)
 
         self.coefficient = .158
-        self.time_between_ticks = 2
+        self.base_time_between_ticks = 2
         self.ticks_left = 9 + self.owner.opts.extra_dot_ticks
         self.starting_ticks = 9 + self.owner.opts.extra_dot_ticks
         self.base_tick_dmg = 54

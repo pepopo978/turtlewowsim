@@ -3,8 +3,10 @@ from enum import Enum
 from sim.arcane_dots import MoonfireDot
 from sim.character import Character
 from sim.fire_dots import PyroblastDot, FireballDot, ImmolateDot
+from sim.ignite import Ignite
+from sim.improved_shadow_bolt import ImprovedShadowBolt
 from sim.nature_dots import InsectSwarmDot
-from sim.shadow_dots import CorruptionDot, CurseOfAgonyDot
+from sim.shadow_dots import CorruptionDot, CurseOfAgonyDot, SiphonLifeDot
 from sim.spell_school import DamageType
 
 
@@ -14,17 +16,24 @@ class SharedDebuffNames(Enum):
     FREEZING_COLD = "Freezing Cold"
 
 class Debuffs:
-    def __init__(self, env, permanent_coe=True, permanent_cos=True, permanent_nightfall=False):
+    def __init__(self, env, permanent_coe=True, permanent_cos=True, permanent_shadow_weaving=True, permanent_nightfall=False):
         self.env = env
         self.scorch_stacks = 0
         self.scorch_timer = 0
         self.permanent_coe = permanent_coe
         self.permanent_cos = permanent_cos
         self.permanent_nightfall = permanent_nightfall
+        self.permanent_shadow_weaving = permanent_shadow_weaving
+        self.ticks = 0
+
+        self.ignite = Ignite(env)
+        self.improved_shadow_bolt = ImprovedShadowBolt(env)
+
         self.wc_stacks = 0
         self.wc_timer = 0
         self.coe_timer = 0
         self.cos_timer = 0
+        self.shadow_weaving_stacks = 0
 
         self.freezing_cold_timer = 0
 
@@ -33,11 +42,16 @@ class Debuffs:
 
         self.fireball_dots = {}  # owner -> FireballDot
         self.pyroblast_dots = {}  # owner  -> PyroblastDot
+
         self.corruption_dots = {}  # owner  -> CorruptionDot
         self.curse_of_agony_dots = {}  # owner  -> CurseOfAgonyDot
+        self.siphon_life_dots = {}  # owner  -> SiphonLifeDot
         self.immolate_dots = {}  # owner  -> ImmolateDot
+
         self.insect_swarm_dots = {}  # owner  -> InsectSwarmDot
         self.moonfire_dots = {}  # owner  -> MoonfireDot
+
+        self.dark_harvests = {}  # owner  -> True
 
     def track_debuff_start(self, debuff_name):
         """Track when a debuff starts"""
@@ -93,10 +107,13 @@ class Debuffs:
             dmg *= 1.15
 
         if damage_type == DamageType.SHADOW:
+            if self.shadow_weaving_stacks > 0:
+                dmg *= 1 + self.shadow_weaving_stacks * 0.03
+
             if is_periodic:
-                dmg = self.env.improved_shadow_bolt.apply_to_dot(warlock=character, dmg=dmg)
+                dmg = self.env.debuffs.improved_shadow_bolt.apply_to_dot(warlock=character, dmg=dmg)
             else:
-                dmg = self.env.improved_shadow_bolt.apply_to_spell(warlock=character, dmg=dmg)
+                dmg = self.env.debuffs.improved_shadow_bolt.apply_to_spell(warlock=character, dmg=dmg)
 
         return dmg
 
@@ -151,6 +168,12 @@ class Debuffs:
     def add_corruption_dot(self, owner, cast_time):
         self._add_dot(self.corruption_dots, CorruptionDot, owner, cast_time)
 
+    def is_siphon_life_active(self, owner):
+        return owner in self.siphon_life_dots and self.siphon_life_dots[owner].is_active()
+
+    def add_siphon_life_dot(self, owner, cast_time):
+        self._add_dot(self.siphon_life_dots, SiphonLifeDot, owner, cast_time)
+
     def is_curse_of_agony_active(self, owner):
         return owner in self.curse_of_agony_dots and self.curse_of_agony_dots[owner].is_active()
 
@@ -160,7 +183,7 @@ class Debuffs:
     def is_curse_of_shadows_active(self):
         return self.cos_timer > 0
 
-    def add_curse_of_shadows_dot(self):
+    def add_curse_of_shadow_dot(self):
         self.cos_timer = 300
 
     def is_insect_swarm_active(self, owner):
@@ -175,9 +198,18 @@ class Debuffs:
     def add_moonfire_dot(self, owner):
         self._add_dot(self.moonfire_dots, MoonfireDot, owner, 0) # cast time already accounted for from direct dmg
 
+    def add_dark_harvest(self, owner):
+        self.dark_harvests[owner] = True
+
+    def remove_dark_harvest(self, owner):
+        if owner in self.dark_harvests:
+            del self.dark_harvests[owner]
+
     def run(self):
         while True:
             yield self.env.timeout(1)
+
+            self.ticks += 1
 
             if self.scorch_stacks > 0:
                 self.scorch_timer = max(self.scorch_timer - 1, 0)
@@ -196,3 +228,7 @@ class Debuffs:
                 if self.freezing_cold_timer <= 0:
                     self.freezing_cold_timer = 0
                     self.env.debuffs.track_debuff_end(SharedDebuffNames.FREEZING_COLD)
+
+            if self.permanent_shadow_weaving and self.shadow_weaving_stacks < 5:
+                self.shadow_weaving_stacks = int(self.ticks / 3)
+

@@ -39,10 +39,10 @@ class Ignite:
 
     def record_uptimes(self):
         if self.active:
-            now = self.env.now
             for i in range(self.stacks):
-                self._uptimes[i] += now - self.last_monitor_time
-            self.last_monitor_time = now
+                self._uptimes[i] += self.env.now - self.last_monitor_time
+
+        self.last_monitor_time = self.env.now
 
     def refresh(self, mage: Mage, dmg: int, spell: Spell, partial: bool, ignite_talent_points: int):
         self.check_for_drop()

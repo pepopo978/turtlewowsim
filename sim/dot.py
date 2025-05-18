@@ -1,6 +1,7 @@
 from sim.character import Character
 from sim.env import Environment
 from sim.spell_school import DamageType
+from sim.talent_school import TalentSchool
 
 
 class Dot:
@@ -11,12 +12,14 @@ class Dot:
 
         self.sp = self.owner.eff_sp  # snapshot sp
         self.coefficient = 0
-        self.time_between_ticks = 0
+        self.base_time_between_ticks = 0
         self.starting_ticks = 0
         self.ticks_left = 0
         self.base_tick_dmg = 0
         self.name = name
         self.register_casts = register_casts
+
+        self.talent_school = None
 
         if register_casts:
             self.env.meter.register_dot_cast(
@@ -38,14 +41,22 @@ class Dot:
             partial_desc = f"({int(partial_amount * 100)}% partial)"
 
         if self.env.print_dots:
+            desc = ""
+            if self.damage_type == DamageType.SHADOW and self.env.debuffs.improved_shadow_bolt.is_active:
+                desc = "(ISB)"
+
             self.env.p(
-                f"{self.env.time()} - ({self.owner.name}) {self.name} dot tick {partial_desc} {tick_dmg} ticks remaining {self.ticks_left}")
+                f"{self.env.time()} - ({self.owner.name}) {self.name} dot tick{partial_desc} {tick_dmg} {desc} ticks remaining {self.ticks_left} next in {self.time_between_ticks}")
 
         self.env.meter.register_dot_dmg(
             char_name=self.owner.name,
             spell_name=self.name,
             dmg=tick_dmg,
             aoe=False)
+
+    @property
+    def time_between_ticks(self):
+        return self.base_time_between_ticks
 
     def run(self):
         while self.ticks_left > 0:

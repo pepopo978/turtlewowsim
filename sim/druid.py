@@ -169,6 +169,9 @@ class Druid(Character):
 
             self.print(f"{spell.value} {description} {partial_desc} **{dmg}**")
 
+        if hit and self.cds.zhc.is_active():
+            self.cds.zhc.use_charge()
+
         if hit and spell == Spell.MOONFIRE:
             self.env.debuffs.add_moonfire_dot(self)
 
@@ -326,6 +329,9 @@ class Druid(Character):
             self.print(f"{spell.value} {description}")
             if spell == Spell.INSECT_SWARM:
                 self.env.debuffs.add_insect_swarm_dot(self, round(casting_time + cooldown, 2))
+
+        if hit and self.cds.zhc.is_active():
+            self.cds.zhc.use_charge()
 
         # handle gcd
         if cooldown:

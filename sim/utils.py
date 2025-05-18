@@ -111,8 +111,8 @@ class DamageMeter:
         print(
             f"{'Average DPS'.ljust(JUSTIFY, ' ')}: {round(total_raid_dmg / total_time / len(self.character_dmg.keys()), 1)}")
 
-        self.env.ignite.report()
-        self.env.improved_shadow_bolt.report()
+        self.env.debuffs.ignite.report()
+        self.env.debuffs.improved_shadow_bolt.report()
 
     def detailed_report(self):
         self.report()
