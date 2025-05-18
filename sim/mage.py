@@ -440,8 +440,6 @@ class Mage(Character):
         # account for gcd
         if on_gcd and casting_time < gcd:
             gcd_wait_time = gcd - casting_time if casting_time > self.lag else gcd
-            if casting_time == 0:
-                gcd_wait_time += self.lag
 
         hit = self._roll_hit(self._get_hit_chance(spell),
                              damage_type) if spell != Spell.ARCANE_SURGE else True  # arcane surge always hits
@@ -960,7 +958,7 @@ class Mage(Character):
             description = f"({round(self.lag, 2)} cast)"
             description += f" ({self.env.GCD} gcd)"
             self.print(f"Ice Barrier {description}")
-        yield self.env.timeout(self.env.GCD + self.lag)
+        yield self.env.timeout(self.env.GCD)
 
     def _icicle(self, casting_time: float = 1):
         min_dmg = 272

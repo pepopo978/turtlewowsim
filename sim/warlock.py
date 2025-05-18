@@ -152,8 +152,6 @@ class Warlock(Character):
         # account for gcd
         if on_gcd and casting_time < gcd:
             gcd_wait_time = gcd - casting_time if casting_time > self.lag else gcd
-            if casting_time == 0:
-                gcd_wait_time += self.lag
 
         if spell in SPELL_IS_CHANNEL_TICK:
             hit = True  # hit is rolled on initial cast not on each tick
@@ -285,7 +283,7 @@ class Warlock(Character):
                                                                                calculate_cast_time=calculate_cast_time)
         if hit:
             if spell == Spell.CORRUPTION:
-                self.env.debuffs.add_corruption_dot(self, base_cast_time)
+                self.env.debuffs.add_corruption_dot(self, max(base_cast_time, self.env.GCD))
         if crit:
             pass
 
@@ -297,12 +295,14 @@ class Warlock(Character):
                     spell: Spell,
                     base_cast_time: float,
                     cooldown: float = 0.0):
+        casting_time = 0
 
-        casting_time = self._get_cast_time(base_cast_time, DamageType.SHADOW)
+        if base_cast_time > 0:
+            casting_time = self._get_cast_time(base_cast_time, DamageType.SHADOW)
 
         # account for gcd
         if casting_time < self.env.GCD and cooldown == 0:
-            cooldown = self.env.GCD - casting_time + self.lag
+            cooldown = self.env.GCD - casting_time
 
         hit_chance = self._get_hit_chance(spell)
         hit = random.randint(1, 100) <= hit_chance
@@ -323,14 +323,14 @@ class Warlock(Character):
             if spell == Spell.CURSE_OF_SHADOW:
                 self.env.debuffs.add_curse_of_shadow_dot()
                 if self.tal.malediction:
-                    self.env.debuffs.add_curse_of_agony_dot(self, casting_time)
+                    self.env.debuffs.add_curse_of_agony_dot(self, cooldown)
 
             elif spell == Spell.CORRUPTION:
-                self.env.debuffs.add_corruption_dot(self, casting_time)
+                self.env.debuffs.add_corruption_dot(self, max(casting_time, self.env.GCD))
             elif spell == Spell.CURSE_OF_AGONY:
-                self.env.debuffs.add_curse_of_agony_dot(self, casting_time)
+                self.env.debuffs.add_curse_of_agony_dot(self, cooldown)
             elif spell == Spell.SIPHON_LIFE:
-                self.env.debuffs.add_siphon_life_dot(self, casting_time)
+                self.env.debuffs.add_siphon_life_dot(self, cooldown)
 
         if hit and self.cds.zhc.is_active():
             self.cds.zhc.use_charge()
@@ -461,8 +461,8 @@ class Warlock(Character):
     def _drain_soul_channel(self, channel_time: float = 6):
         # check for resist
         if not self._roll_hit(self._get_hit_chance(Spell.DRAIN_SOUL_CHANNEL), DamageType.SHADOW):
-            self.print(f"{Spell.DRAIN_SOUL_CHANNEL.value} ({round(self.env.GCD + self.lag, 2)} gcd RESIST")
-            yield self.env.timeout(self.env.GCD + self.lag)
+            self.print(f"{Spell.DRAIN_SOUL_CHANNEL.value} ({round(self.env.GCD, 2)} gcd RESIST")
+            yield self.env.timeout(self.env.GCD)
             return
 
         num_ticks = 6
@@ -499,8 +499,8 @@ class Warlock(Character):
 
         # check for resist
         if not self._roll_hit(self._get_hit_chance(Spell.DARK_HARVEST_CHANNEL), DamageType.SHADOW):
-            self.print(f"{Spell.DARK_HARVEST_CHANNEL.value} ({round(self.env.GCD + self.lag, 2)} gcd RESIST")
-            yield self.env.timeout(self.env.GCD + self.lag)
+            self.print(f"{Spell.DARK_HARVEST_CHANNEL.value} ({round(self.env.GCD, 2)} gcd RESIST")
+            yield self.env.timeout(self.env.GCD)
             return
 
         self.add_talent_school_haste(TalentSchool.Affliction, Spell.DARK_HARVEST.value, 30)

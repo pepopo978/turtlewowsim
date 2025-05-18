@@ -118,8 +118,6 @@ class Druid(Character):
             gcd -= 0.1 * self.tal.imp_wrath
         if on_gcd and casting_time < gcd and cooldown == 0:
             cooldown = gcd - casting_time if casting_time > self.lag else gcd
-            if casting_time == 0:
-                cooldown += self.lag
 
         hit = self._roll_hit(self._get_hit_chance(spell), damage_type)
         crit = False
@@ -309,7 +307,7 @@ class Druid(Character):
 
         # account for gcd
         if casting_time < self.env.GCD and cooldown == 0:
-            cooldown = self.env.GCD - casting_time + self.lag
+            cooldown = self.env.GCD - casting_time
 
         hit_chance = self._get_hit_chance(spell)
         hit = random.randint(1, 100) <= hit_chance
