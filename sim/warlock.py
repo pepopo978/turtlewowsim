@@ -226,6 +226,14 @@ class Warlock(Character):
         elif hit and spell == Spell.IMMOLATE:
             # avoid calling register_spell_dmg as dots will register already
             self.env.debuffs.add_immolate_dot(self)
+
+            self.env.meter.register_spell_dmg(
+                char_name=self.name,
+                spell_name=spell.value,
+                dmg=dmg,
+                cast_time=round(casting_time + gcd_wait_time, 2),
+                aoe=False)
+
         else:
             self.env.meter.register_spell_dmg(
                 char_name=self.name,
