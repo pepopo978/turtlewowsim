@@ -1,8 +1,8 @@
 # turtlewowsim
 
-Simulation for Turtle WoW that currently supports Arcane/Fire/Frost Mages and Boomkins.  Warlocks need to be updated for 1.17.2 started doing it but not done.
+Simulation for Turtle WoW that currently supports Arcane/Fire/Frost Mages, Boomkins, Locks. 
 
-# Warlock not yet updated for 1.17.2
+# Warlock/Mage/Boomkin updated for 1.17.2, Warlock needs more testing
 
 ## Installation
 
