@@ -3,15 +3,15 @@ from _example_imports import *
 locks = []
 #
 # lock = Warlock(name=f'affli', sp=1005, crit=40, hit=10, tal=AfflictionLock, opts=WarlockOptions())
-# lock.cos_corruption_siphon_harvest_drain()
+# lock.coa_corruption_siphon_harvest_drain()
 # locks.append(lock)
-#
-lock = Warlock(name=f'SMRuin', sp=1005, crit=40, hit=10, tal=SMRuin, opts=WarlockOptions())
-lock.cos_corruption_shadowbolt()
+
+lock = Warlock(name=f'SMRuin', sp=1005, crit=35, hit=13, tal=SMRuin, opts=WarlockOptions())
+lock.coa_corruption_siphon_shadowbolt()
 locks.append(lock)
 #
 # lock = Warlock(name=f'FireLock', sp=1005, crit=40, hit=10, tal=FireLock, opts=WarlockOptions())
-# lock.cos_immo_conflag_soulfire_searing()
+# lock.immo_conflag_soulfire_searing()
 # locks.append(lock)
 
 sim = Simulation(characters=locks)

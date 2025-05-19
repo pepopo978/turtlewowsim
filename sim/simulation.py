@@ -474,7 +474,7 @@ class Simulation:
                 mean_dps = mean(self.results['dps'][char])
                 mean_casts = mean(self.results['casts'][char])
                 label = f"{char} DPS Mean"
-                msg = f"{self._justify(label)}: {mean_dps} in {mean_casts} casts/ticks"
+                msg = f"{self._justify(label)}: {mean_dps} in {mean_casts} casts"
                 messages_to_dps[msg] = mean_dps
                 chars_to_dps[char] = mean_dps
 
@@ -531,13 +531,18 @@ class Simulation:
                 print(f"{char}:")
                 for spell_name, data in self.results['per_spell_data'][char].items():
                     num_casts = round(data['num_casts'] / iterations, 1)
+                    num_ticks = round(data['num_ticks'] / iterations, 1)
                     total_dmg = round(data['total_dmg'] / iterations)
                     percent_dmg = round(data['percent_dmg'] / iterations, 1)
                     avg_dmg = round(data['avg_dmg'] / iterations)
                     avg_cast_time = round(data['avg_cast_time'] / iterations, 2)
                     avg_dps = round(data['avg_dps'] / iterations)
 
-                    stats = f"{num_casts} casts/ticks"
+                    if num_ticks > 0:
+                        stats = f"{num_casts} casts ({num_ticks} ticks)"
+                    else:
+                        stats = f"{num_casts} casts"
+
                     if total_dmg:
                         stats += f", {total_dmg} dmg ({percent_dmg}%), {avg_dmg} avg dmg"
                     if avg_cast_time:

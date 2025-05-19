@@ -113,7 +113,7 @@ class DamageMeter:
             casts[character.name] = sum(self.character_num_casts[character.name].values())
 
         for name, dps in self.dps().items():
-            print(f"{name.ljust(JUSTIFY, ' ')}: {dps} dps in {casts[name]} casts/ticks")
+            print(f"{name.ljust(JUSTIFY, ' ')}: {dps} dps in {casts[name]} casts")
 
         total_raid_dmg = sum(self.character_dmg.values())
         print(

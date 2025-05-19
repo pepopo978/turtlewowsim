@@ -84,14 +84,6 @@ class Warlock(Character):
 
         self._setup_cds()
 
-    def _get_talent_school(self, spell: Spell):
-        if spell in [Spell.CORRUPTION, Spell.CURSE_OF_AGONY, Spell.CURSE_OF_SHADOW]:
-            return TalentSchool.Affliction
-        elif spell in [Spell.SHADOWBOLT, Spell.IMMOLATE, Spell.SEARING_PAIN, Spell.CONFLAGRATE]:
-            return TalentSchool.Destruction
-        else:
-            raise ValueError(f"Unknown spell {spell}")
-
     def _get_hit_chance(self, spell: Spell):
         hit = self.hit
         # if affliction add suppression
@@ -255,7 +247,7 @@ class Warlock(Character):
 
         hit, crit, dmg, effective_gcd, partial_amount = yield from self._spell(spell=spell,
                                                                                damage_type=DamageType.FIRE,
-                                                                               talent_school=TalentSchool.Fire,
+                                                                               talent_school=TalentSchool.Destruction,
                                                                                min_dmg=min_dmg,
                                                                                max_dmg=max_dmg,
                                                                                base_cast_time=base_cast_time,
@@ -269,6 +261,7 @@ class Warlock(Character):
 
     def _shadow_spell(self,
                       spell: Spell,
+                      talent_school: TalentSchool,
                       min_dmg: int,
                       max_dmg: int,
                       base_cast_time: float,
@@ -278,7 +271,7 @@ class Warlock(Character):
                       calculate_cast_time: bool = True):
         hit, crit, dmg, effective_gcd, partial_amount = yield from self._spell(spell=spell,
                                                                                damage_type=DamageType.SHADOW,
-                                                                               talent_school=TalentSchool.Affliction,
+                                                                               talent_school=talent_school,
                                                                                min_dmg=min_dmg,
                                                                                max_dmg=max_dmg,
                                                                                base_cast_time=base_cast_time,
@@ -390,6 +383,7 @@ class Warlock(Character):
         crit_modifier = self.tal.devastation
 
         yield from self._shadow_spell(spell=Spell.SHADOWBOLT,
+                                        talent_school=TalentSchool.Destruction,
                                       min_dmg=min_dmg,
                                       max_dmg=max_dmg,
                                       crit_modifier=crit_modifier,
@@ -457,6 +451,7 @@ class Warlock(Character):
         cast_time = 1.5 - self.tal.improved_corruption * 0.3
         yield from self._shadow_spell(
             spell=Spell.CORRUPTION,
+            talent_school=TalentSchool.Affliction,
             min_dmg=137,
             max_dmg=137,
             base_cast_time=cast_time,
@@ -610,19 +605,21 @@ class Warlock(Character):
             self._use_cds(cds)
             if not self.env.debuffs.is_corruption_active(self):
                 yield from self._corruption()
-            yield from self._shadowbolt()
+            else:
+                yield from self._shadowbolt()
 
-    def _corruption_agony_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+    def _agony_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(cds)
-            if not self.env.debuffs.is_corruption_active(self):
-                yield from self._corruption()
             if not self.env.debuffs.is_curse_of_agony_active(self):
                 yield from self._curse_of_agony()
-            yield from self._shadowbolt()
+            elif not self.env.debuffs.is_corruption_active(self):
+                yield from self._corruption()
+            else:
+                yield from self._shadowbolt()
 
     def _corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
@@ -632,51 +629,55 @@ class Warlock(Character):
             self._use_cds(cds)
             if not self.env.debuffs.is_corruption_active(self):
                 yield from self._corruption()
-            if not self.env.debuffs.is_immolate_active(self):
+            elif not self.env.debuffs.is_immolate_active(self):
                 yield from self._immolate()
-            yield from self._shadowbolt()
+            else:
+                yield from self._shadowbolt()
 
-    def _corruption_agony_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+    def _agony_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(cds)
-            if not self.env.debuffs.is_corruption_active(self):
-                yield from self._corruption()
             if not self.env.debuffs.is_curse_of_agony_active(self):
                 yield from self._curse_of_agony()
-            if not self.env.debuffs.is_immolate_active(self):
+            elif not self.env.debuffs.is_corruption_active(self):
+                yield from self._corruption()
+            elif not self.env.debuffs.is_immolate_active(self):
                 yield from self._immolate()
-            yield from self._shadowbolt()
+            else:
+                yield from self._shadowbolt()
 
-    def _cos_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+    def _coa_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(cds)
-            if not self.env.debuffs.has_cos:
-                yield from self._curse_of_shadow()
-            if not self.env.debuffs.is_corruption_active(self):
+            if not self.env.debuffs.is_curse_of_agony_active(self):
+                yield from self._curse_of_agony()
+            elif not self.env.debuffs.is_corruption_active(self):
                 yield from self._corruption()
-            yield from self._shadowbolt()
+            else:
+                yield from self._shadowbolt()
 
-    def _cos_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+    def _coa_corruption_siphon_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
         yield from self._random_delay(delay)
 
         while True:
             self._use_cds(cds)
-            if not self.env.debuffs.has_cos:
-                yield from self._curse_of_shadow()
-            if not self.env.debuffs.is_corruption_active(self):
+            if not self.env.debuffs.is_curse_of_agony_active(self):
+                yield from self._curse_of_agony()
+            elif not self.env.debuffs.is_corruption_active(self):
                 yield from self._corruption()
-            if not self.env.debuffs.is_immolate_active(self):
-                yield from self._immolate()
-            yield from self._shadowbolt()
+            elif not self.env.debuffs.is_siphon_life_active(self):
+                yield from self._siphon_life()
+            else:
+                yield from self._shadowbolt()
 
-    def _cos_immo_conflag_soulfire_searing(self, cds: CooldownUsages = CooldownUsages(),
+    def _immo_conflag_soulfire_searing(self, cds: CooldownUsages = CooldownUsages(),
                                            delay=2):
         """
         This rotation prioritizes:
@@ -696,10 +697,6 @@ class Warlock(Character):
 
         while True:
             self._use_cds(cds)
-
-            # Cast Curse first
-            if not self.env.debuffs.has_cos:
-                yield from self._curse_of_shadow()
 
             # Use Soul Fire on cooldown
             if not self.soul_fire_cd.on_cooldown:
@@ -724,7 +721,7 @@ class Warlock(Character):
             # Default to Searing Pain spam
             yield from self._searing_pain()
 
-    def _cos_corruption_siphon_harvest_drain(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+    def _coa_corruption_siphon_harvest_drain(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         """
         Affliction rotation that prioritizes:
         1. Keeping Curse of Shadow/Agony up
@@ -744,9 +741,8 @@ class Warlock(Character):
         while True:
             self._use_cds(cds)
 
-            # Check and apply CoS first
-            if not self.env.debuffs.has_cos:
-                yield from self._curse_of_shadow()
+            if not self.env.debuffs.is_curse_of_agony_active(self):
+                yield from self._curse_of_agony()
                 continue
 
             # Keep Corruption up
@@ -767,7 +763,7 @@ class Warlock(Character):
             # fill with Drain Soul
             yield from self._drain_soul_channel()
 
-    def _cos_corruption_harvest_drain(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+    def _coa_corruption_harvest_drain(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         """
         Affliction rotation that prioritizes:
         1. Keeping Curse of Shadow/Agony up
@@ -786,9 +782,8 @@ class Warlock(Character):
         while True:
             self._use_cds(cds)
 
-            # Check and apply CoS first
-            if not self.env.debuffs.has_cos:
-                yield from self._curse_of_shadow()
+            if not self.env.debuffs.is_curse_of_agony_active(self):
+                yield from self._curse_of_agony()
                 continue
 
             # Keep Corruption up
@@ -811,37 +806,37 @@ class Warlock(Character):
     def corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="corruption_shadowbolt")(cds=cds, delay=delay)
 
-    def corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="corruption_immolate_shadowbolt")(cds=cds, delay=delay)
+    def agony_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="agony_corruption_shadowbolt")(cds=cds, delay=delay)
 
-    def corruption_agony_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="corruption_agony_shadowbolt")(cds=cds, delay=delay)
+    def agony_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="agony_corruption_immolate_shadowbolt")(cds=cds, delay=delay)
 
-    def corruption_agony_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="corruption_agony_immolate_shadowbolt")(cds=cds, delay=delay)
-
-    def cos_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="cos_corruption_immolate_shadowbolt")(cds=cds, delay=delay)
+    def coa_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="coa_corruption_immolate_shadowbolt")(cds=cds, delay=delay)
 
     # affliction
-    def cos_corruption_siphon_harvest_drain(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+    def coa_corruption_siphon_harvest_drain(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return (partial(self._set_rotation,
-                        name="cos_corruption_siphon_harvest_drain")
+                        name="coa_corruption_siphon_harvest_drain")
                 (cds=cds, delay=delay))
 
-    def cos_corruption_harvest_drain(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+    def coa_corruption_harvest_drain(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return (partial(self._set_rotation,
-                        name="cos_corruption_harvest_drain")
+                        name="coa_corruption_harvest_drain")
                 (cds=cds, delay=delay))
 
     # smruin
-    def cos_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="cos_corruption_shadowbolt")(cds=cds, delay=delay)
+    def coa_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="coa_corruption_shadowbolt")(cds=cds, delay=delay)
+
+    def coa_corruption_siphon_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="coa_corruption_siphon_shadowbolt")(cds=cds, delay=delay)
 
     # fire
-    def cos_immo_conflag_soulfire_searing(self,
+    def immo_conflag_soulfire_searing(self,
                                           cds: CooldownUsages = CooldownUsages(),
                                           delay=2):
         return (partial(self._set_rotation,
-                        name="cos_immo_conflag_soulfire_searing")
+                        name="immo_conflag_soulfire_searing")
                 (cds=cds, delay=delay))
