@@ -17,6 +17,14 @@ class InsectSwarmDot(Dot):
 
         self.balance_of_all_things = self.owner.tal.balance_of_all_things
 
+    def _get_effective_tick_dmg(self):
+        dmg = self.base_tick_dmg + self.sp * self.coefficient
+        if self.owner.opts.set_bonus_3_dot_dmg:
+            # 15% more dot dmg
+            dmg *= 1.15
+
+        return int(self.owner.modify_dmg(dmg, self.damage_type, is_periodic=True))
+
     def _do_dmg(self):
         super()._do_dmg()
         if self.balance_of_all_things and self.owner.balance_of_all_things_stacks < 3:

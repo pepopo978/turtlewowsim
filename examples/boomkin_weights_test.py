@@ -6,13 +6,13 @@ from sim.druid_talents import BoomkinTalents
 druids = []
 num_druids = 5
 
-control_sp = 1030
+control_sp = 1111
 control_crit = 35
 control_hit = 15
 control_haste = 7
 
 options = DruidOptions(ignore_arcane_eclipse=True, ignore_nature_eclipse=True, starfire_on_balance_of_all_things_proc=True,
-                       set_bonus_3_5=True, extra_dot_ticks=1)
+                       set_bonus_3_5_boat=True, extra_dot_ticks=1)
 
 for i in range(num_druids):
     d = None

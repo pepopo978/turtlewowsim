@@ -556,14 +556,14 @@ class Warlock(Character):
         else:
             self.print(f"{Spell.DARK_HARVEST_CHANNEL.value}")
 
-        self.add_talent_school_haste(TalentSchool.Affliction, Spell.DARK_HARVEST.value, 30)
-
         num_ticks = 8
 
         haste_factor = self.get_haste_factor_for_talent_school(TalentSchool.Affliction, DamageType.SHADOW)
         channel_time /= haste_factor
 
         time_between_ticks = channel_time / num_ticks
+
+        self.add_talent_school_haste(TalentSchool.Affliction, Spell.DARK_HARVEST.value, 30)
 
         for i in range(num_ticks):
             if i == 0:
@@ -742,6 +742,10 @@ class Warlock(Character):
 
         while True:
             self._use_cds(cds)
+
+            if self.opts.use_nightfall_as_affliction and self.nightfall:
+                yield from self._shadowbolt()
+                continue
 
             if not self.env.debuffs.is_curse_of_agony_active(self):
                 yield from self._curse_of_agony()

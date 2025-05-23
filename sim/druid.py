@@ -228,7 +228,7 @@ class Druid(Character):
             casting_time -= 0.5
 
         if self.balance_of_all_things_stacks > 0:
-            casting_time -= 1 if self.opts.set_bonus_3_5 else .75
+            casting_time -= 1 if self.opts.set_bonus_3_5_boat else .75
             if self.opts.ebb_and_flow_idol:
                 casting_time -= 0.2
 

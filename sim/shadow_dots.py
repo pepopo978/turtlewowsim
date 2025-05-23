@@ -89,3 +89,11 @@ class SiphonLifeDot(WarlockShadowDot):
         self.ticks_left = 10  # 30 seconds total / 3 seconds per tick = 10 ticks
         self.starting_ticks = 10
         self.base_tick_dmg = 45  # 450 damage total / 10 ticks = 45 damage per tick
+
+    def _get_effective_tick_dmg(self):
+        dmg = self.base_tick_dmg + self.sp * self.coefficient
+        if self.owner.options.siphon_life_bonus_35:
+            # 50% more siphon
+            dmg *= 1.5
+
+        return int(self.owner.modify_dmg(dmg, self.damage_type, is_periodic=True))
