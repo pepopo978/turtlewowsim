@@ -96,8 +96,10 @@ class Warlock(Character):
 
     def _get_crit_multiplier(self, damage_type: DamageType, talent_school: TalentSchool):
         mult = super()._get_crit_multiplier(talent_school, damage_type)
+        if self.opts.crit_dmg_bonus_35:
+            mult += 0.1
         if talent_school == TalentSchool.Destruction and self.tal.ruin:
-            mult = 2
+            mult += 0.5
         return mult
 
     def modify_dmg(self, dmg: int, damage_type: DamageType, is_periodic: bool):
