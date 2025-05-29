@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+from sim.decorators import simtalent
 
 @dataclass(kw_only=True)
 class WarlockTalents:
@@ -43,58 +43,55 @@ class WarlockTalents:
     ruin: int = 0  # .5x crit mult
     emberstorm: int = 0  # 2% fire damage per point
 
-AfflictionLock = WarlockTalents(
-    # affliction
-    suppression=5,
-    improved_corruption=5,
-    improved_drains=2,
-    improved_curse_of_agony=3,
-    nightfall=2,
-    rapid_deterioration=True,
-    soul_siphon=3,
-    shadow_mastery=5,
-    malediction=True,
+@simtalent("Warlock - Affliction")
+class AfflictionLock(WarlockTalents):
+    def __init__(self):
+        super().__init__(
+            suppression=5,
+            improved_corruption=5,
+            improved_drains=2,
+            improved_curse_of_agony=3,
+            nightfall=2,
+            rapid_deterioration=True,
+            soul_siphon=3,
+            shadow_mastery=5,
+            malediction=True,
+            soul_entrapment=3,
+            succubus_sacrifice=True,
+            improved_shadow_bolt=5,
+        )
 
-    # demonology
-    soul_entrapment=3,
-    succubus_sacrifice=True,
+@simtalent("Warlock - SM/Ruin")
+class SMRuin(WarlockTalents):
+    def __init__(self):
+        super().__init__(
+            suppression=5,
+            improved_corruption=5,
+            improved_curse_of_agony=3,
+            nightfall=2,
+            rapid_deterioration=True,
+            shadow_mastery=5,
+            malediction=True,
+            improved_shadow_bolt=5,
+            bane=5,
+            devastation=5,
+            ruin=1,
+            improved_searing_pain=2,
+        )
 
-    # destruction
-    improved_shadow_bolt=5,
-)
-
-SMRuin = WarlockTalents(
-    # affliction
-    suppression=5,
-    improved_corruption=5,
-    improved_curse_of_agony=3,
-    nightfall=2,
-    rapid_deterioration=True,
-    shadow_mastery=5,
-    malediction=True,
-
-    # destruction
-    improved_shadow_bolt=5,
-    bane=5,
-    devastation=5,
-    ruin=1,
-    improved_searing_pain=2,
-)
-
-FireLock = WarlockTalents(
-    # demonology
-    soul_entrapment=3,
-    imp_sacrifice=True,
-
-    # destruction
-    improved_shadow_bolt=5,
-    bane=5,
-    aftermath=3,
-    devastation=5,
-
-    improved_searing_pain=5,
-    improved_soul_fire=2,
-    improved_immolate=5,
-    ruin=1,
-    emberstorm=5,
-)
+@simtalent("Warlock - Fire")
+class FireLock(WarlockTalents):
+    def __init__(self):
+        super().__init__(
+            soul_entrapment=3,
+            imp_sacrifice=True,
+            improved_shadow_bolt=5,
+            bane=5,
+            aftermath=3,
+            devastation=5,
+            improved_searing_pain=5,
+            improved_soul_fire=2,
+            improved_immolate=5,
+            ruin=1,
+            emberstorm=5,
+        )

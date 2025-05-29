@@ -1,4 +1,3 @@
-from sim import JUSTIFY
 from sim.env import Environment
 
 IGNITE_WINDOW = 4

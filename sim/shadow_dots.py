@@ -92,7 +92,7 @@ class SiphonLifeDot(WarlockShadowDot):
 
     def _get_effective_tick_dmg(self):
         dmg = self.base_tick_dmg + self.sp * self.coefficient
-        if self.owner.options.siphon_life_bonus_35:
+        if self.owner.opts.siphon_life_bonus_35:
             # 50% more siphon
             dmg *= 1.5
 

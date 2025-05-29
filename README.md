@@ -22,6 +22,13 @@ If you have pypy use it with `poetry env use path\to\pypy`
 
 `poetry run examples/mage.py`
 
+## UI
+To use the UI
+```
+poetry shell
+python .\ui\main.py
+```
+
 ## Usage
 For a single iteration:
 

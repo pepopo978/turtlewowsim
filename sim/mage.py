@@ -5,15 +5,16 @@ from sim.character import CooldownUsages
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.hot_streak import HotStreak
-from sim.mage_options import MageOptions
 from sim.mage_rotation_cooldowns import *
-from sim.mage_talents import MageTalents
 from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT, SPELL_HITS_MULTIPLE_TARGETS, \
     SPELL_HAS_TRAVEL_TIME
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
+from sim.decorators import simrotation, simclass
+from sim.mage_options import MageOptions
+from sim.mage_talents import MageTalents
 
-
+@simclass(MageTalents, MageOptions)
 class Mage(Character):
     def __init__(self,
                  tal: MageTalents,
@@ -37,17 +38,18 @@ class Mage(Character):
 
         self.hot_streak = None
 
-        if self.tal.accelerated_arcana:
-            self.damage_type_haste[DamageType.ARCANE] = 5
+        if self.tal:
+            if self.tal.accelerated_arcana:
+                self.damage_type_haste[DamageType.ARCANE] = 5
 
-        if self.tal.critical_mass:
-            self.damage_type_crit[DamageType.FIRE] += 6
+            if self.tal.critical_mass:
+                self.damage_type_crit[DamageType.FIRE] += 6
 
-        if self.tal.ice_shards > 0:
-            self.damage_type_crit_mult[DamageType.FROST] += self.tal.ice_shards * 0.1
+            if self.tal.ice_shards > 0:
+                self.damage_type_crit_mult[DamageType.FROST] += self.tal.ice_shards * 0.1
 
-        if self.tal.arcane_potency:
-            self.damage_type_crit_mult[DamageType.ARCANE] += self.tal.arcane_potency * 0.25
+            if self.tal.arcane_potency:
+                self.damage_type_crit_mult[DamageType.ARCANE] += self.tal.arcane_potency * 0.25
 
         self._ice_barrier_expiration = 0
 
@@ -984,60 +986,67 @@ class Mage(Character):
             else:
                 yield from self._icicle(casting_time=time_between_icicles)
 
-    def arcane_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="arcane_rupture_missiles")(cds=cds, delay=delay)
-
+    @simrotation("(Arcane) Arcane Surge -> Arcane Rupture -> Arcane Missiles")
     def arcane_surge_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="arcane_surge_rupture_missiles")(cds=cds, delay=delay)
 
+    @simrotation("(Fire) Smart Scorch -> Fireblast -> Fireball")
+    def smart_scorch_and_fireblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="smart_scorch_and_fireblast")(cds=cds, delay=delay)
+
+    @simrotation("(Frost) Icicle -> Frostbolt (Spam)")
+    def icicle_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="icicle_frostbolts")(cds=cds, delay=delay)
+
+    @simrotation("(Frost) Icicle -> Cone of Cold -> Frostbolt (Spam)")
+    def icicle_coc_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="icicle_coc_frostbolts")(cds=cds, delay=delay)
+
+    @simrotation("(Arcane) Arcane Rupture -> Arcane Missiles")
+    def arcane_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="arcane_rupture_missiles")(cds=cds, delay=delay)
+
+    @simrotation("(Arcane) Arcane Surge -> Fireblast -> Arcane Rupture -> Arcane Missiles")
     def arcane_surge_fireblast_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="arcane_surge_fireblast_rupture_missiles")(cds=cds, delay=delay)
 
+    @simrotation("(Arcane) Arcane Rupture -> Arcane Surge -> Arcane Missiles")
     def arcane_rupture_surge_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="arcane_rupture_surge_missiles")(cds=cds, delay=delay)
 
+    @simrotation("(Arcane) Arcane Missiles")
     def arcane_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="arcane_missiles")(cds=cds, delay=delay)
 
+    @simrotation("(Arcane) Arcane Explosion (Spam)")
     def spam_arcane_explosion(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="spam_arcane_explosion")(cds=cds, delay=delay)
 
+    @simrotation("(Fire) Fireball (Spam)")
     def spam_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function
         return partial(self._set_rotation, name="spam_fireballs")(cds=cds, delay=delay)
 
+    @simrotation("(Fire) Pyroblast (Spam)")
     def spam_pyroblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="spam_pyroblast")(cds=cds, delay=delay)
 
+    @simrotation("(Fire) Scorch (Spam)")
     def spam_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="spam_scorch")(cds=cds, delay=delay)
 
+    @simrotation("(Fire) Scorch (Spam, unless MQG)")
     def spam_scorch_unless_mqg(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="spam_scorch_unless_mqg")(cds=cds, delay=delay)
 
+    @simrotation("(Fire) Smart Scorch")
     def smart_scorch(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="smart_scorch")(cds=cds, delay=delay)
 
+    @simrotation("(Fire) Smart Scorch -> Fireblast -> Arcane Surge -> Fireball")
     def smart_scorch_and_fireblast_and_surge(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="smart_scorch_and_fireblast_and_surge")(cds=cds, delay=delay)
 
-    def smart_scorch_and_fireblast(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="smart_scorch_and_fireblast")(cds=cds, delay=delay)
-
-    def one_scorch_then_fireballs(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="one_scorch_then_fireballs")(cds=cds, delay=delay)
-
-    def one_scorch_one_pyro_then_fb(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="one_scorch_one_pyro_then_fb")(cds=cds, delay=delay)
-
-    def one_scorch_one_frostbolt_then_fb(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="one_scorch_one_frostbolt_then_fb")(cds=cds, delay=delay)
-
+    @simrotation("(Frost) Frostbolt (Spam)")
     def spam_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="spam_frostbolts")(cds=cds, delay=delay)
-
-    def icicle_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="icicle_frostbolts")(cds=cds, delay=delay)
-
-    def icicle_coc_frostbolts(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="icicle_coc_frostbolts")(cds=cds, delay=delay)

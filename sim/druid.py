@@ -2,9 +2,7 @@ import random
 from functools import partial
 
 from sim.character import CooldownUsages
-from sim.druid_options import DruidOptions
 from sim.druid_rotation_cooldowns import ArcaneEclipseCooldown, NatureEclipseCooldown
-from sim.druid_talents import DruidTalents
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.mage_rotation_cooldowns import *
@@ -12,8 +10,11 @@ from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT, SPELL_HI
     SPELL_HAS_TRAVEL_TIME
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
+from sim.decorators import simrotation, simclass
+from sim.druid_options import DruidOptions
+from sim.druid_talents import DruidTalents
 
-
+@simclass(DruidTalents, DruidOptions)
 class Druid(Character):
     def __init__(self,
                  tal: DruidTalents,
@@ -29,6 +30,7 @@ class Druid(Character):
         super().__init__(tal, name, sp, crit, hit, haste, lag, equipped_items)
         self.tal = tal
         self.opts = opts
+
         self.nature_eclipse_rotation = None
         self.arcane_eclipse_rotation = None
 
@@ -397,7 +399,6 @@ class Druid(Character):
             elif rotation_callback:
                 yield from rotation_callback()
 
-    # Regular rotations when not in eclipse
     def _spam_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
             yield from self._starfire()
@@ -468,26 +469,36 @@ class Druid(Character):
 
         return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
 
-    def spam_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="spam_starfire")(cds=cds, delay=delay)
 
-    def spam_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="spam_wrath")(cds=cds, delay=delay)
-
-    def moonfire_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="moonfire_starfire")(cds=cds, delay=delay)
-
-    def insect_swarm_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="insect_swarm_starfire")(cds=cds, delay=delay)
-
-    def insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="insect_swarm_wrath")(cds=cds, delay=delay)
-
-    def moonfire_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="moonfire_wrath")(cds=cds, delay=delay)
-
+    @simrotation("Moonfire -> Insect Swarm -> Wrath")
     def moonfire_insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="moonfire_insect_swarm_wrath")(cds=cds, delay=delay)
 
+    @simrotation("Moonfire -> Insect Swarm -> Starfire")
     def moonfire_insect_swarm_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="moonfire_insect_swarm_starfire")(cds=cds, delay=delay)
+
+    # Regular rotations when not in eclipse
+    @simrotation("Starfire (Spam)")
+    def spam_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="spam_starfire")(cds=cds, delay=delay)
+
+    @simrotation("Wrath (Spam)")
+    def spam_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="spam_wrath")(cds=cds, delay=delay)
+
+    @simrotation("Moonfire -> Starfire")
+    def moonfire_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="moonfire_starfire")(cds=cds, delay=delay)
+
+    @simrotation("Insect Swarm -> Starfire")
+    def insect_swarm_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="insect_swarm_starfire")(cds=cds, delay=delay)
+
+    @simrotation("Insect Swarm -> Wrath")
+    def insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="insect_swarm_wrath")(cds=cds, delay=delay)
+
+    @simrotation("Moonfire -> Wrath")
+    def moonfire_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="moonfire_wrath")(cds=cds, delay=delay)

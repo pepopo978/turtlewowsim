@@ -3,6 +3,7 @@ from functools import partial
 
 from sim.character import Character, CooldownUsages
 from sim.cooldowns import Cooldown
+from sim.decorators import simclass, simrotation
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_HITS_MULTIPLE_TARGETS, SPELL_TRIGGERS_ON_HIT, \
@@ -52,6 +53,7 @@ class DarkHarvestCooldown(Cooldown):
         return 30
 
 
+@simclass(WarlockTalents, WarlockOptions)
 class Warlock(Character):
     def __init__(self,
                  tal: WarlockTalents,
@@ -71,8 +73,9 @@ class Warlock(Character):
         # Warlock
         self.nightfall = False
 
-        if self.tal.rapid_deterioration:
-            self.talent_school_haste[TalentSchool.Affliction]["rapid_deterioration"] = 6
+        if self.tal:
+            if self.tal.rapid_deterioration:
+                self.talent_school_haste[TalentSchool.Affliction]["rapid_deterioration"] = 6
 
     def _setup_cds(self):
         self.conflagrate_cd = ConflagrateCooldown(self)
@@ -805,44 +808,54 @@ class Warlock(Character):
             # fill with Drain Soul
             yield from self._drain_soul_channel()
 
-    def spam_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function
-        return partial(self._set_rotation, name="spam_shadowbolt")(cds=cds, delay=delay)
-
-    def corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="corruption_shadowbolt")(cds=cds, delay=delay)
-
-    def agony_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="agony_corruption_shadowbolt")(cds=cds, delay=delay)
-
-    def agony_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="agony_corruption_immolate_shadowbolt")(cds=cds, delay=delay)
-
-    def coa_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        return partial(self._set_rotation, name="coa_corruption_immolate_shadowbolt")(cds=cds, delay=delay)
-
     # affliction
+    @simrotation("(Affli) CoA -> Corruption -> Siphon Life -> Harvest -> Drain Soul")
     def coa_corruption_siphon_harvest_drain(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return (partial(self._set_rotation,
                         name="coa_corruption_siphon_harvest_drain")
                 (cds=cds, delay=delay))
 
+    @simrotation("(Affli) CoA -> Corruption -> Harvest -> Drain Soul")
     def coa_corruption_harvest_drain(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return (partial(self._set_rotation,
                         name="coa_corruption_harvest_drain")
                 (cds=cds, delay=delay))
 
     # smruin
+    @simrotation("(SMRuin) CoA -> Corruption -> Shadowbolt")
     def coa_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="coa_corruption_shadowbolt")(cds=cds, delay=delay)
 
+    @simrotation("(SMRuin) CoA -> Corruption -> Siphon Life -> Shadowbolt")
     def coa_corruption_siphon_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="coa_corruption_siphon_shadowbolt")(cds=cds, delay=delay)
 
     # fire
+    @simrotation("(Fire) Immolate -> Conflagrate -> Soul Fire -> Searing Pain")
     def immo_conflag_soulfire_searing(self,
-                                          cds: CooldownUsages = CooldownUsages(),
-                                          delay=2):
+                                      cds: CooldownUsages = CooldownUsages(),
+                                      delay=2):
         return (partial(self._set_rotation,
                         name="immo_conflag_soulfire_searing")
                 (cds=cds, delay=delay))
+
+    @simrotation("Spam Shadowbolt")
+    def spam_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        # set rotation to internal _spam_fireballs and use partial to pass args and kwargs to that function
+        return partial(self._set_rotation, name="spam_shadowbolt")(cds=cds, delay=delay)
+
+    @simrotation("Corruption -> Shadowbolt")
+    def corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="corruption_shadowbolt")(cds=cds, delay=delay)
+
+    @simrotation("Agony -> Corruption -> Shadowbolt")
+    def agony_corruption_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="agony_corruption_shadowbolt")(cds=cds, delay=delay)
+
+    @simrotation("Agony -> Corruption -> Immolate -> Shadowbolt")
+    def agony_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="agony_corruption_immolate_shadowbolt")(cds=cds, delay=delay)
+
+    @simrotation("CoA -> Corruption -> Immolate -> Shadowbolt")
+    def coa_corruption_immolate_shadowbolt(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="coa_corruption_immolate_shadowbolt")(cds=cds, delay=delay)

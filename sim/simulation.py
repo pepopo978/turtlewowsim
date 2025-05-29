@@ -228,7 +228,7 @@ class Simulation:
                             completed += 1
 
                             if completed % 10 == 0 or completed == total_chunks:
-                                print(f"\rProcessed {completed}/{total_chunks} chunks", end='', flush=True)
+                                print(f"Processed {completed}/{total_chunks} chunks", flush=True)
 
                         except TimeoutError:
                             print(f"\nTimeout on chunk {idx}! Terminating.")

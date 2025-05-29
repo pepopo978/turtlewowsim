@@ -1,8 +1,9 @@
-from builtins import int
 from dataclasses import dataclass
 
+from sim.decorators import simtalent
 
-@dataclass(kw_only=True)
+
+@dataclass
 class DruidTalents:
     imp_wrath: int = 0
     imp_moonfire: int = 0
@@ -14,13 +15,16 @@ class DruidTalents:
     eclipse: bool = 0
 
 
-BoomkinTalents = DruidTalents(
-    imp_wrath=5,
-    imp_moonfire=2,
-    moonfury=3,
-    vengeance=5,
-    natures_grace=True,
-    imp_starfire=3,
-    balance_of_all_things=5,
-    eclipse=True
-)
+@simtalent("Balance (Default)")
+class BalanceDruidTalents(DruidTalents):
+    def __init__(self):
+        super().__init__(
+            imp_wrath=5,
+            imp_moonfire=2,
+            moonfury=3,
+            vengeance=5,
+            natures_grace=True,
+            imp_starfire=3,
+            balance_of_all_things=5,
+            eclipse=True
+        )
