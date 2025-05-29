@@ -9,7 +9,7 @@ mage1 = Mage(
     haste=0,
     opts=MageOptions(
         ),
-    tal=IcicleMageTalents,
+    tal=IcicleMageTalents(),
     equipped_items=EquippedItems(
         )
 )

@@ -14,7 +14,7 @@ for i in range(num_rings):
     m = None
     if i == 0:
         m = Mage(name=f'wrath_of_cenarius', sp=base_sp, crit=base_crit, hit=base_hit,
-                 tal=ArcaneMageTalents,
+                 tal=ArcaneMageTalents(),
                  opts=MageOptions(),
                  equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
@@ -22,7 +22,7 @@ for i in range(num_rings):
                   ))
     elif i == 1:
         m = Mage(name=f't3 ring', sp=base_sp + 30, crit=base_crit+1, hit=base_hit,
-                 tal=ArcaneMageTalents,
+                 tal=ArcaneMageTalents(),
                  opts=MageOptions(),
                  equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,
@@ -30,7 +30,7 @@ for i in range(num_rings):
                   ))
     elif i == 2:
         m = Mage(name=f't3 ring arcane (ignoring hit)', sp=base_sp + 36, crit=base_crit, hit=base_hit,
-                 tal=ArcaneMageTalents,
+                 tal=ArcaneMageTalents(),
                  opts=MageOptions(),
                  equipped_items=EquippedItems(
                       ornate_bloodstone_dagger=False,

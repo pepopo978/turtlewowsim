@@ -6,7 +6,7 @@ mages = [
 arcane_extend_ignite_with_fire_blast=True
 
 am = Mage(name=f'arcane 1', sp=1000, crit=40, hit=16, haste=0,
-          tal=ArcaneMageTalents,
+          tal=ArcaneMageTalents(),
           opts=MageOptions(t3_8_set=False, extra_second_arcane_missile=False, extend_ignite_with_fire_blast=arcane_extend_ignite_with_fire_blast),
           equipped_items=EquippedItems(
               ornate_bloodstone_dagger=False,
@@ -18,7 +18,7 @@ am.arcane_surge_rupture_missiles(cds=CooldownUsages(mqg=5, arcane_power=5))
 mages.append(am)
 
 am = Mage(name=f'arcane 2', sp=1000, crit=40, hit=16, haste=0,
-          tal=ArcaneMageTalents,
+          tal=ArcaneMageTalents(),
           opts=MageOptions(t3_8_set=False, extra_second_arcane_missile=False, extend_ignite_with_fire_blast=arcane_extend_ignite_with_fire_blast),
           equipped_items=EquippedItems(
               ornate_bloodstone_dagger=False,
@@ -30,7 +30,7 @@ am.arcane_surge_rupture_missiles(cds=CooldownUsages(mqg=5, arcane_power=5))
 mages.append(am)
 
 am = Mage(name=f'arcane 3', sp=1000, crit=40, hit=16, haste=0,
-          tal=ArcaneMageTalents,
+          tal=ArcaneMageTalents(),
           opts=MageOptions(t3_8_set=False, extra_second_arcane_missile=False, extend_ignite_with_fire_blast=arcane_extend_ignite_with_fire_blast),
           equipped_items=EquippedItems(
               ornate_bloodstone_dagger=False,
@@ -42,7 +42,7 @@ am.arcane_surge_rupture_missiles(cds=CooldownUsages(mqg=5, arcane_power=5))
 mages.append(am)
 
 fm = Mage(name=f'fire 1', sp=1000, crit=40, hit=16, haste=0,
-          tal=FireMageTalents,
+          tal=FireMageTalents(),
             opts=MageOptions(t3_8_set=False, extra_second_arcane_missile=False),
           )
 fm.smart_scorch(cds=CooldownUsages(mqg=5,combustion=5))

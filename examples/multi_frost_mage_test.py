@@ -41,14 +41,14 @@ for i in range(num_mages):
 
     # if i == 1:
     #     fm = Mage(name=f'arcane explosion', sp=1000, crit=40.43, hit=16,
-    #               tal=IcicleMageTalents,
+    #               tal=IcicleMageTalents(),
     #               opts=MageOptions(use_frostnova_for_icicles=True,
     #                                start_with_ice_barrier=True))
     #     fm.spam_arcane_explosion(cds=CooldownUsages())
     #     mages.append(fm)
     # elif i==2:
     #     fm = Mage(name=f'coc', sp=1000, crit=40.43, hit=16,
-    #               tal=IcicleMageTalents,
+    #               tal=IcicleMageTalents(),
     #               opts=MageOptions(use_frostnova_for_icicles=True,
     #                                start_with_ice_barrier=True))
     #     fm.icicle_coc_frostbolts(cds=CooldownUsages())

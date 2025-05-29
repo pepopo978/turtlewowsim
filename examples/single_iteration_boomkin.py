@@ -16,7 +16,7 @@ options = DruidOptions(ignore_arcane_eclipse=False,
 
 for i in range(num_boomkins):
     d = Druid(name=f'test', sp=1000, crit=40, hit=16, haste=0,
-              tal=BoomkinTalents,
+              tal=BoomkinTalents(),
               opts=options,
               equipped_items=EquippedItems())
     d.moonfire_insect_swarm_wrath(cds=CooldownUsages())

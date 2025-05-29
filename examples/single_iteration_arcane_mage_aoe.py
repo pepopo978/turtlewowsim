@@ -5,7 +5,7 @@ num_mages = 1
 
 for i in range(num_mages):
     fm = Mage(name=f'test', sp=1040, crit=40, hit=16,
-              tal=ArcaneMageTalents,
+              tal=ArcaneMageTalents(),
               opts=MageOptions(),
               equipped_items=EquippedItems(
                   ornate_bloodstone_dagger=False,

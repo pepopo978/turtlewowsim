@@ -18,7 +18,7 @@ base_hit = 16
 base_haste = 7
 #
 # d = Druid(name=f'spam_starfire', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-#           tal=BoomkinTalents,
+#           tal=BoomkinTalents(),
 #           opts=options,
 #           equipped_items=EquippedItems())
 # d.spam_starfire(cds=CooldownUsages())
@@ -27,7 +27,7 @@ base_haste = 7
 # boomkins.append(d)
 #
 # d = Druid(name=f'spam_wrath', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-#           tal=BoomkinTalents,
+#           tal=BoomkinTalents(),
 #           opts=options,
 #           equipped_items=EquippedItems())
 # d.spam_wrath(cds=CooldownUsages())
@@ -36,7 +36,7 @@ base_haste = 7
 # boomkins.append(d)
 #
 # d = Druid(name=f'moonfire_starfire', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-#           tal=BoomkinTalents,
+#           tal=BoomkinTalents(),
 #           opts=options,
 #           equipped_items=EquippedItems())
 # d.moonfire_starfire(cds=CooldownUsages())
@@ -45,7 +45,7 @@ base_haste = 7
 # boomkins.append(d)
 #
 # d = Druid(name=f'insect_swarm_starfire', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-#           tal=BoomkinTalents,
+#           tal=BoomkinTalents(),
 #           opts=options,
 #           equipped_items=EquippedItems())
 # d.insect_swarm_starfire(cds=CooldownUsages())
@@ -53,7 +53,7 @@ base_haste = 7
 # d.set_nature_eclipse_subrotation(d.insect_swarm_moonfire_wrath_subrotation)
 # boomkins.append(d)
 # d = Druid(name=f'insect_swarm_wrath', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-#           tal=BoomkinTalents,
+#           tal=BoomkinTalents(),
 #           opts=options,
 #           equipped_items=EquippedItems())
 # d.insect_swarm_wrath(cds=CooldownUsages())
@@ -62,7 +62,7 @@ base_haste = 7
 # boomkins.append(d)
 #
 # d = Druid(name=f'moonfire_wrath', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-#           tal=BoomkinTalents,
+#           tal=BoomkinTalents(),
 #           opts=options,
 #           equipped_items=EquippedItems())
 # d.moonfire_wrath(cds=CooldownUsages())
@@ -71,7 +71,7 @@ base_haste = 7
 # boomkins.append(d)
 
 d = Druid(name=f'moonfire_insect_swarm_wrath', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-          tal=BoomkinTalents,
+          tal=BoomkinTalents(),
           opts=options,
           equipped_items=EquippedItems())
 d.moonfire_insect_swarm_wrath(cds=CooldownUsages())
@@ -80,7 +80,7 @@ d.set_nature_eclipse_subrotation(d.insect_swarm_moonfire_wrath_subrotation)
 boomkins.append(d)
 
 # d = Druid(name=f'moonfire_insect_swarm_starfire', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-#           tal=BoomkinTalents,
+#           tal=BoomkinTalents(),
 #           opts=options,
 #           equipped_items=EquippedItems())
 # d.moonfire_insect_swarm_starfire(cds=CooldownUsages())

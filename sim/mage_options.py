@@ -17,11 +17,11 @@ class MageOptions:
     # Frost
     frostbolt_rank: int = simoption("Frostbolt rank (11, 4, or 3)", default=11, spec="Frost")
     use_icicles_without_flash_freeze: bool = simoption("Use Icicles without Flash Freeze proc", default=False, spec="Frost")
-    use_frostnova_for_icicles: bool = simoption("Use Frost Nova to proc Flash Freeze", default=False, spec="Frost")
-    keep_ice_barrier_up: bool = simoption("Keep Ice Barrier up", default=False, spec="Frost")
-    start_with_ice_barrier: bool = simoption("Start with Ice Barrier active", default=False, spec="Frost")
+    use_frostnova_for_icicles: bool = simoption("Use Frost Nova to proc Flash Freeze", default=True, spec="Frost")
+    keep_ice_barrier_up: bool = simoption("Keep Ice Barrier up", default=True, spec="Frost")
+    start_with_ice_barrier: bool = simoption("Start with Ice Barrier active", default=True, spec="Frost")
     starting_ice_barrier_duration: int = simoption("Starting Ice Barrier duration (seconds)", default=55, spec="Frost")
-    use_cold_snap_for_nova: bool = simoption("Use Cold Snap to reset Frost Nova", default=False, spec="Frost")
+    use_cold_snap_for_nova: bool = simoption("Use Cold Snap to reset Frost Nova", default=True, spec="Frost")
 
     # Arcane
     use_presence_of_mind_on_cd: bool = simoption("Use Presence of Mind on cooldown", default=True, spec="Arcane")

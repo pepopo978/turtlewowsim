@@ -9,7 +9,7 @@ Simulation for Turtle WoW that currently supports Arcane/Fire/Frost Mages, Boomk
 Click Code -> Download ZIP to download the repository or clone it with git.
 
 Download python 3.10 or later if you don't already have it
-https://www.python.org/downloads/
+https://www.python.org/downloads/.
 
 Make sure you add python to your PATH during installation.
 
@@ -29,6 +29,8 @@ To use the UI
 poetry shell
 python .\ui\main.py
 ```
+
+Or run the exe in dist/.  Multiprocessing wasn't working in the exe so it's a lot slower.
 
 ## Usage
 For a single iteration:
@@ -65,7 +67,7 @@ locks = []
 num_locks = 3
 
 for i in range(num_locks):
-    fm = Warlock(name=f'lock{i}', sp=1009, crit=33.17, hit=16, tal=SMRuin, opts=WarlockOptions())
+    fm = Warlock(name=f'lock{i}', sp=1009, crit=33.17, hit=16, tal=SMRuin(), opts=WarlockOptions())
     fm.corruption_immolate_shadowbolt()
     locks.append(fm)
 
@@ -300,7 +302,7 @@ class EquippedItems:
 pass them to your character like so:
 ```
     fm = Mage(name=f'haste', sp=1000, crit=40, hit=15, haste=0,
-              tal=ArcaneMageTalents,
+              tal=ArcaneMageTalents(),
               opts=MageOptions(),
               equipped_items=EquippedItems(
                   ornate_bloodstone_dagger=True,

@@ -3,7 +3,7 @@ from _example_imports import *
 # mages = []
 #
 # fm = Mage(name=f'regular', sp=1000, crit=40.43, hit=16, haste=3,
-#           tal=FireMageTalents,
+#           tal=FireMageTalents(),
 #           opts=MageOptions(extend_ignite_with_scorch=True))
 # fm.smart_scorch_and_fireblast(CooldownUsages(combustion=10, mqg=10))
 # mages.append(fm)

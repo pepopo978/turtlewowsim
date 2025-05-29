@@ -3,7 +3,7 @@ from _example_imports import *
 mages = []
 #
 # m = Mage(name=f'boed', sp=905, crit=39, hit=16, haste=9,
-#          tal=ArcaneMageTalents,
+#          tal=ArcaneMageTalents(),
 #          opts=MageOptions(interrupt_arcane_missiles=False),
 #          equipped_items=EquippedItems(
 #              blade_of_eternal_darkness=True,
@@ -14,7 +14,7 @@ mages = []
 # mages.append(m)
 #
 # m = Mage(name=f'ornate', sp=905, crit=39, hit=16, haste=9,
-#          tal=ArcaneMageTalents,
+#          tal=ArcaneMageTalents(),
 #          opts=MageOptions(interrupt_arcane_missiles=False),
 #          equipped_items=EquippedItems(
 #              ornate_bloodstone_dagger=True,
@@ -25,7 +25,7 @@ mages = []
 # mages.append(m)
 #
 m = Mage(name=f'normal', sp=1000, crit=40, hit=16, haste=5,
-         tal=ArcaneMageTalents,
+         tal=ArcaneMageTalents(),
          opts=MageOptions(interrupt_arcane_missiles=False),
          equipped_items=EquippedItems(
              ornate_bloodstone_dagger=False,
@@ -36,7 +36,7 @@ m.arcane_rupture_surge_missiles(cds=CooldownUsages())
 mages.append(m)
 
 # m = Mage(name=f'reos', sp=1000, crit=40, hit=16, haste=5,
-#          tal=ArcaneMageTalents,
+#          tal=ArcaneMageTalents(),
 #          opts=MageOptions(interrupt_arcane_missiles=False),
 #          equipped_items=EquippedItems(
 #              ornate_bloodstone_dagger=False,
@@ -47,7 +47,7 @@ mages.append(m)
 # mages.append(m)
 #
 # m = Mage(name=f'reos', sp=1000, crit=40, hit=16, haste=0,
-#          tal=ArcaneMageTalents,
+#          tal=ArcaneMageTalents(),
 #          opts=MageOptions(interrupt_arcane_missiles=False),
 #          equipped_items=EquippedItems(
 #              ornate_bloodstone_dagger=False,
@@ -58,7 +58,7 @@ mages.append(m)
 # mages.append(m)
 #
 # m = Mage(name=f'double reos', sp=1040, crit=40, hit=16, haste=8,
-#          tal=ArcaneMageTalents,
+#          tal=ArcaneMageTalents(),
 #          opts=MageOptions(interrupt_arcane_missiles=True),
 #          equipped_items=EquippedItems(
 #              ornate_bloodstone_dagger=False,
