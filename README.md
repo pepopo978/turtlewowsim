@@ -6,12 +6,14 @@ Simulation for Turtle WoW that currently supports Arcane/Fire/Frost Mages, Boomk
 
 ## Installation
 
-Need python 3.10 or later and Poetry to install dependencies
+Click Code -> Download ZIP to download the repository or clone it with git.
+
+Download python 3.10 or later if you don't already have it
 https://www.python.org/downloads/
 
 Make sure you add python to your PATH during installation.
 
-Open a terminal in the same directory as this README and run:
+Open cmd or powershell in the same directory as this README and run:
 (If you shift right click in the white space in windows explorer there is an option to "Open PowerShell window here" or "Open command window here")
 
 ```bash
