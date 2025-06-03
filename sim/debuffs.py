@@ -16,7 +16,13 @@ class SharedDebuffNames(Enum):
     FREEZING_COLD = "Freezing Cold"
 
 class Debuffs:
-    def __init__(self, env, permanent_coe=True, permanent_cos=True, permanent_shadow_weaving=True, permanent_nightfall=False):
+    def __init__(self, env,
+                 permanent_coe=True,
+                 permanent_cos=True,
+                 permanent_shadow_weaving=True,
+                 permanent_isb=False,
+                 permanent_nightfall=False,
+                 ):
         self.env = env
         self.scorch_stacks = 0
         self.scorch_timer = 0
@@ -24,10 +30,11 @@ class Debuffs:
         self.permanent_cos = permanent_cos
         self.permanent_nightfall = permanent_nightfall
         self.permanent_shadow_weaving = permanent_shadow_weaving
+        self.permanent_isb = permanent_isb
         self.ticks = 0
 
         self.ignite = Ignite(env)
-        self.improved_shadow_bolt = ImprovedShadowBolt(env)
+        self.improved_shadow_bolt = ImprovedShadowBolt(env, permanent_isb)
 
         self.wc_stacks = 0
         self.wc_timer = 0

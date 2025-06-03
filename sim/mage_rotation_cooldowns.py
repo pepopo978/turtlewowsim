@@ -75,7 +75,7 @@ class FrostNovaCooldown(Cooldown):
 
 
 class ColdSnapCooldown(Cooldown):
-    PRINTS_ACTIVATION = False
+    PRINTS_ACTIVATION = True
 
     @property
     def cooldown(self):

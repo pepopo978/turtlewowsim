@@ -495,7 +495,7 @@ class Warlock(Character):
         # max out at 4
         num_affliction_effects = min(num_affliction_effects, 4)
 
-        return (1 + (self.tal.soul_siphon * 0.02)) * num_affliction_effects
+        return 1 + (self.tal.soul_siphon * 0.02 * num_affliction_effects)
 
     def _drain_soul_channel(self, channel_time: float = 6):
         self.env.meter.register_spell_dmg(
@@ -526,7 +526,7 @@ class Warlock(Character):
                 yield from self._drain_soul_tick(tick_time=time_between_ticks)
 
     def _drain_soul_tick(self, tick_time: float = 3):
-        dmg = 158
+        dmg = 198 * 1.2 # mysterious extra dmg in game
 
         if self.tal.soul_siphon:
             dmg *= self._get_soul_siphon_multiplier()
@@ -571,13 +571,20 @@ class Warlock(Character):
         for i in range(num_ticks):
             if i == 0:
                 yield from self._dark_harvest_tick(tick_time=time_between_ticks + self.lag)  # initial delay
+            elif i == num_ticks - 1 and self.opts.doomcaller_dh_bonus_25:
+                # last tick
+                # 5 set bonus - The last tick of your Dark Harvest spell deals 400% damage
+                yield from self._dark_harvest_tick(tick_time=time_between_ticks, dmg_multiplier=5)
             else:
                 yield from self._dark_harvest_tick(tick_time=time_between_ticks)
 
         self.remove_talent_school_haste(TalentSchool.Affliction, Spell.DARK_HARVEST.value)
 
-    def _dark_harvest_tick(self, tick_time: float = 3):
-        dmg = 144
+    def _dark_harvest_tick(self, tick_time: float = 3, dmg_multiplier: float = None):
+        dmg = 158
+
+        if dmg_multiplier is not None:
+            dmg *= dmg_multiplier
 
         if self.tal.soul_siphon:
             dmg *= self._get_soul_siphon_multiplier()

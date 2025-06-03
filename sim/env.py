@@ -9,7 +9,9 @@ class Environment(simpy.Environment):
                  print_dots=False,
                  permanent_coe=True,
                  permanent_cos=True,
+                 permanent_shadow_weaving=True,
                  permanent_nightfall=False,
+                 permanent_isb=False,
                  num_mobs=1,
                  mob_level=63,
                  *args,
@@ -24,8 +26,13 @@ class Environment(simpy.Environment):
 
         self.print = print_casts
         self.print_dots = print_dots
-        self.debuffs = Debuffs(self, permanent_coe=permanent_coe, permanent_cos=permanent_cos,
-                               permanent_nightfall=permanent_nightfall)
+        self.debuffs = Debuffs(self,
+                               permanent_coe=permanent_coe,
+                               permanent_cos=permanent_cos,
+                               permanent_shadow_weaving=permanent_shadow_weaving,
+                               permanent_nightfall=permanent_nightfall,
+                               permanent_isb=permanent_isb,
+                               )
         self.meter = DamageMeter(self, num_mobs)
         self.process(self.debuffs.run())
 

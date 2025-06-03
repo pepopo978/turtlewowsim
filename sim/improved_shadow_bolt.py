@@ -8,10 +8,12 @@ ISB_DURATION = 10
 
 
 class ImprovedShadowBolt:
-    def __init__(self, env):
+    def __init__(self, env, permanent_isb=False):
         self._uptime = 0
         self._added_dot_dmg: Dict[Character, int] = {}
         self._added_spell_dmg: Dict[Character, int] = {}
+
+        self.permanent_isb = permanent_isb
 
         self.env: Environment = env
 
@@ -24,6 +26,9 @@ class ImprovedShadowBolt:
 
     @property
     def is_active(self):
+        if self.permanent_isb:
+            return True
+
         if self.activation_time is None:
             return False
 

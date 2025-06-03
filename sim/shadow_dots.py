@@ -46,6 +46,10 @@ class CurseOfAgonyDot(WarlockShadowDot):
         self.starting_ticks = 12
         self.base_tick_dmg = 87
 
+        if self.owner.opts.doomcaller_coa_bonus_25:
+            # 5% more Curse of Agony damage
+            self.base_tick_dmg *= 1.05
+
     def _get_effective_tick_dmg(self):
         standard_tick_dmg = super()._get_effective_tick_dmg()
 
@@ -58,7 +62,6 @@ class CurseOfAgonyDot(WarlockShadowDot):
         elif self.owner.tal.improved_curse_of_agony == 1:
             # 3/6/10% damage per point
             standard_tick_dmg *= 1.03
-
 
         # first four ticks each deal 1/24 of the damage each (about 4.2%),
         # the next four deal 1/12 of the damage (about 8.3%),

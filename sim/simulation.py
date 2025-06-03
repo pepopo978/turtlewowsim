@@ -1,14 +1,14 @@
-from collections import defaultdict
-from typing import List, Union
 import os
 import time
-import numpy as np
-from functools import partial
-from copy import deepcopy
-from loky import ProcessPoolExecutor
+from collections import defaultdict
 from concurrent.futures import TimeoutError
+from copy import deepcopy
+from typing import List, Union
+
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+from loky import ProcessPoolExecutor
 from tqdm import trange
 
 from sim import JUSTIFY
@@ -68,7 +68,9 @@ def run_simulation(args, chunk_range):
                 print_dots=False,
                 permanent_coe=args['permanent_coe'],
                 permanent_cos=args['permanent_cos'],
+                permanent_shadow_weaving=args['permanent_shadow_weaving'],
                 permanent_nightfall=args['permanent_nightfall'],
+                permanent_isb=args['permanent_isb'],
                 num_mobs=args['num_mobs'],
                 mob_level=args['mob_level']
             )
@@ -152,13 +154,17 @@ class Simulation:
                  characters: List[Character] = None,
                  permanent_coe: bool = True,
                  permanent_cos: bool = True,
+                 permanent_shadow_weaving: bool = True,
                  permanent_nightfall: bool = False,
+                 permanent_isb: bool = False,
                  num_mobs: int = 1,
                  mob_level: int = 63):
         self.characters = characters or []
         self.permanent_coe = permanent_coe
         self.permanent_cos = permanent_cos
+        self.permanent_shadow_weaving = permanent_shadow_weaving
         self.permanent_nightfall = permanent_nightfall
+        self.permanent_isb = permanent_isb
         self.num_mobs = num_mobs
         self.mob_level = mob_level
         self.duration = 0
@@ -204,7 +210,9 @@ class Simulation:
             args = {
                 'permanent_coe': self.permanent_coe,
                 'permanent_cos': self.permanent_cos,
+                'permanent_shadow_weaving': self.permanent_shadow_weaving,
                 'permanent_nightfall': self.permanent_nightfall,
+                'permanent_isb': self.permanent_isb,
                 'num_mobs': self.num_mobs,
                 'mob_level': self.mob_level,
                 'duration': duration
@@ -307,7 +315,9 @@ class Simulation:
                                   print_dots=print_dots,
                                   permanent_coe=self.permanent_coe,
                                   permanent_cos=self.permanent_cos,
+                                  permanent_shadow_weaving=self.permanent_shadow_weaving,
                                   permanent_nightfall=self.permanent_nightfall,
+                                  permanent_isb=self.permanent_isb,
                                   num_mobs=self.num_mobs,
                                   mob_level=self.mob_level)
 

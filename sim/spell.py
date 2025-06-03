@@ -55,7 +55,7 @@ SPELL_COEFFICIENTS = {
     Spell.IMMOLATE: 0.1865,
     Spell.SEARING_PAIN: 0.4285,
     Spell.SHADOWBOLT: 0.8571,
-    Spell.DRAIN_SOUL: 0.1667,
+    Spell.DRAIN_SOUL: 0.2, # not actually .1667 in game as stated
     Spell.SOUL_FIRE: 1.25,
     Spell.DARK_HARVEST: .3,  # per tick
 

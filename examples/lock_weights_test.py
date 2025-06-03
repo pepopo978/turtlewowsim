@@ -9,7 +9,7 @@ control_hit = 13
 control_haste = 0
 
 options = WarlockOptions(crit_dmg_bonus_35=False)
-talents = AfflictionLock
+talents = AfflictionLock()
 
 d = Warlock(name=f'control', sp=control_sp, crit=control_crit, hit=control_hit, haste=control_haste,
           tal=talents,
@@ -46,6 +46,6 @@ for lock in locks:
     # lock.coa_corruption_siphon_shadowbolt()
     # lock.immo_conflag_soulfire_searing()
 
-sim = Simulation(characters=locks)
-sim.run(iterations=10000, duration=300, print_casts=False, use_multiprocessing=True)
+sim = Simulation(characters=locks, permanent_isb=True)
+sim.run(iterations=10000, duration=300, print_casts=True, use_multiprocessing=True)
 sim.detailed_report()
