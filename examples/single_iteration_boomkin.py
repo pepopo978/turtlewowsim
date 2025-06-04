@@ -1,7 +1,7 @@
 from _example_imports import *
 from sim.druid import Druid
 from sim.druid_options import DruidOptions
-from sim.druid_talents import BoomkinTalents
+from sim.druid_talents import BalanceDruidTalents
 
 boomkins = []
 num_boomkins = 1
@@ -16,7 +16,7 @@ options = DruidOptions(ignore_arcane_eclipse=False,
 
 for i in range(num_boomkins):
     d = Druid(name=f'test', sp=1000, crit=40, hit=16, haste=0,
-              tal=BoomkinTalents(),
+              tal=BalanceDruidTalents(),
               opts=options,
               equipped_items=EquippedItems())
     d.moonfire_insect_swarm_wrath(cds=CooldownUsages())

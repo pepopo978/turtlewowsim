@@ -405,6 +405,15 @@ class Druid(Character):
 
         return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
 
+    def _insect_swarm_spam_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        def _rotation_callback():
+            if not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
+                yield from self._insect_swarm()
+            else:
+                yield from self._wrath()
+
+        return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
+
     def _spam_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
             yield from self._wrath()
@@ -482,6 +491,10 @@ class Druid(Character):
     @simrotation("Starfire (Spam)")
     def spam_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         return partial(self._set_rotation, name="spam_starfire")(cds=cds, delay=delay)
+
+    @simrotation("Insect Swarm -> Wrath (Spam)")
+    def insect_swarm_spam_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="insect_swarm_spam_wrath")(cds=cds, delay=delay)
 
     @simrotation("Wrath (Spam)")
     def spam_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):

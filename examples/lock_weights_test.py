@@ -3,10 +3,15 @@ from sim.warlock_talents import *
 
 locks = []
 
-control_sp = 1000
-control_crit = 35
-control_hit = 13
-control_haste = 0
+# control_sp = 1000
+# control_crit = 35
+# control_hit = 13
+# control_haste = 0
+
+control_sp = 1100
+control_crit = 10
+control_hit = 6
+control_haste = 18
 
 options = WarlockOptions(crit_dmg_bonus_35=False)
 talents = AfflictionLock()

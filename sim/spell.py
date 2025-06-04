@@ -94,10 +94,10 @@ SPELL_TRIGGERS_ON_HIT = {
     Spell.SEARING_PAIN: True,
     Spell.SHADOWBOLT: True,
     Spell.CONFLAGRATE: False,
-    Spell.CORRUPTION: False,
+    Spell.CORRUPTION: True,
     Spell.SIPHON_LIFE: False,
-    Spell.CURSE_OF_AGONY: False,
-    Spell.CURSE_OF_SHADOW: False,
+    Spell.CURSE_OF_AGONY: True,
+    Spell.CURSE_OF_SHADOW: True,
     Spell.DRAIN_SOUL: False,
     Spell.SOUL_FIRE: True,
 
@@ -122,7 +122,7 @@ SPELL_TRIGGERS_ON_HIT = {
     Spell.MOONFIRE: True,
     Spell.WRATH: True,
     Spell.STARFIRE: True,
-    Spell.INSECT_SWARM: False,
+    Spell.INSECT_SWARM: True,
 
     # Proc Spells
     Spell.ENGULFING_SHADOWS: False,  # Blade of Eternal Darkness
