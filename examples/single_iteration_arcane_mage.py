@@ -10,7 +10,7 @@ for i in range(num_mages):
               equipped_items=EquippedItems(
                   ornate_bloodstone_dagger=False,
                   wrath_of_cenarius=True,
-                  true_band_of_sulfuras=True,
+                  true_band_of_sulfuras=False,
               ))
     fm.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
     mages.append(fm)

@@ -39,9 +39,6 @@ class Mage(Character):
         self.hot_streak = None
 
         if self.tal:
-            if self.tal.accelerated_arcana:
-                self.damage_type_haste[DamageType.ARCANE] = 5
-
             if self.tal.critical_mass:
                 self.damage_type_crit[DamageType.FIRE] += 6
 
@@ -621,6 +618,7 @@ class Mage(Character):
             channel_time += 1
 
         if self.tal.accelerated_arcana:
+            channel_time = channel_time * .95
             channel_time /= self.get_haste_factor_for_damage_type(DamageType.ARCANE)
 
         time_between_missiles = channel_time / num_missiles
@@ -672,6 +670,9 @@ class Mage(Character):
         max_dmg = 766
         casting_time = 2.5
         crit_modifier = 0
+
+        if self.tal.accelerated_arcana:
+            casting_time *= 0.95
 
         yield from self._arcane_spell(spell=Spell.ARCANE_RUPTURE,
                                       min_dmg=min_dmg,
