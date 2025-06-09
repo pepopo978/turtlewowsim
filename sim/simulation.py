@@ -473,13 +473,8 @@ class Simulation:
 
             # Merge debuff_uptime
             if 'debuff_uptime' in chunk:
-                print(chunk['debuff_uptime'])
                 for debuff, uptime in chunk['debuff_uptime'].items():
                     merged['debuff_uptime'][debuff] += uptime
-            else:
-                print("Warning: 'debuff_uptime' not found in chunk, skipping merge.")
-                print(chunk)
-
 
         self.results = merged
 

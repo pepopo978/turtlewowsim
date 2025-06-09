@@ -883,14 +883,20 @@ class Mage(Character):
                     flash_freeze_hit = self._roll_hit(5 * self.tal.frostbite, DamageType.FROST)
                     if flash_freeze_hit and self.tal.flash_freeze < 2:
                         flash_freeze_hit = self._roll_proc(50 * self.tal.flash_freeze)
-                elif spell == Spell.FROST_NOVA:
-                    flash_freeze_hit = True
-                    if flash_freeze_hit and self.tal.flash_freeze < 2:
-                        flash_freeze_hit = self._roll_proc(50 * self.tal.flash_freeze)
 
                 if flash_freeze_hit:
                     self._flash_freeze_proc = True
                     self.print("Flash Freeze proc")
+
+        # nova flash freeze doesn't require dmg hitting
+        if self.tal.flash_freeze and spell == Spell.FROST_NOVA:
+            flash_freeze_hit = True
+            if flash_freeze_hit and self.tal.flash_freeze < 2:
+                flash_freeze_hit = self._roll_proc(50 * self.tal.flash_freeze)
+
+            if flash_freeze_hit:
+                self._flash_freeze_proc = True
+                self.print("Flash Freeze proc")
 
         if spell == Spell.FROST_NOVA:
             self.frost_nova_cd.activate()
