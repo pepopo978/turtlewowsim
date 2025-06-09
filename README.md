@@ -238,7 +238,7 @@ ArcaneMageTalents = MageTalents(
     presence_of_mind=True,
     accelerated_arcana=True,
     arcane_potency=2,
-    resonance_cascade=3,
+    resonance_cascade=5,
     arcane_power=True
 )
     

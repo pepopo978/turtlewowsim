@@ -467,6 +467,11 @@ class Mage(Character):
             if self.arcane_rupture_cd.is_active() and spell == Spell.ARCANE_MISSILE:
                 dmg *= 1.25
                 arcane_rupture_applied = True
+
+            if self.opts.t35_3_set and spell in {Spell.FLAMESTRIKE, Spell.CONE_OF_COLD, Spell.FROST_NOVA, Spell.BLASTWAVE, Spell.ARCANE_EXPLOSION}:
+                if self._roll_proc(10):
+                    dmg *= 1.15
+                    self.print(f"{spell.value} T3 3-set proc")
         else:
             self.arcane_surge_cd.enable_due_to_resist()
             self.num_resists += 1
@@ -565,8 +570,13 @@ class Mage(Character):
 
         if self.tal.resonance_cascade and hit:
             num_duplicates = 0
+
+            resonance_chance = 4 * self.tal.resonance_cascade
+            if self.opts.t35_arcane_3_set:
+                resonance_chance += 5
+
             while num_duplicates < 5:
-                if self._roll_proc(4 * self.tal.resonance_cascade):
+                if self._roll_proc(resonance_chance):
                     num_duplicates += 1
                     dmg /= 2
                     self.print(f"{spell.value} duplicated for {dmg}")

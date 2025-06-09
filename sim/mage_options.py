@@ -5,6 +5,7 @@ from sim.decorators import simoption
 class MageOptions:
     fullt2: bool = simoption("Full T2 8-set bonus (10% instant cast chance on main spells)", default=False, spec=None)
     apply_undead_bonus: bool = simoption("Apply Undead Bonus (+2% damage vs undead)", default=False, spec=None)
+    t35_3_set: bool = simoption("T3.5 3-set bonus 10% chance for aoe spells to deal 15% more dmg", default=False, spec=None)
 
     # Fire
     drop_suboptimal_ignites: bool = simoption("Drop suboptimal ignites (cast frostbolt to drop bad ignite)", default=False, spec="Fire")
@@ -28,3 +29,4 @@ class MageOptions:
     extra_second_arcane_missile: bool = simoption("Extra second on Arcane Missiles (effect on some belts)", default=False, spec="Arcane")
     interrupt_arcane_missiles: bool = simoption("Interrupt Arcane Missiles early for Rupture/Surge", default=True, spec="Arcane")
     t3_8_set: bool = simoption("T3 8-set bonus (Arcane)", default=False, spec="Arcane")
+    t35_arcane_3_set: bool = simoption("T3.5 3-set bonus 5% more resonance(Arcane)", default=False, spec="Arcane")

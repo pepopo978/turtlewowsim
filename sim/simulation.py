@@ -33,6 +33,7 @@ def run_simulation(args, chunk_range):
             'casts': defaultdict(list),
             'per_spell_data': defaultdict(list),
             'buff_uptime': defaultdict(list),
+            'debuff_uptime': defaultdict(float),
             'partial_resists': defaultdict(list),
             'resists': defaultdict(list),
             'total_spell_dmg': [],
@@ -110,6 +111,11 @@ def run_simulation(args, chunk_range):
                             chunk_results['buff_uptime'][char_name][buff_name] += buff_uptime
                         else:
                             chunk_results['buff_uptime'][char_name][buff_name] = buff_uptime
+
+            for debuff_name, debuff_uptime in env.debuffs.debuff_uptimes.items():
+                if debuff_name not in chunk_results['debuff_uptime']:
+                    chunk_results['debuff_uptime'][debuff_name] = 0
+                chunk_results['debuff_uptime'][debuff_name] += debuff_uptime
 
             chunk_results['total_spell_dmg'].append(env.meter.total_spell_dmg)
             chunk_results['total_dot_dmg'].append(env.meter.total_dot_dmg)
@@ -467,8 +473,13 @@ class Simulation:
 
             # Merge debuff_uptime
             if 'debuff_uptime' in chunk:
+                print(chunk['debuff_uptime'])
                 for debuff, uptime in chunk['debuff_uptime'].items():
                     merged['debuff_uptime'][debuff] += uptime
+            else:
+                print("Warning: 'debuff_uptime' not found in chunk, skipping merge.")
+                print(chunk)
+
 
         self.results = merged
 

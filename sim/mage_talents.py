@@ -53,7 +53,7 @@ class ArcaneMageTalents(MageTalents):
             presence_of_mind=True,
             accelerated_arcana=True,
             arcane_potency=2,
-            resonance_cascade=3,
+            resonance_cascade=5,
             arcane_power=True,
             fire_blast_gcd=1.0,
             fire_blast_cooldown=6.5,

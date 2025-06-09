@@ -46,7 +46,7 @@ class TextRedirector:
 class MainWindow:
     def __init__(self, root):
         self.root = root
-        self.root.title("Turtlewowsim v1.0.0")
+        self.root.title("Turtlewowsim v1.1.0")
         self.root.geometry("800x750")
 
         self.characters = []

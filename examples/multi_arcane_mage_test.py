@@ -24,15 +24,38 @@ mages = []
 # m.spam_arcane_explosion(cds=CooldownUsages(arcane_power=5, mqg=5))
 # mages.append(m)
 #
-m = Mage(name=f'normal', sp=1000, crit=40, hit=16, haste=5,
+# m = Mage(name=f'normal', sp=1000, crit=40, hit=16, haste=5,
+#          tal=ArcaneMageTalents(),
+#          opts=MageOptions(),
+#          equipped_items=EquippedItems(
+#              ornate_bloodstone_dagger=False,
+#              wrath_of_cenarius=True,
+#              endless_gulch=False,
+#          ))
+# m.spam_arcane_explosion(cds=CooldownUsages())
+# mages.append(m)
+#
+# m = Mage(name=f'3 set arcane', sp=1000, crit=40, hit=16, haste=5,
+#          tal=ArcaneMageTalents(),
+#          opts=MageOptions(t35_arcane_3_set=True),
+#          equipped_items=EquippedItems(
+#              ornate_bloodstone_dagger=False,
+#              wrath_of_cenarius=True,
+#              endless_gulch=False,
+#          ))
+# m.spam_arcane_explosion(cds=CooldownUsages())
+# mages.append(m)
+
+m = Mage(name=f'3 set regular', sp=1000, crit=40, hit=16, haste=5,
          tal=ArcaneMageTalents(),
-         opts=MageOptions(interrupt_arcane_missiles=False),
+         opts=MageOptions(t35_3_set=True),
          equipped_items=EquippedItems(
              ornate_bloodstone_dagger=False,
              wrath_of_cenarius=True,
              endless_gulch=False,
+             unceasing_frost=True
          ))
-m.arcane_rupture_surge_missiles(cds=CooldownUsages())
+m.spam_arcane_explosion(cds=CooldownUsages())
 mages.append(m)
 
 # m = Mage(name=f'reos', sp=1000, crit=40, hit=16, haste=5,
@@ -43,7 +66,7 @@ mages.append(m)
 #              wrath_of_cenarius=True,
 #              endless_gulch=False,
 #          ))
-# m.arcane_rupture_surge_missiles(cds=CooldownUsages(reos=20))
+# m.arcane_surge_rupture_missiles(cds=CooldownUsages(reos=20))
 # mages.append(m)
 #
 # m = Mage(name=f'reos', sp=1000, crit=40, hit=16, haste=0,
@@ -65,9 +88,9 @@ mages.append(m)
 #              wrath_of_cenarius=True,
 #              endless_gulch=False,
 #          ))
-# m.arcane_rupture_surge_missiles(cds=CooldownUsages(arcane_power=5, reos=[5, 150]))
+# m.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, reos=[5, 150]))
 # mages.append(m)
 
-sim = Simulation(characters=mages, num_mobs=1, mob_level=63)
-sim.run(iterations=10000, duration=180, print_casts=False)
+sim = Simulation(characters=mages, num_mobs=3, mob_level=60)
+sim.run(iterations=10000, duration=180, print_casts=False, use_multiprocessing=True)
 sim.detailed_report()
