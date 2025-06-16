@@ -11,7 +11,9 @@ Click Code -> Download ZIP to download the repository or clone it with git.
 Download python 3.10 or later if you don't already have it
 https://www.python.org/downloads/.
 
-Make sure you add python to your PATH during installation.
+Make sure you add python to your PATH during installation.  There's an option during setup that should do it for you:
+![image](https://github.com/user-attachments/assets/ae53a45e-f391-4308-864b-b16182dc18ca)
+
 
 Open cmd or powershell in the same directory as this README and run:
 (If you shift right click in the white space in windows explorer there is an option to "Open PowerShell window here" or "Open command window here")
