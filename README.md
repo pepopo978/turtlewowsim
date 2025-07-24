@@ -34,6 +34,11 @@ python .\ui\main.py
 
 Or run the exe in dist/.  Multiprocessing wasn't working in the exe so it's a lot slower.
 
+To build the UI
+```
+pyinstaller -F --onefile --name turtlewowsim_ui --hidden-import=simpy --hidden-import=sim .\ui\main.py
+```
+
 ## Usage
 For a single iteration:
 

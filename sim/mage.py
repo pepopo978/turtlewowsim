@@ -94,8 +94,7 @@ class Mage(Character):
                     self.cds.presence_of_mind.activate()
                 yield from self._arcane_rupture()
             else:
-                interrupt = self.opts.interrupt_arcane_missiles
-                yield from self._arcane_missiles_channel(interrupt_for_rupture=interrupt)
+                yield from self._arcane_missiles_channel(interrupt_for_rupture=self.opts.interrupt_arcane_missiles_for_rupture)
 
     def _arcane_surge_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
@@ -112,9 +111,8 @@ class Mage(Character):
                     self.cds.presence_of_mind.activate()
                 yield from self._arcane_rupture()
             else:
-                interrupt = self.opts.interrupt_arcane_missiles
-                yield from self._arcane_missiles_channel(interrupt_for_surge=interrupt,
-                                                         interrupt_for_rupture=interrupt)
+                yield from self._arcane_missiles_channel(interrupt_for_surge=self.opts.interrupt_arcane_missiles_for_surge,
+                                                         interrupt_for_rupture=self.opts.interrupt_arcane_missiles_for_rupture)
 
     def _arcane_surge_fireblast_rupture_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
@@ -133,9 +131,9 @@ class Mage(Character):
             elif self.fire_blast_cd.usable and not self.has_trinket_or_cooldown_haste():
                 yield from self._fire_blast()
             else:
-                interrupt = self.opts.interrupt_arcane_missiles
-                yield from self._arcane_missiles_channel(interrupt_for_surge=interrupt,
-                                                         interrupt_for_rupture=interrupt)
+                yield from self._arcane_missiles_channel(
+                    interrupt_for_surge=self.opts.interrupt_arcane_missiles_for_surge,
+                    interrupt_for_rupture=self.opts.interrupt_arcane_missiles_for_rupture)
 
     def _arcane_rupture_surge_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
@@ -151,9 +149,9 @@ class Mage(Character):
             elif self.arcane_surge_cd.usable and not self.has_trinket_or_cooldown_haste():
                 yield from self._arcane_surge()
             else:
-                interrupt = self.opts.interrupt_arcane_missiles
-                yield from self._arcane_missiles_channel(interrupt_for_surge=interrupt,
-                                                         interrupt_for_rupture=interrupt)
+                yield from self._arcane_missiles_channel(
+                    interrupt_for_surge=self.opts.interrupt_arcane_missiles_for_surge,
+                    interrupt_for_rupture=self.opts.interrupt_arcane_missiles_for_rupture)
 
     def _arcane_missiles(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         self._use_cds(cds)
@@ -641,13 +639,16 @@ class Mage(Character):
             if interrupt_for_surge and self.arcane_surge_cd.usable and not self.has_trinket_or_cooldown_haste():
                 # if rupture not active, use surge immediately
                 if not self.arcane_rupture_cd.is_active():
+                    yield self.env.timeout(self.opts.delay_when_interrupting_missiles)
                     yield from self._arcane_surge()
                     return
                 # otherwise wait until it is about to expire
                 if self.arcane_surge_cd.time_left() < time_between_missiles:
+                    yield self.env.timeout(self.opts.delay_when_interrupting_missiles)
                     yield from self._arcane_surge()
                     return
             if interrupt_for_rupture and self.arcane_rupture_cd.usable and not self.arcane_rupture_cd.is_active():
+                yield self.env.timeout(self.opts.delay_when_interrupting_missiles)
                 yield from self._arcane_rupture()
                 return
 
@@ -655,9 +656,13 @@ class Mage(Character):
                 yield from self._arcane_missile(casting_time=time_between_missiles + self.lag)  # initial delay
             else:
                 yield from self._arcane_missile(casting_time=time_between_missiles)
-                if not had_sulfuras_proc and self.opts.interrupt_arcane_missiles and self.equipped_items.true_band_of_sulfuras and self.item_proc_handler.true_band_of_sulfuras_buff.is_active():
+                if not had_sulfuras_proc and \
+                        self.opts.interrupt_arcane_missiles_for_sulfuras_proc and \
+                        self.equipped_items.true_band_of_sulfuras and \
+                        self.item_proc_handler.true_band_of_sulfuras_buff.is_active():
                     # interrupt channel to restart it with haste
                     self.print(f"Interrupting arcane missiles for haste proc")
+                    yield self.env.timeout(self.opts.delay_when_interrupting_missiles)
                     break
 
         if channel_time < self.env.GCD:

@@ -79,7 +79,7 @@ class UnceasingFrost(ItemProc):
 
 class TrueBandOfSulfuras(ItemProc):
     PERCENT_CHANCE = 8
-    PERCENT_CHANCE_FIRE = 12
+    PERCENT_CHANCE_FIRE = 58
 
     def _roll_proc(self, spell: Spell, damage_type: DamageType, num_mobs: int = 1):
         chance = self.PERCENT_CHANCE_FIRE if damage_type == DamageType.FIRE else self.PERCENT_CHANCE

@@ -3,9 +3,9 @@ from _example_imports import *
 mages = []
 num_mages = 5
 
-control_sp = 1000
-control_crit = 40
-control_hit = 15
+control_sp = 300
+control_crit = 18
+control_hit = 13
 control_haste = 0
 
 for i in range(num_mages):

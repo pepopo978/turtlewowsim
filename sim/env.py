@@ -36,7 +36,7 @@ class Environment(simpy.Environment):
         self.meter = DamageMeter(self, num_mobs)
         self.process(self.debuffs.run())
 
-        self.GCD = 1.5
+        self.GCD = 1.57
         self.duration = 0
 
     def time(self):

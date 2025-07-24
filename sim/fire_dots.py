@@ -14,6 +14,9 @@ class FireballDot(Dot):
         self.starting_ticks = 4
         self.base_tick_dmg = 19
 
+    def _do_dmg(self):
+        super()._do_dmg()
+
 
 class PyroblastDot(Dot):
     def __init__(self, owner, env, cast_time: float):

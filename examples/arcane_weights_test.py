@@ -6,7 +6,7 @@ num_mages = 5
 control_sp = 1000
 control_crit = 40
 control_hit = 15
-control_haste = 50
+control_haste = 5
 
 equipped_items = EquippedItems(
     ornate_bloodstone_dagger=False,
@@ -41,9 +41,9 @@ for i in range(num_mages):
                   equipped_items=equipped_items)
 
     if fm:
-        fm.spam_arcane_explosion(cds=CooldownUsages())
+        fm.arcane_surge_rupture_missiles(cds=CooldownUsages())
         mages.append(fm)
 
-sim = Simulation(characters=mages, num_mobs=3, mob_level=60)
-sim.run(iterations=50000, duration=30, print_casts=False)
+sim = Simulation(characters=mages, num_mobs=1, mob_level=63)
+sim.run(iterations=50000, duration=360, print_casts=False)
 sim.detailed_report()

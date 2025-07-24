@@ -175,7 +175,7 @@ class ArcaneRuptureCooldown(Cooldown):
 
     @property
     def duration(self):
-        return 8
+        return 7.6 # account for .4s missile travel time
 
     @property
     def cooldown(self):

@@ -1,6 +1,65 @@
 from _example_imports import *
 
 mages = []
+
+haste = 15
+m = Mage(name=f'interrupt s+r', sp=1000, crit=40, hit=16, haste=haste,
+         tal=ArcaneMageTalents(),
+         opts=MageOptions(
+             extra_second_arcane_missile=True,
+         ),
+         equipped_items=EquippedItems(
+             ornate_bloodstone_dagger=False,
+             wrath_of_cenarius=True,
+             endless_gulch=False,
+         ))
+m.arcane_surge_rupture_missiles(cds=CooldownUsages())
+mages.append(m)
+
+m = Mage(name=f'interrupt r', sp=1000, crit=40, hit=16, haste=haste,
+         tal=ArcaneMageTalents(),
+         opts=MageOptions(
+             extra_second_arcane_missile=True,
+             interrupt_arcane_missiles_for_surge=False,
+         ),
+         equipped_items=EquippedItems(
+             ornate_bloodstone_dagger=False,
+             wrath_of_cenarius=True,
+             endless_gulch=False,
+         ))
+m.arcane_surge_rupture_missiles(cds=CooldownUsages())
+mages.append(m)
+
+m = Mage(name=f'no interrupt', sp=1000, crit=40, hit=16, haste=haste,
+         tal=ArcaneMageTalents(),
+         opts=MageOptions(
+             extra_second_arcane_missile=True,
+             interrupt_arcane_missiles_for_surge=False,
+             interrupt_arcane_missiles_for_rupture=False,
+         ),
+         equipped_items=EquippedItems(
+             ornate_bloodstone_dagger=False,
+             wrath_of_cenarius=True,
+             endless_gulch=False,
+         ))
+m.arcane_surge_rupture_missiles(cds=CooldownUsages())
+mages.append(m)
+
+# m = Mage(name=f'eyestalk', sp=1000+41, crit=40+1, hit=16, haste=5,
+#          tal=ArcaneMageTalents(),
+#          opts=MageOptions(),
+#          equipped_items=EquippedItems(
+#          ))
+# m.arcane_surge_rupture_missiles(cds=CooldownUsages())
+# mages.append(m)
+#
+# m = Mage(name=f'frostfire', sp=1000+23, crit=40 + .16, hit=16, haste=5+1,
+#          tal=ArcaneMageTalents(),
+#          opts=MageOptions(extra_second_arcane_missile=True),
+#          equipped_items=EquippedItems(
+#          ))
+# m.arcane_surge_rupture_missiles(cds=CooldownUsages())
+# mages.append(m)
 #
 # m = Mage(name=f'boed', sp=905, crit=39, hit=16, haste=9,
 #          tal=ArcaneMageTalents(),
@@ -24,7 +83,7 @@ mages = []
 # m.spam_arcane_explosion(cds=CooldownUsages(arcane_power=5, mqg=5))
 # mages.append(m)
 #
-# m = Mage(name=f'normal', sp=1000, crit=40, hit=16, haste=5,
+# m = Mage(name=f'woc', sp=1000, crit=40, hit=16, haste=5,
 #          tal=ArcaneMageTalents(),
 #          opts=MageOptions(),
 #          equipped_items=EquippedItems(
@@ -32,7 +91,30 @@ mages = []
 #              wrath_of_cenarius=True,
 #              endless_gulch=False,
 #          ))
-# m.spam_arcane_explosion(cds=CooldownUsages())
+# m.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
+# mages.append(m)
+#
+# m = Mage(name=f'sulfuras', sp=1020, crit=40, hit=16, haste=6,
+#          tal=ArcaneMageTalents(),
+#          opts=MageOptions(),
+#          equipped_items=EquippedItems(
+#              ornate_bloodstone_dagger=False,
+#              wrath_of_cenarius=False,
+#              endless_gulch=False,
+#              true_band_of_sulfuras=True,
+#          ))
+# m.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
+# mages.append(m)
+#
+# m = Mage(name=f'felforged', sp=1029, crit=42, hit=16, haste=5,
+#          tal=ArcaneMageTalents(),
+#          opts=MageOptions(),
+#          equipped_items=EquippedItems(
+#              ornate_bloodstone_dagger=False,
+#              wrath_of_cenarius=False,
+#              endless_gulch=False,
+#          ))
+# m.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, mqg=5))
 # mages.append(m)
 #
 # m = Mage(name=f'3 set arcane', sp=1000, crit=40, hit=16, haste=5,
@@ -45,18 +127,18 @@ mages = []
 #          ))
 # m.spam_arcane_explosion(cds=CooldownUsages())
 # mages.append(m)
-
-m = Mage(name=f'3 set regular', sp=1000, crit=40, hit=16, haste=5,
-         tal=ArcaneMageTalents(),
-         opts=MageOptions(t35_3_set=True),
-         equipped_items=EquippedItems(
-             ornate_bloodstone_dagger=False,
-             wrath_of_cenarius=True,
-             endless_gulch=False,
-             unceasing_frost=True
-         ))
-m.spam_arcane_explosion(cds=CooldownUsages())
-mages.append(m)
+#
+# m = Mage(name=f'3 set regular', sp=1000, crit=40, hit=16, haste=5,
+#          tal=ArcaneMageTalents(),
+#          opts=MageOptions(t35_3_set=True),
+#          equipped_items=EquippedItems(
+#              ornate_bloodstone_dagger=False,
+#              wrath_of_cenarius=True,
+#              endless_gulch=False,
+#              unceasing_frost=True
+#          ))
+# m.spam_arcane_explosion(cds=CooldownUsages())
+# mages.append(m)
 
 # m = Mage(name=f'reos', sp=1000, crit=40, hit=16, haste=5,
 #          tal=ArcaneMageTalents(),
@@ -91,6 +173,6 @@ mages.append(m)
 # m.arcane_surge_rupture_missiles(cds=CooldownUsages(arcane_power=5, reos=[5, 150]))
 # mages.append(m)
 
-sim = Simulation(characters=mages, num_mobs=3, mob_level=60)
-sim.run(iterations=10000, duration=180, print_casts=False, use_multiprocessing=True)
+sim = Simulation(characters=mages, num_mobs=1, mob_level=63)
+sim.run(iterations=5000, duration=180, print_casts=False, use_multiprocessing=True)
 sim.detailed_report()

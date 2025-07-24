@@ -27,6 +27,9 @@ class MageOptions:
     # Arcane
     use_presence_of_mind_on_cd: bool = simoption("Use Presence of Mind on cooldown", default=True, spec="Arcane")
     extra_second_arcane_missile: bool = simoption("Extra second on Arcane Missiles (effect on some belts)", default=False, spec="Arcane")
-    interrupt_arcane_missiles: bool = simoption("Interrupt Arcane Missiles early for Rupture/Surge", default=True, spec="Arcane")
+    interrupt_arcane_missiles_for_rupture: bool = simoption("Interrupt Arcane Missiles early for Rupture", default=True, spec="Arcane")
+    interrupt_arcane_missiles_for_surge: bool = simoption("Interrupt Arcane Missiles early for Surge", default=True, spec="Arcane")
+    interrupt_arcane_missiles_for_sulfuras_proc: bool = simoption("Interrupt Arcane Missiles early for Sulfuras haste proc", default=True, spec="Arcane")
+    delay_when_interrupting_missiles: float = simoption("Delay when interrupting Arcane Missiles (seconds)", default=0.05, spec="Arcane")
     t3_8_set: bool = simoption("T3 8-set bonus (Arcane)", default=False, spec="Arcane")
     t35_arcane_3_set: bool = simoption("T3.5 3-set bonus 5% more resonance(Arcane)", default=False, spec="Arcane")
