@@ -21,6 +21,7 @@ Open cmd or powershell in the same directory as this README and run:
 ```bash
 pip install poetry
 poetry install
+poetry self add poetry-plugin-shell  # might need to do this with new versions of poetry
 poetry shell
 python examples/mage.py
 ```

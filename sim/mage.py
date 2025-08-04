@@ -803,7 +803,7 @@ class Mage(Character):
     def _fireball(self):
         min_dmg = 596
         max_dmg = 760
-        casting_time = 3
+        casting_time = 3.5 - self.tal.improved_fireball * .1
         crit_modifier = 0
 
         if self.opts.pyro_on_t2_proc and self._t2_8set_proc:

@@ -7,6 +7,7 @@ from sim.decorators import simtalent
 @dataclass(kw_only=True)
 class MageTalents:
     # Fire
+    improved_fireball: int = 0
     ignite: int = 0
     imp_scorch: int = 0
     fire_power: int = 0
@@ -65,6 +66,7 @@ class ArcaneMageTalents(MageTalents):
 class FireMageTalents(MageTalents):
     def __init__(self):
         super().__init__(
+            improved_fireball=5,
             ignite=5,
             imp_scorch=3,
             fire_power=5,
