@@ -6,6 +6,8 @@ from sim.mage import Mage, Spell
 
 IGNITE_WINDOW = 6
 IGNITE_TICK_TIME = 2
+IGNITE_NUM_TICKS = IGNITE_WINDOW / IGNITE_TICK_TIME  # 2 ticks per ignite window
+IGNITE_TICK_AMOUNT_PER_TICK_PER_TALENT_POINT = .08 / IGNITE_NUM_TICKS  # 8% per tick per talent point
 
 
 class Ignite:
@@ -52,7 +54,7 @@ class Ignite:
 
         if self.active:
             if self.stacks <= 4:
-                self.tick_dmg += dmg * (.02667 * ignite_talent_points)
+                self.tick_dmg += dmg * (IGNITE_TICK_AMOUNT_PER_TICK_PER_TALENT_POINT * ignite_talent_points)
                 self.stacks += 1
                 if partial:
                     self.contains_partial = True
@@ -62,13 +64,13 @@ class Ignite:
                 elif spell == Spell.FIREBLAST:
                     self.contains_fire_blast = True
 
-            self.ticks_left = 3
+            self.ticks_left = IGNITE_NUM_TICKS
         else:  # new ignite
             self.active = True
-            self.tick_dmg = dmg * (.02667 * ignite_talent_points)
+            self.tick_dmg = dmg * (IGNITE_TICK_AMOUNT_PER_TICK_PER_TALENT_POINT * ignite_talent_points)
             self.stacks = 1
             self.owner = mage
-            self.ticks_left = 3
+            self.ticks_left = IGNITE_NUM_TICKS
 
             if partial:
                 self.contains_partial = True

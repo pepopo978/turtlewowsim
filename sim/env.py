@@ -40,7 +40,7 @@ class Environment(simpy.Environment):
         self.duration = 0
 
     def time(self):
-        dt = str(round(self.now, 1))
+        dt = str(round(self.now, 2))
         return '[' + str(dt) + ']'
 
     def remaining_time(self):
