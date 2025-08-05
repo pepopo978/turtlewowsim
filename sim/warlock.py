@@ -322,6 +322,12 @@ class Warlock(Character):
                 spell_name=spell.value,
                 cast_time=max(casting_time, self.env.GCD))
         else:
+            if hit and SPELL_TRIGGERS_ON_HIT.get(spell, False):
+                self.env.process(self._check_for_procs(
+                    spell=spell,
+                    damage_type=DamageType.SHADOW,
+                    delay=spell in SPELL_HAS_TRAVEL_TIME))
+
             self.print(f"{spell.value} {description}")
             if spell == Spell.CURSE_OF_SHADOW:
                 self.env.debuffs.add_curse_of_shadow_dot()

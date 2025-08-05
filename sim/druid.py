@@ -326,6 +326,12 @@ class Druid(Character):
         if not hit:
             self.print(f"{spell.value} {description} RESIST")
         else:
+            if hit and SPELL_TRIGGERS_ON_HIT.get(spell, False):
+                self.env.process(self._check_for_procs(
+                    spell=spell,
+                    damage_type=DamageType.SHADOW,
+                    delay=spell in SPELL_HAS_TRAVEL_TIME))
+
             self.print(f"{spell.value} {description}")
             if spell == Spell.INSECT_SWARM:
                 self.env.debuffs.add_insect_swarm_dot(self, round(casting_time + cooldown, 2))
