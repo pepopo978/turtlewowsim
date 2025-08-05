@@ -1,9 +1,9 @@
 import random
 
 from sim.dot import Dot
+from sim.spell import Spell
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
-from sim.warlock import Spell, Warlock
 
 
 class WarlockShadowDot(Dot):
@@ -30,8 +30,7 @@ class CorruptionDot(WarlockShadowDot):
     def _do_dmg(self):
         super()._do_dmg()
 
-        if isinstance(self.owner, Warlock):
-            if self.owner.tal.nightfall > 0:
+        if hasattr(self.owner.tal, "nightfall") and self.owner.tal.nightfall > 0:
                 if random.randint(1, 100) <= self.owner.tal.nightfall * 2:
                     self.owner.nightfall_proc()
 

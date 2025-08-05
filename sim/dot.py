@@ -20,6 +20,8 @@ class Dot:
         self.register_casts = register_casts
 
         self.talent_school = None
+        self.start_time = self.env.now
+        self.last_tick_time = self.env.now
 
         if register_casts:
             self.env.meter.register_dot_cast(
@@ -33,6 +35,8 @@ class Dot:
 
     # This method is overridden in the child class
     def _do_dmg(self):
+        self.last_tick_time = self.env.now
+        
         tick_dmg = self._get_effective_tick_dmg()
         partial_amount = self.owner.roll_partial(is_dot=True, is_binary=False)
         partial_desc = ""
@@ -66,6 +70,8 @@ class Dot:
 
     def refresh(self, cast_time: float):
         self.ticks_left = self.starting_ticks
+        self.start_time = self.env.now
+        self.last_tick_time = self.env.now
 
         if self.register_casts:
             self.env.meter.register_dot_cast(

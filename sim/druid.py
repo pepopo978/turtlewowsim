@@ -13,6 +13,8 @@ from sim.talent_school import TalentSchool
 from sim.decorators import simrotation, simclass
 from sim.druid_options import DruidOptions
 from sim.druid_talents import DruidTalents
+from sim.nature_dots import InsectSwarmDot
+from sim.arcane_dots import MoonfireDot
 
 @simclass(DruidTalents, DruidOptions)
 class Druid(Character):
@@ -33,6 +35,9 @@ class Druid(Character):
 
         self.nature_eclipse_rotation = None
         self.arcane_eclipse_rotation = None
+
+    def get_class(self):
+        return self.__class__.__name__
 
     def reset(self):
         super().reset()
@@ -173,7 +178,7 @@ class Druid(Character):
             self.cds.zhc.use_charge()
 
         if hit and spell == Spell.MOONFIRE:
-            self.env.debuffs.add_moonfire_dot(self)
+            self.env.debuffs.add_dot(MoonfireDot, self, 0)
 
         if hit and SPELL_TRIGGERS_ON_HIT.get(spell, False):
             self.env.process(self._check_for_procs(
@@ -334,7 +339,7 @@ class Druid(Character):
 
             self.print(f"{spell.value} {description}")
             if spell == Spell.INSECT_SWARM:
-                self.env.debuffs.add_insect_swarm_dot(self, round(casting_time + cooldown, 2))
+                self.env.debuffs.add_dot(InsectSwarmDot, self, round(casting_time + cooldown, 2))
 
         if hit and self.cds.zhc.is_active():
             self.cds.zhc.use_charge()
@@ -355,29 +360,29 @@ class Druid(Character):
 
     # subrotations for different eclipse states
     def insect_swarm_wrath_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        if not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
+        if not self.env.debuffs.is_dot_active(InsectSwarmDot, self) and self.env.remaining_time() > 20:
             yield from self._insect_swarm()
         else:
             yield from self._wrath()
 
     def insect_swarm_moonfire_wrath_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        if not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
+        if not self.env.debuffs.is_dot_active(InsectSwarmDot, self) and self.env.remaining_time() > 20:
             yield from self._insect_swarm()
-        elif not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
+        elif not self.env.debuffs.is_dot_active(MoonfireDot, self) and self.env.remaining_time() > 20:
             yield from self._moonfire()
         else:
             yield from self._wrath()
 
     def moonfire_starfire_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
+        if not self.env.debuffs.is_dot_active(MoonfireDot, self) and self.env.remaining_time() > 20:
             yield from self._moonfire()
         else:
             yield from self._starfire()
 
     def moonfire_insect_swarm_starfire_subrotation(self, cds: CooldownUsages = CooldownUsages(), delay=2):
-        if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
+        if not self.env.debuffs.is_dot_active(MoonfireDot, self) and self.env.remaining_time() > 20:
             yield from self._moonfire()
-        elif not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
+        elif not self.env.debuffs.is_dot_active(InsectSwarmDot, self) and self.env.remaining_time() > 20:
             yield from self._insect_swarm()
         else:
             yield from self._starfire()
@@ -413,7 +418,7 @@ class Druid(Character):
 
     def _insect_swarm_spam_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
+            if not self.env.debuffs.is_dot_active(InsectSwarmDot, self) and self.env.remaining_time() > 20:
                 yield from self._insect_swarm()
             else:
                 yield from self._wrath()
@@ -428,7 +433,7 @@ class Druid(Character):
 
     def _moonfire_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
+            if not self.env.debuffs.is_dot_active(MoonfireDot, self) and self.env.remaining_time() > 20:
                 yield from self._moonfire()
             else:
                 yield from self._starfire()
@@ -437,7 +442,7 @@ class Druid(Character):
 
     def _insect_swarm_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
+            if not self.env.debuffs.is_dot_active(InsectSwarmDot, self) and self.env.remaining_time() > 20:
                 yield from self._insect_swarm()
             else:
                 yield from self._starfire()
@@ -446,7 +451,7 @@ class Druid(Character):
 
     def _insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
+            if not self.env.debuffs.is_dot_active(InsectSwarmDot, self) and self.env.remaining_time() > 20:
                 yield from self._insect_swarm()
             else:
                 yield from self._wrath()
@@ -455,7 +460,7 @@ class Druid(Character):
 
     def _moonfire_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
+            if not self.env.debuffs.is_dot_active(MoonfireDot, self) and self.env.remaining_time() > 20:
                 yield from self._moonfire()
             else:
                 yield from self._wrath()
@@ -464,9 +469,9 @@ class Druid(Character):
 
     def _moonfire_insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
+            if not self.env.debuffs.is_dot_active(MoonfireDot, self) and self.env.remaining_time() > 20:
                 yield from self._moonfire()
-            elif not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
+            elif not self.env.debuffs.is_dot_active(InsectSwarmDot, self) and self.env.remaining_time() > 20:
                 yield from self._insect_swarm()
             else:
                 yield from self._wrath()
@@ -475,9 +480,9 @@ class Druid(Character):
 
     def _moonfire_insect_swarm_starfire(self, cds: CooldownUsages = CooldownUsages(), delay=2):
         def _rotation_callback():
-            if not self.env.debuffs.is_moonfire_active(self) and self.env.remaining_time() > 20:
+            if not self.env.debuffs.is_dot_active(MoonfireDot, self) and self.env.remaining_time() > 20:
                 yield from self._moonfire()
-            elif not self.env.debuffs.is_insect_swarm_active(self) and self.env.remaining_time() > 20:
+            elif not self.env.debuffs.is_dot_active(InsectSwarmDot, self) and self.env.remaining_time() > 20:
                 yield from self._insect_swarm()
             else:
                 yield from self._starfire()

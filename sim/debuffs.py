@@ -47,18 +47,8 @@ class Debuffs:
         self.debuff_start_times = {}  # debuff_name -> start_time
         self.debuff_uptimes = {}  # debuff_name -> total_uptime
 
-        self.fireball_dots = {}  # owner -> FireballDot
-        self.pyroblast_dots = {}  # owner  -> PyroblastDot
-
-        self.corruption_dots = {}  # owner  -> CorruptionDot
-        self.curse_of_agony_dots = {}  # owner  -> CurseOfAgonyDot
-        self.siphon_life_dots = {}  # owner  -> SiphonLifeDot
-        self.immolate_dots = {}  # owner  -> ImmolateDot
-
-        self.insect_swarm_dots = {}  # owner  -> InsectSwarmDot
-        self.moonfire_dots = {}  # owner  -> MoonfireDot
-
-        self.dark_harvests = {}  # owner  -> True
+        # Dynamic dot storage - dot_class -> {owner -> Dot instance}
+        self.dots = {}
 
     def track_debuff_start(self, debuff_name):
         """Track when a debuff starts"""
@@ -147,70 +137,57 @@ class Debuffs:
         self.wc_stacks = min(self.wc_stacks + 1, 5)
         self.wc_timer = 15
 
-    def _add_dot(self, dot_dict, dot, owner, cast_time):
-        if owner in dot_dict and dot_dict[owner].is_active():
-            # refresh
-            dot_dict[owner].refresh(cast_time)
+    def is_dot_active(self, dot_class, owner):
+        """Generic method to check if a dot is active for a given owner"""
+        if dot_class not in self.dots:
+            return False
+        return owner in self.dots[dot_class] and self.dots[dot_class][owner].is_active()
+
+    def add_dot(self, dot_class, owner, cast_time=0):
+        """Generic method to add a dot of any class"""
+        if dot_class not in self.dots:
+            self.dots[dot_class] = {}
+        
+        if owner in self.dots[dot_class] and self.dots[dot_class][owner].is_active():
+            # refresh existing dot
+            self.dots[dot_class][owner].refresh(cast_time)
         else:
             # create new dot
-            dot_dict[owner] = dot(owner, self.env, cast_time)
+            self.dots[dot_class][owner] = dot_class(owner, self.env, cast_time)
             # start dot thread
-            self.env.process(dot_dict[owner].run())
+            self.env.process(self.dots[dot_class][owner].run())
 
-    def add_fireball_dot(self, owner):
-        self._add_dot(self.fireball_dots, FireballDot, owner, 0)  # cast time already accounted for from direct dmg
+    def get_dot_time_left(self, dot_class, owner):
+        """Get remaining time on a dot in seconds"""
+        if not self.is_dot_active(dot_class, owner):
+            return 0
+        
+        dot = self.dots[dot_class][owner]
+        
+        # Calculate time until next tick
+        time_since_last_tick = self.env.now - dot.last_tick_time
+        time_until_next_tick = dot.time_between_ticks - time_since_last_tick
+        
+        # Total time = time until next tick + time for remaining ticks after that
+        remaining_ticks_after_next = max(0, dot.ticks_left - 1)
+        total_time_left = time_until_next_tick + (remaining_ticks_after_next * dot.time_between_ticks)
+        
+        return max(0, total_time_left)
 
-    def add_pyroblast_dot(self, owner):
-        self._add_dot(self.pyroblast_dots, PyroblastDot, owner, 0)  # cast time already accounted for from direct dmg
+    def get_dot_ticks_left(self, dot_class, owner):
+        """Get remaining ticks on a dot"""
+        if not self.is_dot_active(dot_class, owner):
+            return 0
+        
+        dot = self.dots[dot_class][owner]
+        return dot.ticks_left
 
-    def is_immolate_active(self, owner):
-        return owner in self.immolate_dots and self.immolate_dots[owner].is_active()
-
-    def add_immolate_dot(self, owner):
-        self._add_dot(self.immolate_dots, ImmolateDot, owner, 0)  # cast time already accounted for from direct dmg
-
-    def is_corruption_active(self, owner):
-        return owner in self.corruption_dots and self.corruption_dots[owner].is_active()
-
-    def add_corruption_dot(self, owner, cast_time):
-        self._add_dot(self.corruption_dots, CorruptionDot, owner, cast_time)
-
-    def is_siphon_life_active(self, owner):
-        return owner in self.siphon_life_dots and self.siphon_life_dots[owner].is_active()
-
-    def add_siphon_life_dot(self, owner, cast_time):
-        self._add_dot(self.siphon_life_dots, SiphonLifeDot, owner, cast_time)
-
-    def is_curse_of_agony_active(self, owner):
-        return owner in self.curse_of_agony_dots and self.curse_of_agony_dots[owner].is_active()
-
-    def add_curse_of_agony_dot(self, owner, cast_time):
-        self._add_dot(self.curse_of_agony_dots, CurseOfAgonyDot, owner, cast_time)
-
+    # special case due to shared debuff
     def is_curse_of_shadows_active(self):
         return self.cos_timer > 0
 
     def add_curse_of_shadow_dot(self):
         self.cos_timer = 300
-
-    def is_insect_swarm_active(self, owner):
-        return owner in self.insect_swarm_dots and self.insect_swarm_dots[owner].is_active()
-
-    def add_insect_swarm_dot(self, owner, cast_time):
-        self._add_dot(self.insect_swarm_dots, InsectSwarmDot, owner, cast_time)
-
-    def is_moonfire_active(self, owner):
-        return owner in self.moonfire_dots and self.moonfire_dots[owner].is_active()
-
-    def add_moonfire_dot(self, owner):
-        self._add_dot(self.moonfire_dots, MoonfireDot, owner, 0) # cast time already accounted for from direct dmg
-
-    def add_dark_harvest(self, owner):
-        self.dark_harvests[owner] = True
-
-    def remove_dark_harvest(self, owner):
-        if owner in self.dark_harvests:
-            del self.dark_harvests[owner]
 
     def run(self):
         while True:

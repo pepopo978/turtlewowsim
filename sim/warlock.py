@@ -6,12 +6,14 @@ from sim.cooldowns import Cooldown
 from sim.decorators import simclass, simrotation
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
+from sim.fire_dots import ImmolateDot
 from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_HITS_MULTIPLE_TARGETS, SPELL_TRIGGERS_ON_HIT, \
     SPELL_HAS_TRAVEL_TIME
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
 from sim.warlock_options import WarlockOptions
 from sim.warlock_talents import WarlockTalents
+from sim.shadow_dots import CorruptionDot, CurseOfAgonyDot, SiphonLifeDot
 
 
 class ConflagrateCooldown(Cooldown):
@@ -76,6 +78,9 @@ class Warlock(Character):
         if self.tal:
             if self.tal.rapid_deterioration:
                 self.talent_school_haste[TalentSchool.Affliction]["rapid_deterioration"] = 6
+
+    def get_class(self):
+        return self.__class__.__name__
 
     def _setup_cds(self):
         self.conflagrate_cd = ConflagrateCooldown(self)
@@ -219,10 +224,10 @@ class Warlock(Character):
 
         if hit and spell == Spell.CORRUPTION:
             # avoid calling register_spell_dmg as dots will register already
-            self.env.debuffs.add_corruption_dot(self, max(base_cast_time, self.env.GCD))
+            self.env.debuffs.add_dot(CorruptionDot, self, max(base_cast_time, self.env.GCD))
         elif hit and spell == Spell.IMMOLATE:
             # avoid calling register_spell_dmg as dots will register already
-            self.env.debuffs.add_immolate_dot(self)
+            self.env.debuffs.add_dot(ImmolateDot, self, 0)
 
             self.env.meter.register_spell_dmg(
                 char_name=self.name,
@@ -332,14 +337,14 @@ class Warlock(Character):
             if spell == Spell.CURSE_OF_SHADOW:
                 self.env.debuffs.add_curse_of_shadow_dot()
                 if self.tal.malediction:
-                    self.env.debuffs.add_curse_of_agony_dot(self, cooldown)
+                    self.env.debuffs.add_dot(CurseOfAgonyDot, self, cooldown)
 
             elif spell == Spell.CORRUPTION:
-                self.env.debuffs.add_corruption_dot(self, max(casting_time, self.env.GCD))
+                self.env.debuffs.add_dot(CorruptionDot, self, max(casting_time, self.env.GCD))
             elif spell == Spell.CURSE_OF_AGONY:
-                self.env.debuffs.add_curse_of_agony_dot(self, cooldown)
+                self.env.debuffs.add_dot(CurseOfAgonyDot, self, cooldown)
             elif spell == Spell.SIPHON_LIFE:
-                self.env.debuffs.add_siphon_life_dot(self, cooldown)
+                self.env.debuffs.add_dot(SiphonLifeDot, self, cooldown)
 
         if hit and self.cds.zhc.is_active():
             self.cds.zhc.use_charge()
@@ -444,7 +449,7 @@ class Warlock(Character):
         casting_time = 0
         crit_modifier = self.tal.devastation
 
-        if self.env.debuffs.is_immolate_active(self):
+        if self.env.debuffs.is_dot_active(ImmolateDot, self):
             tick_dmg = self.env.debuffs.immolate_dots[self].get_effective_tick_dmg()
 
             min_dmg += tick_dmg
@@ -489,13 +494,13 @@ class Warlock(Character):
             if self.env.debuffs.is_curse_of_shadows_active():
                 num_affliction_effects += 1
 
-        if self.env.debuffs.is_curse_of_agony_active(self):
+        if self.env.debuffs.is_dot_active(CurseOfAgonyDot, self):
             num_affliction_effects += 1
 
-        if self.env.debuffs.is_corruption_active(self):
+        if self.env.debuffs.is_dot_active(CorruptionDot, self):
             num_affliction_effects += 1
 
-        if self.env.debuffs.is_siphon_life_active(self):
+        if self.env.debuffs.is_dot_active(SiphonLifeDot, self):
             num_affliction_effects += 1
 
         # max out at 4
@@ -629,7 +634,7 @@ class Warlock(Character):
 
         while True:
             self._use_cds(cds)
-            if not self.env.debuffs.is_corruption_active(self):
+            if not self.env.debuffs.is_dot_active(CorruptionDot, self):
                 yield from self._corruption()
             else:
                 yield from self._shadowbolt()
@@ -640,9 +645,9 @@ class Warlock(Character):
 
         while True:
             self._use_cds(cds)
-            if not self.env.debuffs.is_curse_of_agony_active(self):
+            if not self.env.debuffs.is_dot_active(CurseOfAgonyDot, self):
                 yield from self._curse_of_agony()
-            elif not self.env.debuffs.is_corruption_active(self):
+            elif not self.env.debuffs.is_dot_active(CorruptionDot, self):
                 yield from self._corruption()
             else:
                 yield from self._shadowbolt()
@@ -653,9 +658,9 @@ class Warlock(Character):
 
         while True:
             self._use_cds(cds)
-            if not self.env.debuffs.is_corruption_active(self):
+            if not self.env.debuffs.is_dot_active(CorruptionDot, self):
                 yield from self._corruption()
-            elif not self.env.debuffs.is_immolate_active(self):
+            elif not self.env.debuffs.is_dot_active(ImmolateDot, self):
                 yield from self._immolate()
             else:
                 yield from self._shadowbolt()
@@ -666,11 +671,11 @@ class Warlock(Character):
 
         while True:
             self._use_cds(cds)
-            if not self.env.debuffs.is_curse_of_agony_active(self):
+            if not self.env.debuffs.is_dot_active(CurseOfAgonyDot, self):
                 yield from self._curse_of_agony()
-            elif not self.env.debuffs.is_corruption_active(self):
+            elif not self.env.debuffs.is_dot_active(CorruptionDot, self):
                 yield from self._corruption()
-            elif not self.env.debuffs.is_immolate_active(self):
+            elif not self.env.debuffs.is_dot_active(ImmolateDot, self):
                 yield from self._immolate()
             else:
                 yield from self._shadowbolt()
@@ -681,9 +686,9 @@ class Warlock(Character):
 
         while True:
             self._use_cds(cds)
-            if not self.env.debuffs.is_curse_of_agony_active(self):
+            if not self.env.debuffs.is_dot_active(CurseOfAgonyDot, self):
                 yield from self._curse_of_agony()
-            elif not self.env.debuffs.is_corruption_active(self):
+            elif not self.env.debuffs.is_dot_active(CorruptionDot, self):
                 yield from self._corruption()
             else:
                 yield from self._shadowbolt()
@@ -694,11 +699,11 @@ class Warlock(Character):
 
         while True:
             self._use_cds(cds)
-            if not self.env.debuffs.is_curse_of_agony_active(self):
+            if not self.env.debuffs.is_dot_active(CurseOfAgonyDot, self):
                 yield from self._curse_of_agony()
-            elif not self.env.debuffs.is_corruption_active(self):
+            elif not self.env.debuffs.is_dot_active(CorruptionDot, self):
                 yield from self._corruption()
-            elif not self.env.debuffs.is_siphon_life_active(self):
+            elif not self.env.debuffs.is_dot_active(SiphonLifeDot, self):
                 yield from self._siphon_life()
             else:
                 yield from self._shadowbolt()
@@ -730,17 +735,17 @@ class Warlock(Character):
                 continue
 
             # If Immolate isn't up, cast it
-            if not self.env.debuffs.is_immolate_active(self):
+            if not self.env.debuffs.is_dot_active(ImmolateDot, self):
                 yield from self._immolate()
                 continue
 
             # Use Conflagrate when available and Immolate is active
-            if not self.conflagrate_cd.on_cooldown and self.env.debuffs.is_immolate_active(self):
+            if not self.conflagrate_cd.on_cooldown and self.env.debuffs.is_dot_active(ImmolateDot, self):
                 yield from self._conflagrate()
                 continue
 
             # Keep DoTs up
-            if not self.env.debuffs.is_corruption_active(self):
+            if not self.env.debuffs.is_dot_active(CorruptionDot, self):
                 yield from self._corruption()
                 continue
 
@@ -771,17 +776,17 @@ class Warlock(Character):
                 yield from self._shadowbolt()
                 continue
 
-            if not self.env.debuffs.is_curse_of_agony_active(self):
+            if not self.env.debuffs.is_dot_active(CurseOfAgonyDot, self):
                 yield from self._curse_of_agony()
                 continue
 
             # Keep Corruption up
-            if not self.env.debuffs.is_corruption_active(self):
+            if not self.env.debuffs.is_dot_active(CorruptionDot, self):
                 yield from self._corruption()
                 continue
 
             # Keep Siphon Life up if we're using it
-            if not self.env.debuffs.is_siphon_life_active(self):
+            if not self.env.debuffs.is_dot_active(SiphonLifeDot, self):
                 yield from self._siphon_life()
                 continue
 
@@ -812,12 +817,12 @@ class Warlock(Character):
         while True:
             self._use_cds(cds)
 
-            if not self.env.debuffs.is_curse_of_agony_active(self):
+            if not self.env.debuffs.is_dot_active(CurseOfAgonyDot, self):
                 yield from self._curse_of_agony()
                 continue
 
             # Keep Corruption up
-            if not self.env.debuffs.is_corruption_active(self):
+            if not self.env.debuffs.is_dot_active(CorruptionDot, self):
                 yield from self._corruption()
                 continue
 

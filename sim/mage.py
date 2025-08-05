@@ -13,6 +13,7 @@ from sim.talent_school import TalentSchool
 from sim.decorators import simrotation, simclass
 from sim.mage_options import MageOptions
 from sim.mage_talents import MageTalents
+from sim.fire_dots import FireballDot, PyroblastDot
 
 @simclass(MageTalents, MageOptions)
 class Mage(Character):
@@ -49,6 +50,9 @@ class Mage(Character):
                 self.damage_type_crit_mult[DamageType.ARCANE] += self.tal.arcane_potency * 0.25
 
         self._ice_barrier_expiration = 0
+
+    def get_class(self):
+        return self.__class__.__name__
 
     def reset(self):
         super().reset()
@@ -751,9 +755,9 @@ class Mage(Character):
             self.cds.combustion.cast_fire_spell()  # only happens on hit
 
             if spell == Spell.FIREBALL:
-                self.env.debuffs.add_fireball_dot(self)
+                self.env.debuffs.add_dot(FireballDot, self, 0)
             elif spell == Spell.PYROBLAST:
-                self.env.debuffs.add_pyroblast_dot(self)
+                self.env.debuffs.add_dot(PyroblastDot, self, 0)
             elif spell == Spell.SCORCH and self.tal.imp_scorch:
                 imp_scorch_chance = 100
                 if self.tal.imp_scorch < 3:

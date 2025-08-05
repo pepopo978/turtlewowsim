@@ -112,6 +112,9 @@ class Character:
         self.num_partials = 0
         self.num_resists = 0
 
+    def get_class(self):
+        raise NotImplementedError("Subclasses should implement this method")
+
     def attach_env(self, env: Environment):
         self.env = env
         if self.equipped_items:
