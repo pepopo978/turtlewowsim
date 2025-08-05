@@ -516,6 +516,10 @@ class Warlock(Character):
             yield self.env.timeout(self.env.GCD)
             return
         else:
+            self.env.process(self._check_for_procs(
+                spell=Spell.DRAIN_SOUL_CHANNEL,
+                damage_type=DamageType.SHADOW,
+                delay=Spell.DRAIN_SOUL_CHANNEL in SPELL_HAS_TRAVEL_TIME))
             self.print(f"{Spell.DRAIN_SOUL_CHANNEL.value}")
 
         num_ticks = 6
@@ -563,6 +567,10 @@ class Warlock(Character):
             yield self.env.timeout(self.env.GCD)
             return
         else:
+            self.env.process(self._check_for_procs(
+                spell=Spell.DARK_HARVEST_CHANNEL,
+                damage_type=DamageType.SHADOW,
+                delay=Spell.DARK_HARVEST_CHANNEL in SPELL_HAS_TRAVEL_TIME))
             self.print(f"{Spell.DARK_HARVEST_CHANNEL.value}")
 
         num_ticks = 8
