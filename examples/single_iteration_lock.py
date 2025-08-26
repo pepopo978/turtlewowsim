@@ -4,7 +4,11 @@ locks = []
 #
 lock = Warlock(name=f'affli', sp=1100, crit=10, haste=18, hit=6,
                tal=AfflictionLock(),
-               opts=WarlockOptions())
+               opts=WarlockOptions(),
+               equipped_items=EquippedItems(
+                   wrath_of_cenarius=True,
+               )
+               )
 lock.coa_corruption_siphon_harvest_drain()
 locks.append(lock)
 

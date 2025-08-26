@@ -283,7 +283,7 @@ class Mage(Character):
         while True:
             self._use_cds(cds)
 
-            if self.env.debuffs.scorch_stacks < 5 or self.env.debuffs.scorch_timer <= 4.5:
+            if self.env.debuffs.fire_vuln_stacks < 5 or self.env.debuffs.fire_vuln_timer <= 4.5:
                 yield from self._scorch()
             else:
                 yield from self._fireball()
@@ -294,7 +294,7 @@ class Mage(Character):
         yield from self._random_delay(delay)
         while True:
             self._use_cds(cds)
-            if self.env.debuffs.scorch_stacks < 5 or self.env.debuffs.scorch_timer <= 4.5:
+            if self.env.debuffs.fire_vuln_stacks < 5 or self.env.debuffs.fire_vuln_timer <= 4.5:
                 yield from self._scorch()
             elif self.fire_blast_cd.usable:
                 yield from self._fire_blast()
@@ -307,7 +307,7 @@ class Mage(Character):
         yield from self._random_delay(delay)
         while True:
             self._use_cds(cds)
-            if self.env.debuffs.scorch_stacks < 5 or self.env.debuffs.scorch_timer <= 4.5:
+            if self.env.debuffs.fire_vuln_stacks < 5 or self.env.debuffs.fire_vuln_timer <= 4.5:
                 yield from self._scorch()
             elif self.fire_blast_cd.usable:
                 yield from self._fire_blast()
@@ -389,7 +389,7 @@ class Mage(Character):
         return int(dmg)
 
     def check_for_ignite_extend(self, spell: Spell):
-        has_5_stack_scorch = self.env.debuffs.scorch_stacks == 5
+        has_5_stack_scorch = self.env.debuffs.fire_vuln_stacks == 5
         has_5_stack_ignite = self.env.debuffs.ignite and self.env.debuffs.ignite.stacks == 5
 
         has_ignite_extend_option = self.opts.extend_ignite_with_fire_blast or self.opts.extend_ignite_with_scorch
@@ -467,7 +467,7 @@ class Mage(Character):
                     dmg *= 1.25
 
             if self.arcane_rupture_cd.is_active() and spell == Spell.ARCANE_MISSILE:
-                dmg *= 1.25
+                dmg *= 1.20
                 arcane_rupture_applied = True
 
             if self.opts.t35_3_set and spell in {Spell.FLAMESTRIKE, Spell.CONE_OF_COLD, Spell.FROST_NOVA, Spell.BLASTWAVE, Spell.ARCANE_EXPLOSION}:
@@ -758,15 +758,15 @@ class Mage(Character):
                 self.env.debuffs.add_dot(FireballDot, self, 0)
             elif spell == Spell.PYROBLAST:
                 self.env.debuffs.add_dot(PyroblastDot, self, 0)
-            elif spell == Spell.SCORCH and self.tal.imp_scorch:
-                imp_scorch_chance = 100
-                if self.tal.imp_scorch < 3:
-                    imp_scorch_chance = 33 * self.tal.imp_scorch
+            elif (spell == Spell.SCORCH or spell == Spell.FIREBLAST) and self.tal.fire_vuln:
+                fire_vuln_chance = 100
+                if self.tal.fire_vuln < 3:
+                    fire_vuln_chance = 33 * self.tal.fire_vuln
                 # roll for whether debuff hits
                 fire_vuln_hit = self._roll_hit(self._get_hit_chance(spell), DamageType.FIRE)
                 if fire_vuln_hit:
-                    if imp_scorch_chance == 100 or self._roll_proc(imp_scorch_chance):
-                        self.env.debuffs.add_scorch()
+                    if fire_vuln_chance == 100 or self._roll_proc(fire_vuln_chance):
+                        self.env.debuffs.add_fire_vuln()
 
         if crit:
             if self.tal.ignite:
@@ -775,8 +775,8 @@ class Mage(Character):
             # check for hot streak
             if self.hot_streak and (spell == Spell.FIREBALL or spell == Spell.FIREBLAST):
                 hot_streak_hit = True
-                if self.tal.hot_streak < 3:
-                    hot_streak_hit = random.randint(1, 100) <= self.tal.hot_streak * 33
+                if self.tal.hot_streak == 1:
+                    hot_streak_hit = self._roll_proc(50)
 
                 if hot_streak_hit:
                     self.hot_streak.add_stack()

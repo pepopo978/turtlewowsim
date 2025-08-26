@@ -9,7 +9,7 @@ class MageTalents:
     # Fire
     improved_fireball: int = 0
     ignite: int = 0
-    imp_scorch: int = 0
+    fire_vuln: int = 0
     fire_power: int = 0
     critical_mass: int = 0
     hot_streak: int = 0
@@ -71,7 +71,7 @@ class FireMageTalents(MageTalents):
             imp_scorch=3,
             fire_power=5,
             critical_mass=0,  # generally counted in crit already, 2% per point
-            hot_streak=3,
+            hot_streak=2,
             incinerate_crit=4,
             fire_blast_cooldown=6.5,
             fire_blast_gcd=1

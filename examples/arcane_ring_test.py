@@ -44,5 +44,5 @@ mages.append(m)
 
 
 sim = Simulation(characters=mages, num_mobs=num_mobs)
-sim.run(iterations=10000, duration=120, print_casts=False)
+sim.run(iterations=10000, duration=180, print_casts=False)
 sim.detailed_report()

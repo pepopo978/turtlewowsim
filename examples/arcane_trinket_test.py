@@ -12,13 +12,14 @@ for i in range(num_trinkets):
     fm = None
     cds = CooldownUsages(arcane_power=5)
     if i == 0:
-        fm = Mage(name=f'nothing', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-                  tal=ArcaneMageTalents(),
-                  opts=MageOptions(),
-                  equipped_items=EquippedItems(
-                      ornate_bloodstone_dagger=False,
-                      wrath_of_cenarius=True,
-                  ))
+        pass
+        # fm = Mage(name=f'nothing', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
+        #           tal=ArcaneMageTalents(),
+        #           opts=MageOptions(),
+        #           equipped_items=EquippedItems(
+        #               ornate_bloodstone_dagger=False,
+        #               wrath_of_cenarius=True,
+        #           ))
     elif i == 1:
         fm = Mage(name=f'reos', sp=base_sp + 40, crit=base_crit, hit=base_hit, haste=base_haste,
                   tal=ArcaneMageTalents(),
@@ -54,57 +55,57 @@ for i in range(num_trinkets):
                       wrath_of_cenarius=True,
                       endless_gulch=True,
                   ))
-    elif i == 5:
-        fm = Mage(name=f'tear', sp=base_sp + 44, crit=base_crit, hit=base_hit + 2, haste=base_haste,
-                  tal=ArcaneMageTalents(),
-                  opts=MageOptions(),
-                  equipped_items=EquippedItems(
-                      ornate_bloodstone_dagger=False,
-                      wrath_of_cenarius=True,
-                  ))
-    elif i == 6:
-        fm = Mage(name=f'toep', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-                  tal=ArcaneMageTalents(),
-                  opts=MageOptions(),
-                  equipped_items=EquippedItems(
-                      ornate_bloodstone_dagger=False,
-                      wrath_of_cenarius=True,
-                  ))
-        cds = CooldownUsages(arcane_power=5, toep=5)
-    elif i == 7:
-        fm = Mage(name=f'mqg', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-                  tal=ArcaneMageTalents(),
-                  opts=MageOptions(),
-                  equipped_items=EquippedItems(
-                      ornate_bloodstone_dagger=False,
-                      wrath_of_cenarius=True,
-                  ))
-        cds = CooldownUsages(arcane_power=5, mqg=5)
-    elif i == 8:
-        fm = Mage(name=f'mark of champ', sp=base_sp + 85, crit=base_crit, hit=base_hit, haste=base_haste,
-                  tal=ArcaneMageTalents(),
-                  opts=MageOptions(),
-                  equipped_items=EquippedItems(
-                      ornate_bloodstone_dagger=False,
-                      wrath_of_cenarius=True,
-                  ))
-    elif i == 9:
-        fm = Mage(name=f'shard of nightmare', sp=base_sp + 36, crit=base_crit, hit=base_hit + 1, haste=base_haste,
-                  tal=ArcaneMageTalents(),
-                  opts=MageOptions(),
-                  equipped_items=EquippedItems(
-                      ornate_bloodstone_dagger=False,
-                      wrath_of_cenarius=True,
-                  ))
-    elif i == 10:
-        fm = Mage(name=f'zandalarian hero charm', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
-                  tal=ArcaneMageTalents(),
-                  opts=MageOptions(),
-                  equipped_items=EquippedItems(
-                      ornate_bloodstone_dagger=False,
-                      wrath_of_cenarius=True,
-                  ))
-        cds = CooldownUsages(arcane_power=5, zhc=5)
+    # elif i == 5:
+    #     fm = Mage(name=f'tear', sp=base_sp + 44, crit=base_crit, hit=base_hit + 2, haste=base_haste,
+    #               tal=ArcaneMageTalents(),
+    #               opts=MageOptions(),
+    #               equipped_items=EquippedItems(
+    #                   ornate_bloodstone_dagger=False,
+    #                   wrath_of_cenarius=True,
+    #               ))
+    # elif i == 6:
+    #     fm = Mage(name=f'toep', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
+    #               tal=ArcaneMageTalents(),
+    #               opts=MageOptions(),
+    #               equipped_items=EquippedItems(
+    #                   ornate_bloodstone_dagger=False,
+    #                   wrath_of_cenarius=True,
+    #               ))
+    #     cds = CooldownUsages(arcane_power=5, toep=5)
+    # elif i == 7:
+    #     fm = Mage(name=f'mqg', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
+    #               tal=ArcaneMageTalents(),
+    #               opts=MageOptions(),
+    #               equipped_items=EquippedItems(
+    #                   ornate_bloodstone_dagger=False,
+    #                   wrath_of_cenarius=True,
+    #               ))
+    #     cds = CooldownUsages(arcane_power=5, mqg=5)
+    # elif i == 8:
+    #     fm = Mage(name=f'mark of champ', sp=base_sp + 85, crit=base_crit, hit=base_hit, haste=base_haste,
+    #               tal=ArcaneMageTalents(),
+    #               opts=MageOptions(),
+    #               equipped_items=EquippedItems(
+    #                   ornate_bloodstone_dagger=False,
+    #                   wrath_of_cenarius=True,
+    #               ))
+    # elif i == 9:
+    #     fm = Mage(name=f'shard of nightmare', sp=base_sp + 36, crit=base_crit, hit=base_hit + 1, haste=base_haste,
+    #               tal=ArcaneMageTalents(),
+    #               opts=MageOptions(),
+    #               equipped_items=EquippedItems(
+    #                   ornate_bloodstone_dagger=False,
+    #                   wrath_of_cenarius=True,
+    #               ))
+    # elif i == 10:
+    #     fm = Mage(name=f'zandalarian hero charm', sp=base_sp, crit=base_crit, hit=base_hit, haste=base_haste,
+    #               tal=ArcaneMageTalents(),
+    #               opts=MageOptions(),
+    #               equipped_items=EquippedItems(
+    #                   ornate_bloodstone_dagger=False,
+    #                   wrath_of_cenarius=True,
+    #               ))
+    #     cds = CooldownUsages(arcane_power=5, zhc=5)
 
     if fm:
         # aoe test
@@ -117,5 +118,5 @@ for i in range(num_trinkets):
 # sim = Simulation(characters=mages, num_mobs=3, mob_level=60)
 # single target test
 sim = Simulation(characters=mages, num_mobs=1, mob_level=63)
-sim.run(iterations=10000, duration=30, print_casts=False)
+sim.run(iterations=10000, duration=300, print_casts=False, use_multiprocessing=True)
 sim.detailed_report()

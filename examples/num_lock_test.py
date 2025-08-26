@@ -14,19 +14,10 @@ locks = []
 
 lock = Warlock(name=f'affli control', sp=1005, crit=35, hit=10,
                tal=AfflictionLock(),
-               opts=WarlockOptions(siphon_life_bonus_35=False))
-lock.coa_corruption_siphon_harvest_drain()
-locks.append(lock)
-
-lock = Warlock(name=f'affli 3.5 3 set', sp=1005, crit=35, hit=10,
-               tal=AfflictionLock(),
-               opts=WarlockOptions(siphon_life_bonus_35=True))
-lock.coa_corruption_siphon_harvest_drain()
-locks.append(lock)
-
-lock = Warlock(name=f'affli 2.5 5 set', sp=1005, crit=35, hit=10,
-               tal=AfflictionLock(),
-               opts=WarlockOptions(doomcaller_dh_bonus_25=True, doomcaller_coa_bonus_25=True))
+               opts=WarlockOptions(siphon_life_bonus_35=False),
+               equipped_items=EquippedItems(
+                   wrath_of_cenarius=True,
+               ))
 lock.coa_corruption_siphon_harvest_drain()
 locks.append(lock)
 
@@ -46,5 +37,5 @@ locks.append(lock)
 # locks.append(lock)
 
 sim = Simulation(characters=locks)
-sim.run(iterations=10000, duration=300, use_multiprocessing=True)
+sim.run(iterations=10000, duration=180, use_multiprocessing=True)
 sim.detailed_report()
