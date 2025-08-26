@@ -1,20 +1,21 @@
 import random
 from functools import partial
 
+from sim.arcane_dots import MoonfireDot
 from sim.character import CooldownUsages
+from sim.decorators import simrotation, simclass
+from sim.druid_options import DruidOptions
 from sim.druid_rotation_cooldowns import ArcaneEclipseCooldown, NatureEclipseCooldown
+from sim.druid_talents import DruidTalents
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.mage_rotation_cooldowns import *
+from sim.nature_dots import InsectSwarmDot
 from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT, SPELL_HITS_MULTIPLE_TARGETS, \
     SPELL_HAS_TRAVEL_TIME
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
-from sim.decorators import simrotation, simclass
-from sim.druid_options import DruidOptions
-from sim.druid_talents import DruidTalents
-from sim.nature_dots import InsectSwarmDot
-from sim.arcane_dots import MoonfireDot
+
 
 @simclass(DruidTalents, DruidOptions)
 class Druid(Character):
@@ -86,13 +87,16 @@ class Druid(Character):
             mult += 0.1 * self.tal.vengeance
         return mult
 
+    def _get_crit_chance(self, damage_type: DamageType):
+        return self.crit + self._crit_bonus + self.damage_type_crit[damage_type]
+
     def modify_dmg(self, dmg: int, damage_type: DamageType, is_periodic: bool):
         dmg = super().modify_dmg(dmg, damage_type, is_periodic)
 
         if self.nature_eclipse.is_active() and damage_type == DamageType.NATURE:
-            dmg *= 1.3
+            dmg *= (1.1 + 0.6 * self._get_crit_chance(damage_type) / 100)
         elif self.arcane_eclipse.is_active() and damage_type == DamageType.ARCANE:
-            dmg *= 1.3
+            dmg *= (1.1 + 0.6 * self._get_crit_chance(damage_type) / 100)
 
         if self.tal.moonfury == 1:
             dmg *= 1.03
@@ -163,16 +167,20 @@ class Druid(Character):
             mult = self._get_crit_multiplier(talent_school, damage_type)
             dmg = int(dmg * mult)
 
-            if spell == Spell.STARFIRE and not self.arcane_eclipse.is_active():
-                # try to activate eclipse
-                self.nature_eclipse.activate()
-            elif spell == Spell.WRATH and not self.nature_eclipse.is_active():
-                self.arcane_eclipse.activate()
-
             if self.tal.natures_grace:
                 self.natures_grace_active = True
 
             self.print(f"{spell.value} {description} {partial_desc} **{dmg}**")
+
+        if hit:
+            if spell == Spell.STARFIRE and not self.arcane_eclipse.is_active():
+                # 50% chance to enter arcane eclipse on starfire hit
+                if self._roll_proc(50):
+                    self.nature_eclipse.activate()
+            elif spell == Spell.WRATH and not self.nature_eclipse.is_active():
+                # 30% chance to enter nature eclipse on wrath hit
+                if self._roll_proc(30):
+                    self.arcane_eclipse.activate()
 
         if hit and self.cds.zhc.is_active():
             self.cds.zhc.use_charge()
@@ -235,7 +243,7 @@ class Druid(Character):
             casting_time -= 0.5
 
         if self.balance_of_all_things_stacks > 0:
-            casting_time -= 1 if self.opts.set_bonus_3_5_boat else .75
+            casting_time -= 1 if self.opts.set_bonus_3_5_boat else .5
             if self.opts.ebb_and_flow_idol:
                 casting_time -= 0.2
 

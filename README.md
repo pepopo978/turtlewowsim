@@ -2,9 +2,9 @@
 
 Simulation for Turtle WoW that currently supports Arcane/Fire/Frost Mages, Boomkins, Locks. 
 
-# Warlock/Boomkin updated for 1.17.2
+# Warlock updated for 1.17.2
 
-# Mage updated for 1.18.0
+# Mage/Boomkin updated for 1.18.0
 
 ## Installation
 
