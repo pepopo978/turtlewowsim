@@ -56,7 +56,7 @@ SPELL_COEFFICIENTS = {
     Spell.SEARING_PAIN: 0.4285,
     Spell.SHADOWBOLT: 0.8571,
     Spell.DRAIN_SOUL: 0.2, # not actually .1667 in game as stated
-    Spell.SOUL_FIRE: 1.25,
+    Spell.SOUL_FIRE: 1.14,
     Spell.DARK_HARVEST: .28,  # per tick
 
     # Mage

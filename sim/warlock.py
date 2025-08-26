@@ -7,13 +7,13 @@ from sim.decorators import simclass, simrotation
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
 from sim.fire_dots import ImmolateDot
+from sim.shadow_dots import CorruptionDot, CurseOfAgonyDot, SiphonLifeDot
 from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_HITS_MULTIPLE_TARGETS, SPELL_TRIGGERS_ON_HIT, \
     SPELL_HAS_TRAVEL_TIME
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
 from sim.warlock_options import WarlockOptions
 from sim.warlock_talents import WarlockTalents
-from sim.shadow_dots import CorruptionDot, CurseOfAgonyDot, SiphonLifeDot
 
 
 class ConflagrateCooldown(Cooldown):
@@ -114,22 +114,21 @@ class Warlock(Character):
         dmg = super().modify_dmg(dmg, damage_type, is_periodic)
 
         if self.tal.soul_entrapment:
-            dmg *= 1.03
+            dmg *= (1 + 0.02 * self.tal.soul_entrapment)
+
+        if self.tal.imp_sacrifice:
+            dmg *= 1.04
 
         if damage_type == DamageType.SHADOW:
-            if self.tal.succubus_sacrifice:
-                dmg *= 1.06
             if self.tal.shadow_mastery:
                 dmg *= 1.1
 
         if damage_type == DamageType.FIRE:
-            if self.tal.imp_sacrifice:
-                dmg *= 1.06
             if self.tal.emberstorm:
                 dmg *= 1 + self.tal.emberstorm * 0.02
             if self.tal.improved_soul_fire and self.soul_fire_cd.on_cooldown:
                 # while soul fire is on cooldown, the buff is active
-                dmg *= 1 + self.tal.improved_soul_fire * 0.08
+                dmg *= 1 + self.tal.improved_soul_fire * 0.1
 
         return int(dmg)
 
