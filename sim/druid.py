@@ -497,6 +497,24 @@ class Druid(Character):
 
         return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
 
+    def _maximize_eclipse(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        def _rotation_callback():
+            if not self.env.debuffs.is_dot_active(MoonfireDot, self) and self.env.remaining_time() > 20:
+                yield from self._moonfire()
+            elif not self.env.debuffs.is_dot_active(InsectSwarmDot, self) and self.env.remaining_time() > 20:
+                yield from self._insect_swarm()
+            elif self.nature_eclipse.usable:
+                yield from self._starfire()
+            elif self.arcane_eclipse.usable:
+                yield from self._wrath()
+            else:
+                yield from self._starfire()
+
+        return self._base_rotation(cds=cds, delay=delay, rotation_callback=_rotation_callback)
+
+    @simrotation("Maximize Eclipse")
+    def maximize_eclipse(self, cds: CooldownUsages = CooldownUsages(), delay=2):
+        return partial(self._set_rotation, name="maximize_eclipse")(cds=cds, delay=delay)
 
     @simrotation("Moonfire -> Insect Swarm -> Wrath")
     def moonfire_insect_swarm_wrath(self, cds: CooldownUsages = CooldownUsages(), delay=2):

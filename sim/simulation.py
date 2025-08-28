@@ -1,5 +1,6 @@
 import os
 import time
+import traceback
 from collections import defaultdict
 from concurrent.futures import TimeoutError
 from copy import deepcopy
@@ -152,7 +153,7 @@ def run_simulation(args, chunk_range):
 
         return chunk_results
     except Exception as e:
-        return {"error": str(e), "chunk": chunk_range}
+        return {"error": str(e), "traceback": traceback.format_exc(), "chunk": chunk_range}
 
 
 class Simulation:
@@ -263,7 +264,7 @@ class Simulation:
 
             error_chunks = [r for r in results if 'error' in r]
             if error_chunks:
-                error_msg = "\n".join(f"Chunk {ec['chunk']}: {ec['error']}" for ec in error_chunks[:3])
+                error_msg = "\n".join(f"Chunk {ec['chunk']}: {ec['error']}\nStacktrace:\n{ec.get('traceback', 'No traceback available')}" for ec in error_chunks[:3])
                 raise RuntimeError(f"Errors in chunks:\n{error_msg}")
 
             if len(results) != total_chunks:

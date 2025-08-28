@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import List, Union
 import multiprocessing
 import numpy as np
+import traceback
 import plotly.express as px
 import plotly.graph_objects as go
 import time
@@ -133,7 +134,7 @@ def run_simulation(args, chunk_range):
         
         return chunk_results
     except Exception as e:
-        return {"error": str(e), "chunk": chunk_range}
+        return {"error": str(e), "traceback": traceback.format_exc(), "chunk": chunk_range}
 
 class Simulation:
     def __init__(self,
@@ -216,7 +217,7 @@ class Simulation:
         # Error checking
         error_chunks = [r for r in results if 'error' in r]
         if error_chunks:
-            error_msg = "\n".join(f"Chunk {ec['chunk']}: {ec['error']}" for ec in error_chunks[:3])
+            error_msg = "\n".join(f"Chunk {ec['chunk']}: {ec['error']}\nStacktrace:\n{ec.get('traceback', 'No traceback available')}" for ec in error_chunks[:3])
             raise RuntimeError(f"Errors in chunks:\n{error_msg}")
 
         if len(results) != total_chunks:

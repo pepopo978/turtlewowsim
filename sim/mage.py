@@ -2,18 +2,19 @@ import random
 from functools import partial
 
 from sim.character import CooldownUsages
+from sim.decorators import simrotation, simclass
 from sim.env import Environment
 from sim.equipped_items import EquippedItems
+from sim.fire_dots import FireballDot, PyroblastDot
 from sim.hot_streak import HotStreak
+from sim.mage_options import MageOptions
 from sim.mage_rotation_cooldowns import *
+from sim.mage_talents import MageTalents
 from sim.spell import Spell, SPELL_COEFFICIENTS, SPELL_TRIGGERS_ON_HIT, SPELL_HITS_MULTIPLE_TARGETS, \
     SPELL_HAS_TRAVEL_TIME
 from sim.spell_school import DamageType
 from sim.talent_school import TalentSchool
-from sim.decorators import simrotation, simclass
-from sim.mage_options import MageOptions
-from sim.mage_talents import MageTalents
-from sim.fire_dots import FireballDot, PyroblastDot
+
 
 @simclass(MageTalents, MageOptions)
 class Mage(Character):
@@ -640,7 +641,11 @@ class Mage(Character):
         for i in range(num_missiles):
             # check for interrupts
             # don't surge during haste cds as it has gcd that is not reduced by haste
-            if interrupt_for_surge and self.arcane_surge_cd.usable and not self.has_trinket_or_cooldown_haste():
+            # don't interrupt rupture missiles either
+            if interrupt_for_surge and \
+                    self.arcane_surge_cd.usable and \
+                    not self.has_trinket_or_cooldown_haste() \
+                    and not self.arcane_rupture_cd.is_active():
                 # if rupture not active, use surge immediately
                 if not self.arcane_rupture_cd.is_active():
                     yield self.env.timeout(self.opts.delay_when_interrupting_missiles)
