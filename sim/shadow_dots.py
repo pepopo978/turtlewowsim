@@ -23,8 +23,15 @@ class CorruptionDot(WarlockShadowDot):
 
         self.coefficient = 0.1666
         self.base_time_between_ticks = 3
-        self.ticks_left = 6
-        self.starting_ticks = 6
+        
+        # Base duration is 18 seconds (6 ticks * 3 seconds)
+        # Eye of Dormant Corruption adds 3 seconds (1 extra tick)
+        base_ticks = 6
+        if owner.opts.eye_of_dormant_corruption:
+            base_ticks += 1
+            
+        self.ticks_left = base_ticks
+        self.starting_ticks = base_ticks
         self.base_tick_dmg = 137
 
     def _do_dmg(self):

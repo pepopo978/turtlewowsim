@@ -11,3 +11,4 @@ class EquippedItems:
     true_band_of_sulfuras: bool = simequipped("True Band of Sulfuras (5% haste proc)", default=False)
     unceasing_frost: bool = simequipped("Unceasing Frost (+5% fire damage)", default=False)
     bindings_of_contained_magic: bool = simequipped("Bindings of Contained Magic (10% chance of 100sp for 6s)", default=False)
+    sigil_of_ancient_accord: bool = simequipped("Sigil of Ancient Accord (8% chance for 400 arcane damage)", default=False)

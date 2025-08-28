@@ -8,6 +8,7 @@ class ItemProc:
     PERCENT_CHANCE = 0
     COOLDOWN = 0
     PRINT_PROC = False
+    PROC_CHANCE_AFFECTED_BY_ENEMIES_HIT = False
 
     def __init__(self, character, callback):
         self.character = character
@@ -31,6 +32,11 @@ class ItemProc:
     def check_for_proc(self, current_time: int, num_mobs: int, spell: Spell, damage_type: DamageType):
         if self.COOLDOWN and self.last_proc_time + self.COOLDOWN > current_time:
             return
+
+        # turtle changed most procs to only roll once when hitting multiple enemies
+        if num_mobs > 1 and not self.PROC_CHANCE_AFFECTED_BY_ENEMIES_HIT:
+            # turtle changed most procs to only roll once when hitting multiple enemies
+            num_mobs = 1
 
         self.proc_rolls += num_mobs
 
@@ -57,6 +63,7 @@ class ItemProc:
 
 class BladeOfEternalDarkness(ItemProc):
     PERCENT_CHANCE = 10
+    PROC_CHANCE_AFFECTED_BY_ENEMIES_HIT = True
 
 
 class OrnateBloodstoneDagger(ItemProc):
@@ -67,7 +74,7 @@ class OrnateBloodstoneDagger(ItemProc):
 
 class WrathOfCenarius(ItemProc):
     PERCENT_CHANCE = 5
-
+    PROC_CHANCE_AFFECTED_BY_ENEMIES_HIT = True
 
 class EndlessGulch(ItemProc):
     PERCENT_CHANCE = 20
@@ -79,7 +86,7 @@ class UnceasingFrost(ItemProc):
 
 class TrueBandOfSulfuras(ItemProc):
     PERCENT_CHANCE = 8
-    PERCENT_CHANCE_FIRE = 58
+    PERCENT_CHANCE_FIRE = 12
 
     def _roll_proc(self, spell: Spell, damage_type: DamageType, num_mobs: int = 1):
         chance = self.PERCENT_CHANCE_FIRE if damage_type == DamageType.FIRE else self.PERCENT_CHANCE
@@ -92,4 +99,10 @@ class TrueBandOfSulfuras(ItemProc):
 
 class BindingsOfContainedMagic(ItemProc):
     PERCENT_CHANCE = 10
-    COOLDOWN = 36  # 36-second ICD
+    COOLDOWN = 18  # 18-second ICD
+
+
+class SigilOfAncientAccord(ItemProc):
+    PERCENT_CHANCE = 8
+    COOLDOWN = 2
+    PRINT_PROC = True

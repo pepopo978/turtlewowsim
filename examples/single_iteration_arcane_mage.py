@@ -12,6 +12,7 @@ m = Mage(name=f'interrupt for s + r', sp=1000, crit=40, hit=16, haste=haste,
              ornate_bloodstone_dagger=False,
              wrath_of_cenarius=True,
              endless_gulch=False,
+             sigil_of_ancient_accord=True
          ))
 m.arcane_surge_rupture_missiles(cds=CooldownUsages())
 mages.append(m)

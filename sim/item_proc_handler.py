@@ -39,7 +39,9 @@ class ItemProcHandler:
                 self.procs.append(UnceasingFrost(character, self._unceasing_frost_proc))
             if equipped_items.bindings_of_contained_magic:
                 self.bindings_buff = BindingsOfContainedMagicBuff(character)
-                self.procs.append(BindingsOfContainedMagic(character, self._bindings_proc))                   
+                self.procs.append(BindingsOfContainedMagic(character, self._bindings_proc))
+            if equipped_items.sigil_of_ancient_accord:
+                self.procs.append(SigilOfAncientAccord(character, self._sigil_of_ancient_accord_proc))                   
 
 
     def check_for_procs(self, current_time, spell: Spell, damage_type: DamageType):
@@ -88,3 +90,41 @@ class ItemProcHandler:
     def _bindings_proc(self):
         if self.bindings_buff:
             self.bindings_buff.activate()
+
+    def _sigil_of_ancient_accord_proc(self):
+        dmg = self.character.roll_spell_dmg(400, 400, SPELL_COEFFICIENTS.get(Spell.ANCIENT_ACCORD, 0),  DamageType.ARCANE)
+        dmg = self.character.modify_dmg(dmg, DamageType.ARCANE, is_periodic=False)
+
+        # roll crit
+        if self.character._roll_crit(self.character.crit, DamageType.ARCANE):
+            dmg *= 1.5
+
+        partial_amount = self.character.roll_partial(is_dot=False, is_binary=False)
+        if partial_amount < 1:
+            dmg = int(dmg * partial_amount)
+
+        self.env.meter.register_proc_dmg(
+            char_name=self.character.name,
+            spell_name=Spell.ANCIENT_ACCORD.value,
+            dmg=dmg,
+            aoe=False)
+
+        additional_mobs = self.env.num_mobs - 1
+        if additional_mobs > 0:
+            extra_dmg = 100 * additional_mobs
+            dmg = self.character.roll_spell_dmg(extra_dmg, extra_dmg, SPELL_COEFFICIENTS.get(Spell.ANCIENT_ACCORD_SPLASH, 0),
+                                                DamageType.ARCANE)
+            dmg = self.character.modify_dmg(dmg, DamageType.ARCANE, is_periodic=False)
+            # roll crit
+            if self.character._roll_crit(self.character.crit, DamageType.ARCANE):
+                dmg *= 1.5
+
+            partial_amount = self.character.roll_partial(is_dot=False, is_binary=False)
+            if partial_amount < 1:
+                dmg = int(dmg * partial_amount)
+
+            self.env.meter.register_proc_dmg(
+                char_name=self.character.name,
+                spell_name=Spell.ANCIENT_ACCORD_SPLASH.value,
+                dmg=dmg,
+                aoe=False)

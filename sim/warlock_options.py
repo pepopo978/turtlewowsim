@@ -11,3 +11,4 @@ class WarlockOptions:
     siphon_life_bonus_35: bool = simoption("50% more siphon", default=False)
     use_nightfall_as_affliction: bool = simoption("Use nightfall on shadow bolt as affliction", default=False)
     use_nightfall_as_fire: bool = simoption("Use nightfall on fire", default=False)
+    eye_of_dormant_corruption: bool = simoption("Eye of Dormant Corruption - increases corruption duration by 3 sec", default=False)
